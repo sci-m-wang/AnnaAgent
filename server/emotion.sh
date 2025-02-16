@@ -1,0 +1,1 @@
+vllm serve /datas/huggingface/Qwen2.5-7B-Instruct --dtype auto --api_key emotion_inferencer --enable-auto-tool-choice --tool-call-parser hermes --served-model-name emotion --enable-lora --lora-modules emotion-lora=/datas/wangm/MS-Patient/saves/Qwen2.5-7B-Instruct/lora/qwen_eic_7b-instruct

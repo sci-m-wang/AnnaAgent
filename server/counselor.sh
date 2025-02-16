@@ -1,0 +1,1 @@
+vllm serve /datas/huggingface/CPsyCounX --dtype auto --api_key counselor --served-model-name counselor --port 8002

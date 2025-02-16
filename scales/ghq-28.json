@@ -1,0 +1,254 @@
+[
+    {
+        "question": "Been feeling perfectly well and in good health?",
+        "options": [
+            "A. Better than usual",
+            "B. Same as usual",
+            "C. Worse than usual",
+            "D. Much worse than usual"
+        ]
+    },
+    {
+        "question": "Been feeling in need of a good topic?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been feeling run down and out of sorts?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Felt that you are ill?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been getting any pains in your head?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been getting a feeling of tightness or pressure in your head?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been having hot or cold spells?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Lost much sleep over worry?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Had difficulty in staying asleep once you are off?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Felt constantly under strain?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been getting edgy and bad-tempered?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been getting scared or panicky for no good reason?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Found everything getting on top of you?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been feeling nervous and strung-up all the time?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Been managing to keep yourself busy and occupied?",
+        "options": [
+            "A. More so than usual",
+            "B. Same as usual",
+            "C. Rather less than usual",
+            "D. Much less than usual"
+        ]
+    },
+    {
+        "question": "Been taking longer over the things you do?",
+        "options": [
+            "A. Quicker than usual",
+            "B. Same as usual",
+            "C. Longer than usual",
+            "D. Much longer than usual"
+        ]
+    },
+    {
+        "question": "Felt on the whole you were doing things well?",
+        "options": [
+            "A. Better than usual",
+            "B. About the same",
+            "C. Less well than usual",
+            "D. Much less well"
+        ]
+    },
+    {
+        "question": "Been satisfied with the way you’ve carried out your task?",
+        "options": [
+            "A. More satisfied",
+            "B. About same as usual",
+            "C. Less satisfied than usual",
+            "D. Much less satisfied"
+        ]
+    },
+    {
+        "question": "Felt that you are playing a useful part in things?",
+        "options": [
+            "A. More so than usual",
+            "B. Same as usual",
+            "C. Less useful than usual",
+            "D. Much less useful"
+        ]
+    },
+    {
+        "question": "Felt capable of making decisions about things?",
+        "options": [
+            "A. More so than usual",
+            "B. Same as usual",
+            "C. Less so than usual",
+            "D. Much less capable"
+        ]
+    },
+    {
+        "question": "Been able to enjoy your normal day-to-day activities?",
+        "options": [
+            "A. More so than usual",
+            "B. Same as usual",
+            "C. Less so than usual",
+            "D. Much less than usual"
+        ]
+    },
+    {
+        "question": "Been thinking of yourself as a worthless person?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Felt that life is entirely hopeless?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Felt that life isn’t worth living?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Thought of the possibility that you might make away with yourself?",
+        "options": [
+            "A. Definitely not",
+            "B. I don't think so",
+            "C. Has crossed my mind",
+            "D. Definitely have"
+        ]
+    },
+    {
+        "question": "Found at times you couldn’t do anything because your nerves were too bad?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Found yourself wishing you were dead and away from it all?",
+        "options": [
+            "A. Not at all",
+            "B. No more than usual",
+            "C. Rather more than usual",
+            "D. Much more than usual"
+        ]
+    },
+    {
+        "question": "Found that the idea of taking your own life kept coming into your mind?",
+        "options": [
+            "A. Definitely not",
+            "B. I don't think so",
+            "C. Has crossed my mind",
+            "D. Definitely have"
+        ]
+    }
+]

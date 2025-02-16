@@ -1,0 +1,191 @@
+[
+    {
+        "question": "How interested are you in your occupation?",
+        "options": [
+            "A. 3 — very",
+            "B. 2 — moderately",
+            "C. 1 — a little",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "How interested are you in your home-related activities?",
+        "options": [
+            "A. 3 — very",
+            "B. 2 — moderately",
+            "C. 1 — a little",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "Do you pursue this occupation, these activities with:",
+        "options": [
+            "A. 3 — a lot of enjoyment?",
+            "B. 2 — some enjoyment?",
+            "C. 1 — only a little enjoyment?",
+            "D. 0 — no enjoyment at all?"
+        ]
+    },
+    {
+        "question": "Are you interested in hobbies/leisure?",
+        "options": [
+            "A. 3 — very",
+            "B. 2 — moderately",
+            "C. 1 — a little",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "Is the quality of your spare time:",
+        "options": [
+            "A. 3 — very good?",
+            "B. 2 — good?",
+            "C. 1 — fair?",
+            "D. 0 — unsatisfactory?"
+        ]
+    },
+    {
+        "question": "How frequently do you seek contacts with your family members (spouse, children, parents, etc.)?",
+        "options": [
+            "A. 3 — very frequently",
+            "B. 2 — frequently",
+            "C. 1 — rarely",
+            "D. 0 — never"
+        ]
+    },
+    {
+        "question": "Is the state of relations in your family:",
+        "options": [
+            "A. 3 — very good?",
+            "B. 2 — good?",
+            "C. 1 — fair?",
+            "D. 0 — unsatisfactory?"
+        ]
+    },
+    {
+        "question": "Outside of your family, do you have relationships with:",
+        "options": [
+            "A. 3 — many people?",
+            "B. 2 — some people?",
+            "C. 1 — only a few people?",
+            "D. 0 — nobody?"
+        ]
+    },
+    {
+        "question": "Do you try to form relationships with others:",
+        "options": [
+            "A. 3 — very actively?",
+            "B. 2 — actively?",
+            "C. 1 — moderately activity?",
+            "D. 0 — in no active way?"
+        ]
+    },
+    {
+        "question": "How — in general — do you rate your relationships with other people?",
+        "options": [
+            "A. 3 — very good",
+            "B. 2 — good",
+            "C. 1 — fair",
+            "D. 0 — unsatisfactory"
+        ]
+    },
+    {
+        "question": "What value to you attach to your relationships with others?",
+        "options": [
+            "A. 3 — great value",
+            "B. 2 — some value",
+            "C. 1 — only a little value",
+            "D. 0 — no value at all"
+        ]
+    },
+    {
+        "question": "How often do people in your social circle seek contact with you?",
+        "options": [
+            "A. 3 — very often",
+            "B. 2 — often",
+            "C. 1 — rarely",
+            "D. 0 — never"
+        ]
+    },
+    {
+        "question": "Do you observe the social rules, good manner, politeness, etc.",
+        "options": [
+            "A. 3 — always",
+            "B. 2 — most of the time",
+            "C. 1 — rarely",
+            "D. 0 — never"
+        ]
+    },
+    {
+        "question": "To what extent are you involved in community life (such as club, church, etc.)",
+        "options": [
+            "A. 3 — fully",
+            "B. 2 — moderately",
+            "C. 1 — slightly",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "Do you like searching for information about things, situations and people to improve your understanding of them?",
+        "options": [
+            "A. 3 — very much",
+            "B. 2 — moderately",
+            "C. 1 — not much",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "Are you interested in scientific, technical or cultural information?",
+        "options": [
+            "A. 3 — very",
+            "B. 2 — moderately",
+            "C. 1 — only slightly",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "How often do you find it difficult to express your opinions to people?",
+        "options": [
+            "A. 0 — always",
+            "B. 1 — often",
+            "C. 2 — sometimes",
+            "D. 3 — never"
+        ]
+    },
+    {
+        "question": "How often do you feel rejected, excluded from your circle?",
+        "options": [
+            "A. 0 — always",
+            "B. 1 — often",
+            "C. 2 — sometimes",
+            "D. 3 — never"
+        ]
+    },
+    {
+        "question": "How important do you consider your physical appearance?",
+        "options": [
+            "A. 3 — very",
+            "B. 2 — moderately",
+            "C. 1 — not very much",
+            "D. 0 — not at all"
+        ]
+    },
+    {
+        "question": "To what extent do you have difficulties in managing your resources and income?",
+        "options": [
+            "A. 0 — always",
+            "B. 1 — often",
+            "C. 2 — sometimes",
+            "D. 3 — never"
+        ]
+    },
+    {
+        "question": "Do you feel able to organise your environment according to your wishes and needs?",
+        "options": [
+            "A. 3 — very much so",
+            "B. 2 — moderately",
+            "C. 1 — not very",
+            "D. 0 — not at all"
+        ]
+    }
+]
