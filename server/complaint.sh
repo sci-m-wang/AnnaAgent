@@ -1,1 +1,1 @@
-vllm serve /datas/huggingface/Qwen2.5-7B-Instruct --dtype auto --api_key complaint_chain --port 8001 --enable-auto-tool-choice --tool-call-parser hermes --served-model-name complaint --enable-lora --lora-modules emotion-lora=/datas/wangm/MS-Patient/saves/Qwen2.5-7B-Instruct/lora/chain
+vllm serve /datas/huggingface/Qwen2.5-7B-Instruct --dtype auto --api_key complaint_chain --port 8001 --enable-auto-tool-choice --tool-call-parser hermes --served-model-name complaint --enable-lora --lora-modules emotion-lora=./MS-Patient/saves/Qwen2.5-7B-Instruct/lora/chain
