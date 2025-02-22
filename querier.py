@@ -46,7 +46,7 @@ def is_need(utterance):
     response = client.chat.completions.create(
         model=model_name,
         messages=[
-            {"role": "user", "content": f"下面这句话是心理咨询f询师说的话，请判断它是否提及了之前疗程的内容。\n### 话语\n{utterance}"}
+            {"role": "user", "content": f"下面这句话是心理咨询师说的话，请判断它是否提及了之前疗程的内容。\n### 话语\n{utterance}"}
         ],
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "is_need"}}
