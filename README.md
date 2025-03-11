@@ -6,4 +6,4 @@ It is important to note that since this work involves data from counselling reco
 
 Due to the fact that real user data is involved, we are unable to open source the main document until further privacy and ethical reviews are completed. To make it easier for readers to learn how to use it, we add the flowchart below:
 
-![](https://github.com/sci-m-wang/AnnaAgent/blob/main/figure/whiteboard_exported_image_en.png)
+![](https://github.com/sci-m-wang/AnnaAgent/figure/whiteboard_exported_image_en.png)
