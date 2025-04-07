@@ -86,6 +86,7 @@ def fill_scales_previous(profile, report):
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "fill_bdi"}}
     )
+    # print(response.choices[0].message.tool_calls[0].function.arguments)
     bdi = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["answers"]
 
     # 填写GHQ-28量表
@@ -97,6 +98,7 @@ def fill_scales_previous(profile, report):
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "fill_ghq"}}
     )
+    # print(response.choices[0].message.tool_calls[0].function.arguments)
     ghq = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["answers"]
 
     # 填写SASS量表
@@ -123,11 +125,13 @@ def fill_scales(prompt):
         model=model_name,
         messages=[
             {"role": "system", "content": prompt},
-            {"role": "user", "content": f"### 任务\n填写量表。"}
+            {"role": "user", "content": f"### 任务\n请根据你的情况填写量表。"}
         ],
         tools = tools,
-        tool_choice={"type": "function", "function": {"name": "fill_bdi"}}
+        tool_choice={"type": "function", "function": {"name": "fill_bdi"}},
+        temperature=0
     )
+    # print(response)
     bdi = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["answers"]
 
     # 填写GHQ-28量表
@@ -135,7 +139,7 @@ def fill_scales(prompt):
         model=model_name,
         messages=[
             {"role": "system", "content": prompt},
-            {"role": "user", "content": f"### 任务\n填写量表。"}
+            {"role": "user", "content": f"### 任务\n请根据你的情况填写量表。"}
         ],
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "fill_ghq"}}
@@ -147,11 +151,12 @@ def fill_scales(prompt):
         model=model_name,
         messages=[
             {"role": "system", "content": prompt},
-            {"role": "user", "content": f"### 任务\n填写量表。"}
+            {"role": "user", "content": f"### 任务\n请根据你的情况填写量表。"}
         ],
         tools = tools,
         tool_choice={"type": "function","function": {"name": "fill_sass"}}
     )
+    # print(response)
     sass = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["answers"]
 
     return bdi, ghq, sass

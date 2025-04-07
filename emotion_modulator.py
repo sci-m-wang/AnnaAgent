@@ -69,5 +69,3 @@ def emotion_modulation(profile, conversation):
         return perturb_state(emotion)
     else:
         return emotion
-
-

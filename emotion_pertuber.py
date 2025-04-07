@@ -97,4 +97,3 @@ def perturb_state(current_state):
     probabilities = calculate_probabilities(current_state, states, category_distances, distance_weights)
     next_state = random.choices(list(probabilities.keys()), weights=list(probabilities.values()), k=1)[0]
     return next_state
-

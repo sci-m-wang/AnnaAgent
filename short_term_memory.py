@@ -47,13 +47,13 @@ def analyzing_changes(scales):
     )
     # 导入量表及问题
     bdi_scale = json.load(open("./scales/bdi.json", "r"))
-    ghq_scale = json.load(open("./scales/ghq.json", "r"))
+    ghq_scale = json.load(open("./scales/ghq-28.json", "r"))
     sass_scale = json.load(open("./scales/sass.json", "r"))
     # 总结bdi的变化
     response = client.chat.completions.create(
         model=model_name,
         messages=[
-            {"role": "user", "content": f"### 任务\n根据量表的问题和答案，总结出两份量表之间的变化。\n### 量表及问题\{bdi_scale} ### 第一份量表的答案\n{scales['p_bdi']}\n### 第二份量表的答案\n{scales["bdi"]}"}
+            {"role": "user", "content": f"### 任务\n根据量表的问题和答案，总结出两份量表之间的变化。\n### 量表及问题\{bdi_scale} ### 第一份量表的答案\n{scales['p_bdi']}\n### 第二份量表的答案\n{scales['bdi']}"}
         ],
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}}
@@ -95,8 +95,9 @@ def summarize_scale_changes(scales):
             {"role": "user", "content": f"### 任务\n根据量表的变化，总结患者的身体和心理状态变化。\n### 量表变化\n{bdi_changes}\n{ghq_changes}\n{sass_changes}"}
         ],
         tools = tools,
-        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}}
+        tool_choice={"type": "function", "function": {"name": "summarizing_changes"}}
     )
+    # print(response)
     status = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["status"]
     return status
 
