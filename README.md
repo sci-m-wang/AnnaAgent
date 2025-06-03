@@ -1,6 +1,6 @@
 # AnnaAgent
 
-The code for the paper `AnnaAgent: Dynamic Evolution Agent Systerm with Multi-Session Memory for Realistic Seeker Simulation`.
+The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation`.
 
 ## CLAIM
 
@@ -39,3 +39,16 @@ In addition, there are supplementary modules for speaking style analysis, scale 
 At the initialization stage, the seeker's **basic profile** and historical session conversations and reports from **long-term memory** are first read. The seeker's style is analyzed based on previous session's conversations by the *speaking style analysis module* next. The *scale summarization module* summarizes **historical scales** based on the seeker's profile and reports. Then, the *event selection module* matches a suitable event based on the seeker's profile and the *situation analyzer* generates a situation that the seeker encounters based on the event. Meanwhile, the virtual seeker is required to complete the scales for the **current session** based on the current configurations and the *status analyzer* analyzes the change in the seeker's status based on the two groups of scales. Situations and statuses together make up **short-term memory**. In addition, the **chief complaint chain generator** generates a chief complaint chain based on the seeker's profile and long-term memory during the initialization stage.
 
 At the **conversation stage**, AnnaAgent has a conversation with a counselor. For each utterance by the counselor, the *memory retriever* determines whether long-term memory needs to be **retrieved**. If it is needed, relevant information is retrieved from conversations and reports from **previous sessions**. In addition, the *emotion modulator* reasons the **seeker's next emotion** and performs emotion perturbation on a probability basis according to the real-time memory, i.e., the context of the conversation. After the seeker completes an utterance, the *complaint switcher* decides whether or not to awaken the seeker's **next chief complaint stage**.
+
+## Citation
+```bibtex
+@article{wang2025annaagentdynamicevolutionagent,
+      title={AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation}, 
+      author={Ming Wang and Peidong Wang and Lin Wu and Xiaocui Yang and Daling Wang and Shi Feng and Yuxin Chen and Bixuan Wang and Yifei Zhang},
+      year={2025},
+      eprint={2506.00551},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2506.00551}, 
+}
+```
