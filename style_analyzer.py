@@ -45,6 +45,6 @@ def analyze_style(profile, conversations):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "analyze_style"}}
     )
-    # print(response.choices[0].message.tool_calls[0].function.arguments)
+    print(response)
     style = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["style"]
     return style

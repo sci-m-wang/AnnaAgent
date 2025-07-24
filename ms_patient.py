@@ -40,7 +40,12 @@ class MsPatient:
         seeker_utterances = [utterance["content"] for utterance in self.previous_conversations if utterance["role"] == "Seeker"]
         self.configuration["statement"] = random.choices(seeker_utterances,k=3)
         # 填写当前量表
-        self.bdi, self.ghq, self.sass = fill_scales(prompt_template.format(**self.configuration))
+
+        bdi = ["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B"]
+        ghq = ["C","C","B","B","D","C","B","C","B","B","D","B","C","B","D","B","C","B","D","B","C","B","B","B","D","B","B","B"]
+        sass = ["B","B","C","B","C","B","B","B","B","B","C","B","C","B","C","B","B","B","B","B","B"]
+        # self.bdi, self.ghq, self.sass = fill_scales(prompt_template.format(**self.configuration))
+        self.bdi, self.ghq, self.sass = bdi, ghq, sass
         scales = {
             "p_bdi": self.p_bdi,
             "p_ghq": self.p_ghq,
@@ -74,16 +79,19 @@ class MsPatient:
             sup_information = query(message, self.previous_conversations, self.report)
             
             # 生成回复
+            messages = [{"role": "system", "content": self.system}] + self.messages + [{"role": "user", "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}，涉及到之前疗程的信息是：{sup_information}"}],
+            print(messages)
+
             response = self.client.chat.completions.create(
                 model=model_name,
-                messages=[{"role": "system", "content": self.system}] + self.messages + [{"role": "system", "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}，涉及到之前疗程的信息是：{sup_information}"}],
-            )
+                messages=messages)
         else:
             # 生成回复
+            messages = [{"role": "system", "content": self.system}] + self.messages + [{"role": "user", "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}"}],
+            print(messages)
             response = self.client.chat.completions.create(
                 model=model_name,
-                messages=[{"role": "system", "content": self.system}] + self.messages + [{"role": "system", "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}"}],
-            )
+                messages=messages)
         # 更新消息列表
         self.conversation.append({"role": "Seeker", "content": response.choices[0].message.content})
         self.messages.append({"role": "assistant", "content": response.choices[0].message.content})
