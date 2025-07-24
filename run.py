@@ -116,6 +116,10 @@ if __name__ == "__main__":
         message = input("请输入您的消息: ")
         if message.lower() == "exit":
             break
-        response = seeker.chat(message)
+        try:
+            response = seeker.chat(message)
+        except Exception as err:
+            print("Error:", err)
+            continue
         print("Counselor:", message)
         print("Seeker:", response)
