@@ -1,14 +1,10 @@
-from openai import OpenAI
+from backbone import get_openai_client, model_name
+
 
 def counsel(messages):
-    client = OpenAI(
-        api_key="counselor",
-        base_url="http://0.0.0.0:8002/v1"
-    )
-
+    client = get_openai_client()
     response = client.chat.completions.create(
         messages=messages,
-        model="counselor"
+        model=model_name,
     )
-
     return response.choices[0].message.content

@@ -1,6 +1,5 @@
-from openai import OpenAI
 import json
-from backbone import api_key, model_name, base_url
+from backbone import get_openai_client, model_name
 
 tools = [
     {
@@ -38,10 +37,7 @@ tools = [
 ]
 
 def is_need(utterance):
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_openai_client()
     messages = [
         {
             "role": "user",
@@ -68,10 +64,7 @@ def is_need(utterance):
 
 def query(utterance, conversations, scales):
     # 根据utterance从conversations和scales中检索必要的信息
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_openai_client()
     response = client.chat.completions.create(
         model=model_name,
         messages=[

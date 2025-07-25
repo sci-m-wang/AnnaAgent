@@ -1,6 +1,5 @@
-from openai import OpenAI
 import json
-from backbone import api_key, model_name, base_url
+from backbone import get_openai_client, model_name
 
 tools = [
     {
@@ -76,10 +75,7 @@ def fill_scales_previous(profile, report):
     """
     结构化信息转换成非结构化文本数据，免去模型对语义解析的理解错误
     """
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_openai_client()
 
     # Step 0：原始数据
   
@@ -270,10 +266,7 @@ def fill_scales_previous(profile, report):
 
 # 根据prompt填写量表
 def fill_scales(prompt):
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_openai_client()
     print(prompt)
     # 填写BDI量表
     task_prompt1 = (

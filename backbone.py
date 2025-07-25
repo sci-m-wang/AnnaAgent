@@ -1,16 +1,16 @@
-# model_name = "glm-4-flash"
-# api_key = "df3e749b4f2e41489e20f49657c6140e.E3y0n40tt73vNRUL"
-# base_url = "https://open.bigmodel.cn/api/paas/v4"
-# model_name = "glm-4-plus"
-# api_key = "df3e749b4f2e41489e20f49657c6140e.E3y0n40tt73vNRUL"
-# base_url = "https://open.bigmodel.cn/api/paas/v4"
+"""Load base OpenAI configuration from environment."""
 
-# model_name = "openai/gpt-4o"
-# api_key = "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"
-# base_url = "https://openrouter.ai/api/v1"
+from openai import OpenAI
+
+from config import AnnaEngineConfig
+
+_cfg = AnnaEngineConfig.load()
+
+model_name: str = _cfg.model_name
+api_key: str = _cfg.api_key
+base_url: str = _cfg.base_url
 
 
-model_name = "counselor"
-api_key = "counselor"
-base_url = "http://localhost:8002/v1"
-
+def get_openai_client(api_key_override: str | None = None, base_url_override: str | None = None) -> OpenAI:
+    """Create an OpenAI client using configuration values."""
+    return OpenAI(api_key=api_key_override or api_key, base_url=base_url_override or base_url)

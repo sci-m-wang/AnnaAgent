@@ -26,6 +26,25 @@ python run.py
 
 Then, you can chat with the virtual seeker.
 
+## Project Initialization
+
+The repository offers a small helper to generate default configuration files.
+Run the following snippet to create a `settings.yaml` and `.env` in the target
+directory:
+
+```python
+from pathlib import Path
+from config import initialize_project_at
+
+initialize_project_at(Path("."))
+```
+
+The generated `settings.yaml` contains the model service settings, the server
+startup scripts for the complaint, counselor and emotion modules as well as
+pointers to the initialization dialogue. Environment
+variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
+override.
+
 ## Work Progress
 
 To make it easier for readers to learn how to use it, we have added the flowchart below:

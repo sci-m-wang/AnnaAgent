@@ -1,5 +1,4 @@
-from openai import OpenAI
-from backbone import api_key, model_name, base_url
+from backbone import get_openai_client, model_name
 import json
 
 tools = [
@@ -29,10 +28,7 @@ def transform_chain(chain):
     return transformed_chain
 
 def switch_complaint(chain, index, conversation):
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_openai_client()
 
     try:
         transformed_chain = transform_chain(chain)
