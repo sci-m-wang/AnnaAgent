@@ -1,6 +1,5 @@
-from openai import OpenAI
 import json
-from backbone import api_key, model_name, base_url
+from backbone import get_counselor_client, model_name
 
 tools = [
     {
@@ -38,16 +37,25 @@ tools = [
 ]
 
 def is_need(utterance):
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_counselor_client()
+    messages = [
+        {
+            "role": "user",
+            "content": (
+                "请判断下面这句咨询师的发言是否包含了对之前疗程或历史对话的提及。\n\n"
+                "【任务说明】\n"
+                "判断标准包括但不限于：是否提到了过去的咨询记录、曾讨论过的话题、上次谈话的内容，或者使用了‘你上次说过’、‘我们之前谈到’等引用性表达。\n\n"
+                "【咨询师发言】\n"
+                f"{utterance}\n\n"
+                "请返回判断结果（是 / 否）以及判断依据。"
+            )
+        }
+    ]
 
+    print(messages)
     response = client.chat.completions.create(
         model=model_name,
-        messages=[
-            {"role": "user", "content": f"下面这句话是心理咨询师说的话，请判断它是否提及了之前疗程的内容。\n### 话语\n{utterance}"}
-        ],
+        messages=messages,
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "is_need"}}
     )
@@ -56,10 +64,7 @@ def is_need(utterance):
 
 def query(utterance, conversations, scales):
     # 根据utterance从conversations和scales中检索必要的信息
-    client = OpenAI(
-        api_key=api_key,
-        base_url=base_url
-    )
+    client = get_counselor_client()
     response = client.chat.completions.create(
         model=model_name,
         messages=[

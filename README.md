@@ -6,6 +6,14 @@ The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Ses
 
 It is important to note that since this work involves data from counselling records of **real patients** with psychological disorders, the publicly available code can only be used to demonstrate part of the methodology. Please contact the authors of [this paper](https://aclanthology.org/2022.emnlp-main.156/) if needed.
 
+## Installation
+
+Install the project dependencies using pip:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## How to Run the Example
 First, you need to deploy the servers with these commands:
 
@@ -18,13 +26,37 @@ bash emotion.sh
 
 The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
 
-There is a inner example in the `run.py`. You can easily run it just with the following command:
+There is an inner example in `run.py`. Install the dependencies and
+initialize the project before starting the demo:
 
 ```bash
+python initialize.py
 python run.py
 ```
 
+The command accepts an optional `--config` argument if you want to
+use a specific `settings.yaml`:
+
+```bash
+python run.py --config path/to/settings.yaml
+```
+
 Then, you can chat with the virtual seeker.
+
+## Project Initialization
+
+The repository offers a small helper to generate default configuration files.
+Run the `initialize.py` script once before starting the example. It creates
+a `settings.yaml` and `.env` in the target directory:
+
+```bash
+python initialize.py
+```
+
+The generated `settings.yaml` contains the model service settings and per-module
+server configuration including API keys and base URLs for the complaint,
+counselor and emotion modules. Environment variables are written to `.env` with
+the `ANNA_ENGINE_` prefix for easy override.
 
 ## Work Progress
 

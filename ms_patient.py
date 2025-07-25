@@ -1,5 +1,4 @@
-from openai import OpenAI
-from backbone import api_key, model_name, base_url
+from backbone import get_counselor_client, model_name
 from fill_scales import fill_scales, fill_scales_previous
 from event_trigger import event_trigger, situationalising_events
 from emotion_modulator import emotion_modulation
@@ -40,6 +39,11 @@ class MsPatient:
         seeker_utterances = [utterance["content"] for utterance in self.previous_conversations if utterance["role"] == "Seeker"]
         self.configuration["statement"] = random.choices(seeker_utterances,k=3)
         # 填写当前量表
+        # bdi = ["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B"]
+        # ghq = ["C","C","B","B","D","C","B","C","B","B","D","B","C","B","D","B","C","B","D","B","C","B","B","B","D","B","B","B"]
+        # sass = ["B","B","C","B","C","B","B","B","B","B","C","B","C","B","C","B","B","B","B","B","B"]
+        # self.bdi, self.ghq, self.sass = bdi, ghq, sass
+
         self.bdi, self.ghq, self.sass = fill_scales(prompt_template.format(**self.configuration))
         scales = {
             "p_bdi": self.p_bdi,
@@ -55,37 +59,69 @@ class MsPatient:
         # 选取对话样例
         self.system = prompt_template.format(**self.configuration)
         self.chain_index = 1
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=base_url
-        )
+        self.client = get_counselor_client()
 
     def chat(self, message):
         # 更新消息列表
         self.conversation.append({"role": "Counselor", "content": message})
         self.messages.append({"role": "user", "content": message})
-        # 初始化本次对话的状态
-        emotion = emotion_modulation(self.portrait, self.conversation)
-        self.chain_index = switch_complaint(self.complaint_chain, self.chain_index, self.conversation)
-        complaint = transform_chain(self.complaint_chain)[self.chain_index]
-        # 判断是否涉及前疗程内容
-        if is_need(message):
-            # 生成前疗程内容
-            sup_information = query(message, self.previous_conversations, self.report)
-            
-            # 生成回复
-            response = self.client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "system", "content": self.system}] + self.messages + [{"role": "system", "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}，涉及到之前疗程的信息是：{sup_information}"}],
+        try:
+            # 初始化本次对话的状态
+            emotion = emotion_modulation(self.portrait, self.conversation)
+            self.chain_index = switch_complaint(
+                self.complaint_chain, self.chain_index, self.conversation
             )
-        else:
-            # 生成回复
-            response = self.client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "system", "content": self.system}] + self.messages + [{"role": "system", "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}"}],
+            print(self.complaint_chain)
+            complaint = transform_chain(self.complaint_chain)[self.chain_index]
+            # 判断是否涉及前疗程内容
+            if is_need(message):
+                # 生成前疗程内容
+                sup_information = query(
+                    message, self.previous_conversations, self.report
+                )
+
+                # 生成回复
+                messages = (
+                    [{"role": "system", "content": self.system}]
+                    + self.messages
+                    + [
+                        {
+                            "role": "user",
+                            "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}，涉及到之前疗程的信息是：{sup_information}",
+                        }
+                    ]
+                )
+                print(messages)
+
+                response = self.client.chat.completions.create(
+                    model=model_name, messages=messages
+                )
+            else:
+                # 生成回复
+                messages = (
+                    [{"role": "system", "content": self.system}]
+                    + self.messages
+                    + [
+                        {
+                            "role": "user",
+                            "content": f"当前的情绪状态是：{emotion}，当前的主诉是：{complaint}",
+                        }
+                    ]
+                )
+                print(messages)
+                response = self.client.chat.completions.create(
+                    model=model_name, messages=messages
+                )
+
+            # 更新消息列表
+            self.conversation.append(
+                {"role": "Seeker", "content": response.choices[0].message.content}
             )
-        # 更新消息列表
-        self.conversation.append({"role": "Seeker", "content": response.choices[0].message.content})
-        self.messages.append({"role": "assistant", "content": response.choices[0].message.content})
-        return response.choices[0].message.content
+            self.messages.append(
+                {"role": "assistant", "content": response.choices[0].message.content}
+            )
+            return response.choices[0].message.content
+        except Exception as err:
+            print("chat error:", err)
+            return ""
 
