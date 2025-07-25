@@ -39,28 +39,41 @@ class AnnaEngineConfig(BaseModel):
         else:
             env.read_env()
         reader = EnvironmentReader(env)
-        pref = reader.envvar_prefix("ANNA_ENGINE")
-        values = {
-            "model_name": pref("MODEL_NAME", anna_engine_defaults.model_name),
-            "api_key": pref("API_KEY", anna_engine_defaults.api_key),
-            "base_url": pref("BASE_URL", anna_engine_defaults.base_url),
-            "complaint_api_key": pref(
-                "COMPLAINT_API_KEY", anna_engine_defaults.complaint_api_key
-            ),
-            "counselor_api_key": pref(
-                "COUNSELOR_API_KEY", anna_engine_defaults.counselor_api_key
-            ),
-            "emotion_api_key": pref(
-                "EMOTION_API_KEY", anna_engine_defaults.emotion_api_key
-            ),
-            "complaint_base_url": pref(
-                "COMPLAINT_BASE_URL", anna_engine_defaults.complaint_base_url
-            ),
-            "counselor_base_url": pref(
-                "COUNSELOR_BASE_URL", anna_engine_defaults.counselor_base_url
-            ),
-            "emotion_base_url": pref(
-                "EMOTION_BASE_URL", anna_engine_defaults.emotion_base_url
-            ),
-        }
+        with reader.envvar_prefix("ANNA_ENGINE"):
+            values = {
+                "model_name": reader.str(
+                    "MODEL_NAME",
+                    default_value=anna_engine_defaults.model_name,
+                ),
+                "api_key": reader.str(
+                    "API_KEY", default_value=anna_engine_defaults.api_key
+                ),
+                "base_url": reader.str(
+                    "BASE_URL", default_value=anna_engine_defaults.base_url
+                ),
+                "complaint_api_key": reader.str(
+                    "COMPLAINT_API_KEY",
+                    default_value=anna_engine_defaults.complaint_api_key,
+                ),
+                "counselor_api_key": reader.str(
+                    "COUNSELOR_API_KEY",
+                    default_value=anna_engine_defaults.counselor_api_key,
+                ),
+                "emotion_api_key": reader.str(
+                    "EMOTION_API_KEY",
+                    default_value=anna_engine_defaults.emotion_api_key,
+                ),
+                "complaint_base_url": reader.str(
+                    "COMPLAINT_BASE_URL",
+                    default_value=anna_engine_defaults.complaint_base_url,
+                ),
+                "counselor_base_url": reader.str(
+                    "COUNSELOR_BASE_URL",
+                    default_value=anna_engine_defaults.counselor_base_url,
+                ),
+                "emotion_base_url": reader.str(
+                    "EMOTION_BASE_URL",
+                    default_value=anna_engine_defaults.emotion_base_url,
+                ),
+            }
         return cls(**values)
