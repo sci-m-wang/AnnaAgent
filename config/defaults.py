@@ -11,4 +11,12 @@ class AnnaEngineDefaults:
     counselor_server: str = "bash counselor.sh"
     emotion_server: str = "bash emotion.sh"
 
+    complaint_api_key: str = "complaint_chain"
+    counselor_api_key: str = "counselor"
+    emotion_api_key: str = "emotion_inferencer"
+
+    complaint_base_url: str = "http://localhost:8001/v1"
+    counselor_base_url: str = "http://localhost:8002/v1"
+    emotion_base_url: str = "http://localhost:8003/v1"
+
 anna_engine_defaults = AnnaEngineDefaults()

@@ -1,5 +1,5 @@
 import json
-from backbone import get_openai_client, model_name
+from backbone import get_counselor_client, model_name
 
 tools = [
     {
@@ -37,7 +37,7 @@ tools = [
 ]
 
 def is_need(utterance):
-    client = get_openai_client()
+    client = get_counselor_client()
     messages = [
         {
             "role": "user",
@@ -64,7 +64,7 @@ def is_need(utterance):
 
 def query(utterance, conversations, scales):
     # 根据utterance从conversations和scales中检索必要的信息
-    client = get_openai_client()
+    client = get_counselor_client()
     response = client.chat.completions.create(
         model=model_name,
         messages=[

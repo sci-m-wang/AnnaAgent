@@ -1,4 +1,4 @@
-from backbone import get_openai_client
+from backbone import get_complaint_client
 from event_trigger import event_trigger
 import json
 
@@ -36,7 +36,7 @@ model_name = "complaint"
 def gen_complaint_chain(profile):
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}\n职业：{profile['occupation']}\n婚姻状况：{profile['martial_status']}\n症状：{profile['symptoms']}"
     event = event_trigger(profile)
-    client = get_openai_client()
+    client = get_complaint_client()
     response = client.chat.completions.create(
         model=model_name,
         messages=[

@@ -1,4 +1,4 @@
-from backbone import get_openai_client, model_name
+from backbone import get_counselor_client, model_name
 import json
 
 tools = [
@@ -27,7 +27,7 @@ tools = [
 
 
 def analyze_style(profile, conversations):
-    client = get_openai_client()
+    client = get_counselor_client()
     # 提取患者信息
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}\n职业：{profile['occupation']}\n婚姻状况：{profile['martial_status']}\n症状：{profile['symptoms']}"
     # 提取对话记录

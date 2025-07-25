@@ -1,6 +1,6 @@
 import pandas as pd
 from random import choice
-from backbone import get_openai_client, model_name
+from backbone import get_counselor_client, model_name
 import json
 
 
@@ -46,7 +46,7 @@ def event_trigger(profile):
 
 
 def situationalising_events(profile):
-    client = get_openai_client()
+    client = get_counselor_client()
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}"
     event = event_trigger(profile)
     response = client.chat.completions.create(
