@@ -75,6 +75,7 @@ class MsPatient:
             self.chain_index = switch_complaint(
                 self.complaint_chain, self.chain_index, self.conversation
             )
+            print(self.complaint_chain)
             complaint = transform_chain(self.complaint_chain)[self.chain_index]
             # 判断是否涉及前疗程内容
             if is_need(message):
