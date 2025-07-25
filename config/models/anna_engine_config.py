@@ -13,9 +13,6 @@ class AnnaEngineConfig(BaseModel):
     model_name: str = Field(default=anna_engine_defaults.model_name)
     api_key: str = Field(default=anna_engine_defaults.api_key)
     base_url: str = Field(default=anna_engine_defaults.base_url)
-    complaint_server: str = Field(default=anna_engine_defaults.complaint_server)
-    counselor_server: str = Field(default=anna_engine_defaults.counselor_server)
-    emotion_server: str = Field(default=anna_engine_defaults.emotion_server)
     complaint_api_key: str = Field(
         default=anna_engine_defaults.complaint_api_key
     )
@@ -47,15 +44,6 @@ class AnnaEngineConfig(BaseModel):
             "model_name": pref("MODEL_NAME", anna_engine_defaults.model_name),
             "api_key": pref("API_KEY", anna_engine_defaults.api_key),
             "base_url": pref("BASE_URL", anna_engine_defaults.base_url),
-            "complaint_server": pref(
-                "COMPLAINT_SERVER", anna_engine_defaults.complaint_server
-            ),
-            "counselor_server": pref(
-                "COUNSELOR_SERVER", anna_engine_defaults.counselor_server
-            ),
-            "emotion_server": pref(
-                "EMOTION_SERVER", anna_engine_defaults.emotion_server
-            ),
             "complaint_api_key": pref(
                 "COMPLAINT_API_KEY", anna_engine_defaults.complaint_api_key
             ),

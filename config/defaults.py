@@ -6,10 +6,7 @@ class AnnaEngineDefaults:
 
     model_name: str = "counselor"
     api_key: str = "counselor"
-    base_url: str = "http://localhost:8002/v1"
-    complaint_server: str = "bash complaint.sh"
-    counselor_server: str = "bash counselor.sh"
-    emotion_server: str = "bash emotion.sh"
+    base_url: str = "http://localhost:8002/v1" 
 
     complaint_api_key: str = "complaint_chain"
     counselor_api_key: str = "counselor"
@@ -17,6 +14,6 @@ class AnnaEngineDefaults:
 
     complaint_base_url: str = "http://localhost:8001/v1"
     counselor_base_url: str = "http://localhost:8002/v1"
-    emotion_base_url: str = "http://localhost:8003/v1"
+    emotion_base_url: str = "http://localhost:8000/v1"
 
 anna_engine_defaults = AnnaEngineDefaults()
