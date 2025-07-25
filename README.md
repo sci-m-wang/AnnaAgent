@@ -39,11 +39,10 @@ from config import initialize_project_at
 initialize_project_at(Path("."))
 ```
 
-The generated `settings.yaml` contains the model service settings, the server
-startup scripts for the complaint, counselor and emotion modules as well as
-pointers to the initialization dialogue. Environment
-variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
-override.
+The generated `settings.yaml` contains the model service settings and per-module
+server configuration including API keys and base URLs for the complaint,
+counselor and emotion modules. Environment variables are written to `.env` with
+the `ANNA_ENGINE_` prefix for easy override.
 
 ## Work Progress
 
