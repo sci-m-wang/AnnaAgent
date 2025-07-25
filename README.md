@@ -18,9 +18,11 @@ bash emotion.sh
 
 The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
 
-There is a inner example in the `run.py`. You can easily run it just with the following command:
+There is an inner example in `run.py`. Run the following commands to
+initialize the project and start the demo:
 
 ```bash
+python initialize.py
 python run.py
 ```
 
@@ -29,14 +31,11 @@ Then, you can chat with the virtual seeker.
 ## Project Initialization
 
 The repository offers a small helper to generate default configuration files.
-Run the following snippet to create a `settings.yaml` and `.env` in the target
-directory:
+Run the `initialize.py` script once before starting the example. It creates
+a `settings.yaml` and `.env` in the target directory:
 
-```python
-from pathlib import Path
-from config import initialize_project_at
-
-initialize_project_at(Path("."))
+```bash
+python initialize.py
 ```
 
 The generated `settings.yaml` contains the model service settings and per-module
