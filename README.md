@@ -30,7 +30,6 @@ There is an inner example in `run.py`. Install the dependencies and
 initialize the project before starting the demo:
 
 ```bash
-pip install -r requirements.txt
 python initialize.py
 python run.py
 ```
