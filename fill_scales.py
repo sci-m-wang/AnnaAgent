@@ -73,38 +73,53 @@ tools = [
 
 # 根据profile和report填写之前的量表
 def fill_scales_previous(profile, report):
+    """
+    结构化信息转换成非结构化文本数据，免去模型对语义解析的理解错误
+    """
     client = OpenAI(
         api_key=api_key,
         base_url=base_url
     )
 
     # Step 0：原始数据
-    task = "根据个人描述和案例报告填写心理量表（BDI）"
+  
     raw_prompt = {
-        "task": task,
+        "task": "根据个人描述和案例报告填写心理量表（BDI）",
         "profile": profile,
         "report": report
     }
 
-    # Step 1：提示词优化（用大模型将提示词转换成更适合小模型理解的格式）
     rewrite_prompt = [
         {
             "role": "system",
-            "content": "你是提示词重写助手，请根据以下输入，将提示词改写为更清晰、结构更适合小模型处理的自然语言版本。" +
-                    "请避免混合 Markdown、JSON 和自然语言，采用标准自然语言表达，清晰划分字段，并增加语义提示。不需要回复其它信息，只完成提示词修改任务"
+            "content": (
+                "你是一位极其严谨、结构化、指令敏感的提示词重写专家，"
+                "配备专门工具以将复杂任务描述优化为适合小型语言模型处理的自然语言提示词。"
+                "你当前的任务是：将一段结构松散、信息混杂的用户原始输入转换为一份语义清晰、字段明确、任务导向的提示词，"
+                "以便小语言模型据此完成心理量表的填写任务。"
+                "提示词必须整合所有输入信息（profile 和 report），禁止使用 JSON、Markdown 或其他格式标签。"
+                "你的输出应仅包含一段纯自然语言提示词，不需要添加任何注释或说明。"
+            )
         },
         {
             "role": "user",
-            "content": f"""任务：{raw_prompt['task']}
-
-    【个人描述】
-    {raw_prompt['profile']}
-
-    【案例报告】
-    {raw_prompt['report']}
-    """
+            "content": (
+                "**任务目标**：\n"
+                f"{raw_prompt['task']}\n\n"
+                "**输入信息：**\n"
+                "- **个人描述（profile）**：\n"
+                f"{raw_prompt['profile']}\n\n"
+                "- **案例报告（report）**：\n"
+                f"{raw_prompt['report']}\n\n"
+                "**你的任务是：**\n"
+                "将以上内容重写为一条**语义清晰、结构化完整、避免歧义、适合小模型处理**的自然语言提示。"
+                "提示词中应清楚表达：任务目的、心理量表类型（BDI）、输入内容（包括个人描述与报告）、输出要求（填写每一道题的答案）。"
+                "提示词必须使用**标准自然语言表达**，不要包含任何 Markdown、JSON、HTML 或代码格式，避免符号干扰。"
+                "最终输出应为**一段自然语言任务指令**，内容完整、准确、无格式嵌套、适配小模型理解。"
+            )
         }
     ]
+
 
     # 使用强模型优化提示词（建议用 gpt-4-1106-preview 或 gpt-4o）
     rewritten_response = client.chat.completions.create(
@@ -114,7 +129,7 @@ def fill_scales_previous(profile, report):
 
     # 获取优化后的提示词内容（更结构化、语义清晰）
     optimized_prompt = rewritten_response.choices[0].message.content
-
+    print(f"optimized_prompt:{optimized_prompt}")
     # Step 2：使用目标模型调用工具，填写BDI量表
     response = client.chat.completions.create(
         model=model_name,  # 此为你目标小模型
@@ -134,17 +149,36 @@ def fill_scales_previous(profile, report):
         "profile": profile,
         "report": report
     }
-    # 第一步：使用较强大模型转换提示词，使其更适合小模型理解
     rewrite_prompt = [
-        {
-            "role": "system",
-            "content": "你是提示词重写助手，请根据以下输入，输出一段更清晰、结构更适合小模型理解的提示词。不需要回复其它信息，只完成提示词修改任务" 
-        },
-        {
-            "role": "user",
-            "content": f"请重写以下内容，使其适合用于小语言模型理解与信息抽取：\n\n任务：{raw_prompt['task']}\n\n个人描述：{raw_prompt['profile']}\n\n案例报告：{raw_prompt['report']}"
-        }
-    ]
+    {
+        "role": "system",
+        "content": (
+            "你是一位结构清晰、表达精确、严格遵循任务规范的提示词重写专家，"
+            "你当前的任务是将用户提供的一段心理咨询任务输入，改写为更适合小语言模型处理的自然语言提示词。"
+            "你的目标是最大限度提升提示词在任务目标、输入字段、输出要求等方面的明确性，"
+            "确保后续模型可理解、可执行。"
+            "提示词必须整合所有输入信息（profile 和 report），禁止使用 JSON、Markdown 或其他格式标签。"
+            "你的输出应仅包含一段纯自然语言提示词，不需要添加任何注释或说明。"
+        )
+    },
+    {
+        "role": "user",
+        "content": (
+            "【原始任务说明】\n"
+            f"{raw_prompt['task']}\n\n"
+            "【输入信息：】\n"
+            f"- 个人描述：{raw_prompt['profile']}\n"
+            f"- 案例报告：{raw_prompt['report']}\n\n"
+            "【重写要求】：\n"
+            "请将上面信息改写为一段**结构清晰、适合小语言模型理解的自然语言提示词**，包含以下几个要素：\n"
+            "1. 明确任务目标（如填写 GHQ-28 心理量表）\n"
+            "2. 清楚指出输入信息的来源与含义\n"
+            "3. 明确模型需要执行的操作（例如，综合信息完成每道题作答）\n"
+            "4. 不包含 Markdown、JSON 或任何格式标记，**纯自然语言**\n"
+            "5. 最终输出仅为改写后的提示词，不要加任何其他解释\n"
+        )
+    }
+]
 
     # 使用更强大的模型重写提示词（推荐用 gpt-4-1106-preview 或 gpt-4o）
     rewritten_response = client.chat.completions.create(
@@ -155,6 +189,7 @@ def fill_scales_previous(profile, report):
     # 获取优化后的提示词内容
     optimized_prompt = rewritten_response.choices[0].message.content
 
+    print(f"optimized_prompt:{optimized_prompt}")
     # 第二步：将优化后的提示词传入目标模型，执行 GHQ 量表工具调用
     messages = [
         {
@@ -185,19 +220,26 @@ def fill_scales_previous(profile, report):
     rewrite_prompt = [
         {
             "role": "system",
-            "content": "你是提示词重写助手，请将以下任务内容优化为更清晰、结构更适合小语言模型理解的自然语言提示词。" +
-                    "要求明确字段之间的语义关系，避免使用 Markdown 或 JSON 字符串格式。"
+            "content": (
+                "你是一位极其严谨、客观、结构清晰的 AI 任务提示词改写专家。"
+                "你的任务是将用户提供的任务目标和原始输入，重写为更适合小语言模型理解、执行和调用工具的自然语言格式提示词。"
+                "请避免 Markdown、JSON 等格式嵌套，确保提示词结构明确、语义清晰，并适配下游量表填写类任务的处理流程。"
+                "提示词必须整合所有输入信息（profile 和 report），禁止使用 JSON、Markdown 或其他格式标签。"
+                "你的输出应仅包含一段纯自然语言提示词，不需要添加任何注释或说明。"
+            )
         },
         {
             "role": "user",
-            "content": f"""任务：{raw_prompt['task']}
-
-    【个人描述】
-    {raw_prompt['profile']}
-
-    【案例报告】
-    {raw_prompt['report']}
-    """
+            "content": (
+                f"【任务目标】\n{raw_prompt['task']}\n\n"
+                f"【输入信息：】\n"
+                f"1. 个人描述：{raw_prompt['profile']}\n"
+                f"2. 案例报告：{raw_prompt['report']}\n\n"
+                f"【提示词重写要求】\n"
+                f"- 将上述信息改写为单段落自然语言提示词。\n"
+                f"- 明确指出模型应基于输入内容，逐项完成 SASS 量表的每一题作答。\n"
+                f"- 不添加 JSON、代码或额外格式符号，输出仅为一段提示词文本。\n"
+            )
         }
     ]
 
@@ -209,7 +251,8 @@ def fill_scales_previous(profile, report):
 
     # 获取优化后的提示词内容
     optimized_prompt = optimized_prompt_response.choices[0].message.content
-    print(optimized_prompt)
+
+    print(f"optimized_prompt:{optimized_prompt}")
     # Step 2：将优化后的提示词交给小模型执行工具调用（填写 SASS 量表）
     response = client.chat.completions.create(
         model=model_name,  # 小模型
