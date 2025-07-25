@@ -6,6 +6,14 @@ The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Ses
 
 It is important to note that since this work involves data from counselling records of **real patients** with psychological disorders, the publicly available code can only be used to demonstrate part of the methodology. Please contact the authors of [this paper](https://aclanthology.org/2022.emnlp-main.156/) if needed.
 
+## Installation
+
+Install the project dependencies using pip:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## How to Run the Example
 First, you need to deploy the servers with these commands:
 
@@ -18,12 +26,20 @@ bash emotion.sh
 
 The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
 
-There is an inner example in `run.py`. Run the following commands to
-initialize the project and start the demo:
+There is an inner example in `run.py`. Install the dependencies and
+initialize the project before starting the demo:
 
 ```bash
+pip install -r requirements.txt
 python initialize.py
 python run.py
+```
+
+The command accepts an optional `--config` argument if you want to
+use a specific `settings.yaml`:
+
+```bash
+python run.py --config path/to/settings.yaml
 ```
 
 Then, you can chat with the virtual seeker.
