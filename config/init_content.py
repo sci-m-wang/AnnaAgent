@@ -24,6 +24,12 @@ ANNA_ENGINE_BASE_URL={anna_engine_defaults.base_url}
 ANNA_ENGINE_COMPLAINT_SERVER={anna_engine_defaults.complaint_server}
 ANNA_ENGINE_COUNSELOR_SERVER={anna_engine_defaults.counselor_server}
 ANNA_ENGINE_EMOTION_SERVER={anna_engine_defaults.emotion_server}
+ANNA_ENGINE_COMPLAINT_API_KEY={anna_engine_defaults.complaint_api_key}
+ANNA_ENGINE_COUNSELOR_API_KEY={anna_engine_defaults.counselor_api_key}
+ANNA_ENGINE_EMOTION_API_KEY={anna_engine_defaults.emotion_api_key}
+ANNA_ENGINE_COMPLAINT_BASE_URL={anna_engine_defaults.complaint_base_url}
+ANNA_ENGINE_COUNSELOR_BASE_URL={anna_engine_defaults.counselor_base_url}
+ANNA_ENGINE_EMOTION_BASE_URL={anna_engine_defaults.emotion_base_url}
 GLOBAL_RETRIES=3
 SCHEDULE_PARAM=default
 """

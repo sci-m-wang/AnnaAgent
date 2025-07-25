@@ -1,4 +1,4 @@
-from backbone import get_openai_client, model_name
+from backbone import get_counselor_client, model_name
 import json
 
 tools = [
@@ -28,7 +28,7 @@ def transform_chain(chain):
     return transformed_chain
 
 def switch_complaint(chain, index, conversation):
-    client = get_openai_client()
+    client = get_counselor_client()
 
     try:
         transformed_chain = transform_chain(chain)

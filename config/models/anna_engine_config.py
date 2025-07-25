@@ -16,6 +16,22 @@ class AnnaEngineConfig(BaseModel):
     complaint_server: str = Field(default=anna_engine_defaults.complaint_server)
     counselor_server: str = Field(default=anna_engine_defaults.counselor_server)
     emotion_server: str = Field(default=anna_engine_defaults.emotion_server)
+    complaint_api_key: str = Field(
+        default=anna_engine_defaults.complaint_api_key
+    )
+    counselor_api_key: str = Field(
+        default=anna_engine_defaults.counselor_api_key
+    )
+    emotion_api_key: str = Field(
+        default=anna_engine_defaults.emotion_api_key
+    )
+    complaint_base_url: str = Field(
+        default=anna_engine_defaults.complaint_base_url
+    )
+    counselor_base_url: str = Field(
+        default=anna_engine_defaults.counselor_base_url
+    )
+    emotion_base_url: str = Field(default=anna_engine_defaults.emotion_base_url)
 
     @classmethod
     def load(cls, root_dir: str | Path | None = None) -> "AnnaEngineConfig":
@@ -39,6 +55,24 @@ class AnnaEngineConfig(BaseModel):
             ),
             "emotion_server": pref(
                 "EMOTION_SERVER", anna_engine_defaults.emotion_server
+            ),
+            "complaint_api_key": pref(
+                "COMPLAINT_API_KEY", anna_engine_defaults.complaint_api_key
+            ),
+            "counselor_api_key": pref(
+                "COUNSELOR_API_KEY", anna_engine_defaults.counselor_api_key
+            ),
+            "emotion_api_key": pref(
+                "EMOTION_API_KEY", anna_engine_defaults.emotion_api_key
+            ),
+            "complaint_base_url": pref(
+                "COMPLAINT_BASE_URL", anna_engine_defaults.complaint_base_url
+            ),
+            "counselor_base_url": pref(
+                "COUNSELOR_BASE_URL", anna_engine_defaults.counselor_base_url
+            ),
+            "emotion_base_url": pref(
+                "EMOTION_BASE_URL", anna_engine_defaults.emotion_base_url
             ),
         }
         return cls(**values)

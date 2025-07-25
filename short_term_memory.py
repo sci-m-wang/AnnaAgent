@@ -1,5 +1,5 @@
 import json
-from backbone import get_openai_client, model_name
+from backbone import get_counselor_client, model_name
 
 tools = [
     {
@@ -40,7 +40,7 @@ tools = [
 ]
 
 def analyzing_changes(scales):
-    client = get_openai_client()
+    client = get_counselor_client()
     # 导入量表及问题
     bdi_scale = json.load(open("./scales/bdi.json", "r"))
     ghq_scale = json.load(open("./scales/ghq-28.json", "r"))
@@ -202,7 +202,7 @@ def analyzing_changes(scales):
     return bdi_changes, ghq_changes, sass_changes
 
 def summarize_scale_changes(scales):
-    client = get_openai_client()
+    client = get_counselor_client()
     # 获取量表变化
     bdi_changes, ghq_changes, sass_changes = analyzing_changes(scales)
     messages = [

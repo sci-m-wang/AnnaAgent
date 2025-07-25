@@ -1,4 +1,4 @@
-from backbone import get_openai_client, model_name
+from backbone import get_counselor_client, model_name
 from fill_scales import fill_scales, fill_scales_previous
 from event_trigger import event_trigger, situationalising_events
 from emotion_modulator import emotion_modulation
@@ -59,7 +59,7 @@ class MsPatient:
         # 选取对话样例
         self.system = prompt_template.format(**self.configuration)
         self.chain_index = 1
-        self.client = get_openai_client()
+        self.client = get_counselor_client()
 
     def chat(self, message):
         # 更新消息列表
