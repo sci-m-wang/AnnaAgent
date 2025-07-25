@@ -1,5 +1,4 @@
-from openai import OpenAI
-from backbone import api_key, model_name, base_url
+from backbone import get_openai_client, model_name
 from fill_scales import fill_scales, fill_scales_previous
 from event_trigger import event_trigger, situationalising_events
 from emotion_modulator import emotion_modulation
@@ -60,10 +59,7 @@ class MsPatient:
         # 选取对话样例
         self.system = prompt_template.format(**self.configuration)
         self.chain_index = 1
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=base_url
-        )
+        self.client = get_openai_client()
 
     def chat(self, message):
         # 更新消息列表

@@ -1,5 +1,4 @@
 from ms_patient import MsPatient
-import json
 
 if __name__ == "__main__":
     # 模拟患者信息 (非真实数据)
