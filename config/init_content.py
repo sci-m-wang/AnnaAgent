@@ -8,28 +8,18 @@ model_service:
   api_key: {anna_engine_defaults.api_key}
   base_url: {anna_engine_defaults.base_url}
 servers:
-  complaint: {anna_engine_defaults.complaint_server}
-  counselor: {anna_engine_defaults.counselor_server}
-  emotion: {anna_engine_defaults.emotion_server}
-init_dialogue: AnnaAgent/run.py
-portrait: portrait
-report: report
-previous_conversations: previous_conversations
+  complaint:
+    api_key: {anna_engine_defaults.complaint_api_key}
+    base_url: {anna_engine_defaults.complaint_base_url}
+  counselor:
+    api_key: {anna_engine_defaults.counselor_api_key}
+    base_url: {anna_engine_defaults.counselor_base_url}
+  emotion:
+    api_key: {anna_engine_defaults.emotion_api_key}
+    base_url: {anna_engine_defaults.emotion_base_url}
 """
 
-INIT_DOTENV = f"""\
-ANNA_ENGINE_MODEL_NAME={anna_engine_defaults.model_name}
-ANNA_ENGINE_API_KEY={anna_engine_defaults.api_key}
-ANNA_ENGINE_BASE_URL={anna_engine_defaults.base_url}
-ANNA_ENGINE_COMPLAINT_SERVER={anna_engine_defaults.complaint_server}
-ANNA_ENGINE_COUNSELOR_SERVER={anna_engine_defaults.counselor_server}
-ANNA_ENGINE_EMOTION_SERVER={anna_engine_defaults.emotion_server}
-ANNA_ENGINE_COMPLAINT_API_KEY={anna_engine_defaults.complaint_api_key}
-ANNA_ENGINE_COUNSELOR_API_KEY={anna_engine_defaults.counselor_api_key}
-ANNA_ENGINE_EMOTION_API_KEY={anna_engine_defaults.emotion_api_key}
-ANNA_ENGINE_COMPLAINT_BASE_URL={anna_engine_defaults.complaint_base_url}
-ANNA_ENGINE_COUNSELOR_BASE_URL={anna_engine_defaults.counselor_base_url}
-ANNA_ENGINE_EMOTION_BASE_URL={anna_engine_defaults.emotion_base_url}
+INIT_DOTENV = """\
 GLOBAL_RETRIES=3
 SCHEDULE_PARAM=default
 """
