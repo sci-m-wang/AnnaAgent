@@ -34,11 +34,11 @@ python -m anna_agent.initialize
 anna-agent
 ```
 
-The command accepts an optional `--config` argument if you want to
-use a specific `settings.yaml`:
+The command accepts an optional `--config` argument to load a custom
+`interactive.yaml`:
 
 ```bash
-anna-agent --config path/to/settings.yaml
+anna-agent --config path/to/my_interactive.yaml
 ```
 
 Then, you can chat with the virtual seeker.
@@ -47,7 +47,7 @@ Then, you can chat with the virtual seeker.
 
 The repository offers a small helper to generate default configuration files.
 Run the initialization script once before starting the example. It creates
-a `settings.yaml` and `.env` in the target directory:
+a `settings.yaml`, an `interactive.yaml` and `.env` in the target directory:
 
 ```bash
 python -m anna_agent.initialize
@@ -55,8 +55,9 @@ python -m anna_agent.initialize
 
 The generated `settings.yaml` contains the model service settings and per-module
 server configuration including API keys and base URLs for the complaint,
-counselor and emotion modules. Environment variables are written to `.env` with
-the `ANNA_ENGINE_` prefix for easy override.
+counselor and emotion modules. `interactive.yaml` holds a sample portrait,
+report and conversation history used by the main CLI. Environment variables are
+written to `.env` with the `ANNA_ENGINE_` prefix for easy override.
 
 ## Work Progress
 
