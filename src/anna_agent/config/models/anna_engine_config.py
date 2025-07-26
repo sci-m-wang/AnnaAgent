@@ -13,21 +13,11 @@ class AnnaEngineConfig(BaseModel):
     model_name: str = Field(default=anna_engine_defaults.model_name)
     api_key: str = Field(default=anna_engine_defaults.api_key)
     base_url: str = Field(default=anna_engine_defaults.base_url)
-    complaint_api_key: str = Field(
-        default=anna_engine_defaults.complaint_api_key
-    )
-    counselor_api_key: str = Field(
-        default=anna_engine_defaults.counselor_api_key
-    )
-    emotion_api_key: str = Field(
-        default=anna_engine_defaults.emotion_api_key
-    )
-    complaint_base_url: str = Field(
-        default=anna_engine_defaults.complaint_base_url
-    )
-    counselor_base_url: str = Field(
-        default=anna_engine_defaults.counselor_base_url
-    )
+    complaint_api_key: str = Field(default=anna_engine_defaults.complaint_api_key)
+    counselor_api_key: str = Field(default=anna_engine_defaults.counselor_api_key)
+    emotion_api_key: str = Field(default=anna_engine_defaults.emotion_api_key)
+    complaint_base_url: str = Field(default=anna_engine_defaults.complaint_base_url)
+    counselor_base_url: str = Field(default=anna_engine_defaults.counselor_base_url)
     emotion_base_url: str = Field(default=anna_engine_defaults.emotion_base_url)
 
     @classmethod

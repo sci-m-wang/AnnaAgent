@@ -42,12 +42,18 @@ def _interactive_demo() -> None:
             "role": "Seeker",
             "content": "我感觉人生很失败，什么事情都干不好，还经常拖累别人",
         },
-        {"role": "Counselor", "content": "您这样想的原因是什么呢。最近发生什么事情了吗"},
+        {
+            "role": "Counselor",
+            "content": "您这样想的原因是什么呢。最近发生什么事情了吗",
+        },
         {
             "role": "Seeker",
             "content": "我感觉最近自己行动变得很拖沓，事情做不好就会很急躁。而且有的时候大脑一片空白",
         },
-        {"role": "Counselor", "content": "好的。没有什么原因吗。那这种情况持续多久了呢"},
+        {
+            "role": "Counselor",
+            "content": "好的。没有什么原因吗。那这种情况持续多久了呢",
+        },
         {"role": "Seeker", "content": "我也不知道是什么原因。有一阵子了"},
         {"role": "Counselor", "content": "好吧。有没有对以前喜欢的事情不感兴趣呢"},
         {"role": "Seeker", "content": "没有"},

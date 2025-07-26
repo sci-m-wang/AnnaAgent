@@ -40,4 +40,3 @@ def test_flatten_config():
         "emotion_api_key": "e",
         "emotion_base_url": "eu",
     }
-

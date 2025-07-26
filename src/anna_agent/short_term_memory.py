@@ -6,21 +6,21 @@ tools = [
     {
         "type": "function",
         "function": {
-            'name': 'summarizing_scale',
-            'description': '根据量表内容和选项，总结两个量表之间的变化。',
-            'parameters': {
+            "name": "summarizing_scale",
+            "description": "根据量表内容和选项，总结两个量表之间的变化。",
+            "parameters": {
                 "type": "object",
                 "properties": {
                     "changes": {
                         "type": "array",
                         "items": {
                             "type": "string",
-                        }
+                        },
                     }
-                }
+                },
             },
-            "required": ["changes"]
-        }
+            "required": ["changes"],
+        },
     },
     {
         "type": "function",
@@ -33,21 +33,28 @@ tools = [
                     "status": {
                         "type": "string",
                     }
-                }
+                },
             },
-            "required": ["status"]
-        }
-    }
+            "required": ["status"],
+        },
+    },
 ]
+
 
 def analyzing_changes(scales):
     client = get_counselor_client()
     # 导入量表及问题
-    with importlib.resources.files("anna_agent.scales").joinpath("bdi.json").open("r", encoding="utf-8") as f:
+    with importlib.resources.files("anna_agent.scales").joinpath("bdi.json").open(
+        "r", encoding="utf-8"
+    ) as f:
         bdi_scale = json.load(f)
-    with importlib.resources.files("anna_agent.scales").joinpath("ghq-28.json").open("r", encoding="utf-8") as f:
+    with importlib.resources.files("anna_agent.scales").joinpath("ghq-28.json").open(
+        "r", encoding="utf-8"
+    ) as f:
         ghq_scale = json.load(f)
-    with importlib.resources.files("anna_agent.scales").joinpath("sass.json").open("r", encoding="utf-8") as f:
+    with importlib.resources.files("anna_agent.scales").joinpath("sass.json").open(
+        "r", encoding="utf-8"
+    ) as f:
         sass_scale = json.load(f)
     messages = [
         {
@@ -57,7 +64,7 @@ def analyzing_changes(scales):
                 "配备专业工具以精确分析心理状态在不同时点的演变趋势。"
                 "你当前的任务是根据贝克抑郁量表（BDI）的问题内容与患者两次作答情况，评估其心理状态是否出现改善、恶化或无变化，"
                 "并以标准结构返回 JSON 格式的分析结果。"
-            )
+            ),
         },
         {
             "role": "user",
@@ -88,8 +95,8 @@ def analyzing_changes(scales):
                 "【第二次填写答案（后测）】\n"
                 f"{scales['bdi']}\n\n"
                 "请现在开始任务，并只输出符合要求的 JSON 格式结果。"
-            )
-        }
+            ),
+        },
     ]
 
     print(messages)
@@ -97,10 +104,12 @@ def analyzing_changes(scales):
     response = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        tools = tools,
-        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}}
+        tools=tools,
+        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
     )
-    bdi_changes = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["changes"]
+    bdi_changes = json.loads(
+        response.choices[0].message.tool_calls[0].function.arguments
+    )["changes"]
     messages = [
         {
             "role": "system",
@@ -108,7 +117,7 @@ def analyzing_changes(scales):
                 "你是一位极其严谨、格式敏感、判断客观的心理健康评估专家，"
                 "任务是根据 GHQ-28 心理健康量表中各个题目的内容与患者在两个时间点的作答，"
                 "分析每一项心理状态是否存在显著变化，并生成结构化输出。"
-            )
+            ),
         },
         {
             "role": "user",
@@ -143,20 +152,21 @@ def analyzing_changes(scales):
                 "【第二次评估（后测）答案】\n"
                 f"{scales['ghq']}\n\n"
                 "请严格按照上述格式输出，结构不完整将视为任务失败。"
-            )
-        }
+            ),
+        },
     ]
-
 
     print(messages)
     # 总结ghq的变化
     response = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        tools = tools,
-        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}}
+        tools=tools,
+        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
     )
-    ghq_changes = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["changes"]
+    ghq_changes = json.loads(
+        response.choices[0].message.tool_calls[0].function.arguments
+    )["changes"]
     messages = [
         {
             "role": "system",
@@ -165,7 +175,7 @@ def analyzing_changes(scales):
                 "任务是基于患者在两个时间点填写的 SASS（社会适应自评量表）答案，"
                 "评估其社会适应能力是否发生变化，并按照结构化标准输出评估结果。\n\n"
                 "你配备有结构化输出工具，只能以指定字段格式返回结果。"
-            )
+            ),
         },
         {
             "role": "user",
@@ -191,19 +201,22 @@ def analyzing_changes(scales):
                 "3. 【第二次评估（后测）答案】：\n"
                 f"{scales['sass']}\n\n"
                 "**请严格按照指定格式输出结果，否则将视为任务失败。**"
-            )
-        }
+            ),
+        },
     ]
 
     # 总结sass的变化
     response = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        tools = tools,
-        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}}
+        tools=tools,
+        tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
     )
-    sass_changes = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["changes"]
+    sass_changes = json.loads(
+        response.choices[0].message.tool_calls[0].function.arguments
+    )["changes"]
     return bdi_changes, ghq_changes, sass_changes
+
 
 def summarize_scale_changes(scales):
     client = get_counselor_client()
@@ -225,7 +238,7 @@ def summarize_scale_changes(scales):
                 "【SASS 社会适应变化】（反映社会行为与适应能力）\n"
                 f"{sass_changes}\n\n"
                 "请输出结构化总结，包括：心理状态变化、身体状态变化、社交适应变化、总体趋势评估。"
-            )
+            ),
         }
     ]
 
@@ -234,12 +247,11 @@ def summarize_scale_changes(scales):
     response = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        tools = tools,
-        tool_choice={"type": "function", "function": {"name": "summarizing_changes"}}
+        tools=tools,
+        tool_choice={"type": "function", "function": {"name": "summarizing_changes"}},
     )
     print(response)
-    status = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["status"]
+    status = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
+        "status"
+    ]
     return status
-
-
-

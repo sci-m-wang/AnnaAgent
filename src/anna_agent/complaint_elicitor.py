@@ -5,20 +5,19 @@ tools = [
     {
         "type": "function",
         "function": {
-            'name': 'is_recognized',
-            'description': '根据对话内容和主诉认知变化链，判断患者目前是否很好地认知到了当前阶段的主诉问题。',
-            'parameters': {
+            "name": "is_recognized",
+            "description": "根据对话内容和主诉认知变化链，判断患者目前是否很好地认知到了当前阶段的主诉问题。",
+            "parameters": {
                 "type": "object",
                 "properties": {
-                    "is_recognized": {
-                        "type": "boolean"
-                    },
-                }
+                    "is_recognized": {"type": "boolean"},
                 },
-                "required": ["is_recognized"]
-        }
+            },
+            "required": ["is_recognized"],
+        },
     }
 ]
+
 
 def transform_chain(chain):
     transformed_chain = {}
@@ -26,6 +25,7 @@ def transform_chain(chain):
         transformed_chain[node["stage"]] = node["content"]
         pass
     return transformed_chain
+
 
 def switch_complaint(chain, index, conversation):
     client = get_counselor_client()
@@ -82,4 +82,3 @@ def switch_complaint(chain, index, conversation):
     except Exception as err:
         print("switch_complaint error:", err)
     return index
-    

@@ -17,9 +17,13 @@ counselor_base_url: str = _cfg.counselor_base_url
 emotion_base_url: str = _cfg.emotion_base_url
 
 
-def get_openai_client(api_key_override: str | None = None, base_url_override: str | None = None) -> OpenAI:
+def get_openai_client(
+    api_key_override: str | None = None, base_url_override: str | None = None
+) -> OpenAI:
     """Create an OpenAI client using configuration values."""
-    return OpenAI(api_key=api_key_override or api_key, base_url=base_url_override or base_url)
+    return OpenAI(
+        api_key=api_key_override or api_key, base_url=base_url_override or base_url
+    )
 
 
 def get_complaint_client() -> OpenAI:
