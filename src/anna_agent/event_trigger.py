@@ -1,10 +1,12 @@
 import pandas as pd
+from pathlib import Path
 from random import choice
-from backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client, model_name
 import json
 
 
-events = pd.read_csv('datasets/cbt-triggering-events.csv', header=0)
+_data_dir = Path(__file__).resolve().parent / "datasets"
+events = pd.read_csv(_data_dir / "cbt-triggering-events.csv", header=0)
 teen_events = [
     "在一次重要的考试中表现不佳，比如期末考试、升学考试（如中考或高考），导致自信心受挫。",
     "在学校里被同龄人孤立、嘲笑或遭受言语/身体上的霸凌，感到孤独无助。",
@@ -35,14 +37,16 @@ tools = [
 
 
 def event_trigger(profile):
-    age = int(profile['age'])
+    age = int(profile["age"])
     if age < 18:
         return choice(teen_events)
     if age >= 65:
-        return events[events['Age'] >= 60].sample(1)['Triggering_Event'].values[0]
-    return events[(events['Age'] >= age - 5) & (events['Age'] <= age + 5)].sample(1)[
-        'Triggering_Event'
-    ].values[0]
+        return events[events["Age"] >= 60].sample(1)["Triggering_Event"].values[0]
+    return (
+        events[(events["Age"] >= age - 5) & (events["Age"] <= age + 5)]
+        .sample(1)["Triggering_Event"]
+        .values[0]
+    )
 
 
 def situationalising_events(profile):
@@ -58,7 +62,12 @@ def situationalising_events(profile):
             }
         ],
         tools=tools,
-        tool_choice={"type": "function", "function": {"name": "situationalising_events"}},
+        tool_choice={
+            "type": "function",
+            "function": {"name": "situationalising_events"},
+        },
     )
-    situation = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["situation"]
+    situation = json.loads(
+        response.choices[0].message.tool_calls[0].function.arguments
+    )["situation"]
     return situation

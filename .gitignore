@@ -3,3 +3,5 @@ __pycache__
 .vscode/launch.json
 .env
 settings.yaml
+dist
+poetry.lock

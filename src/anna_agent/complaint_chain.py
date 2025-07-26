@@ -1,5 +1,5 @@
-from backbone import get_complaint_client
-from event_trigger import event_trigger
+from .backbone import get_complaint_client
+from .event_trigger import event_trigger
 import json
 
 
@@ -16,7 +16,10 @@ tools = [
                         "type": "array",
                         "items": {
                             "type": "object",
-                            "properties": {"stage": {"type": "integer"}, "content": {"type": "string"}},
+                            "properties": {
+                                "stage": {"type": "integer"},
+                                "content": {"type": "string"},
+                            },
                             "additionalProperties": False,
                             "required": ["stage", "content"],
                         },
@@ -46,7 +49,12 @@ def gen_complaint_chain(profile):
             }
         ],
         tools=tools,
-        tool_choice={"type": "function", "function": {"name": "generate_complaint_chain"}},
+        tool_choice={
+            "type": "function",
+            "function": {"name": "generate_complaint_chain"},
+        },
     )
-    chain = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["chain"]
+    chain = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
+        "chain"
+    ]
     return chain

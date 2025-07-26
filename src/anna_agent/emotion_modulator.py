@@ -1,6 +1,6 @@
 from random import randint
-from emotion_pertuber import perturb_state
-from backbone import get_emotion_client
+from .emotion_pertuber import perturb_state
+from .backbone import get_emotion_client
 import json
 
 
@@ -60,7 +60,9 @@ model_name = "emotion"
 def emotion_inferencer(profile, conversation):
     client = get_emotion_client()
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}\n职业：{profile['occupation']}\n婚姻状况：{profile['martial_status']}\n症状：{profile['symptoms']}"
-    dialogue_history = "\n".join([f"{conv['role']}: {conv['content']}" for conv in conversation])
+    dialogue_history = "\n".join(
+        [f"{conv['role']}: {conv['content']}" for conv in conversation]
+    )
     response = client.chat.completions.create(
         model=model_name,
         messages=[
@@ -72,7 +74,9 @@ def emotion_inferencer(profile, conversation):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "emotion_inference"}},
     )
-    emotion = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["emotion"]
+    emotion = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
+        "emotion"
+    ]
     return emotion
 
 

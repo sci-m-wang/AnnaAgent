@@ -1,22 +1,20 @@
 import json
-from backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client, model_name
 
 tools = [
     {
         "type": "function",
         "function": {
-            'name': 'is_need',
-            'description': '根据对话内容判断是否涉及之前疗程的内容。',
-            'parameters': {
+            "name": "is_need",
+            "description": "根据对话内容判断是否涉及之前疗程的内容。",
+            "parameters": {
                 "type": "object",
                 "properties": {
-                    "is_need": {
-                        "type": "boolean"
-                    },
-                }
+                    "is_need": {"type": "boolean"},
+                },
             },
-            "required": ["is_need"]
-        }
+            "required": ["is_need"],
+        },
     },
     {
         "type": "function",
@@ -26,15 +24,14 @@ tools = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "knowledge": {
-                        "type": "string"
-                    },
-                }
+                    "knowledge": {"type": "string"},
+                },
             },
-            "required": ["knowledge"]
-        }
-    }
+            "required": ["knowledge"],
+        },
+    },
 ]
+
 
 def is_need(utterance):
     client = get_counselor_client()
@@ -48,7 +45,7 @@ def is_need(utterance):
                 "【咨询师发言】\n"
                 f"{utterance}\n\n"
                 "请返回判断结果（是 / 否）以及判断依据。"
-            )
+            ),
         }
     ]
 
@@ -56,11 +53,14 @@ def is_need(utterance):
     response = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        tools = tools,
-        tool_choice={"type": "function", "function": {"name": "is_need"}}
+        tools=tools,
+        tool_choice={"type": "function", "function": {"name": "is_need"}},
     )
 
-    return json.loads(response.choices[0].message.tool_calls[0].function.arguments)["is_need"]
+    return json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
+        "is_need"
+    ]
+
 
 def query(utterance, conversations, scales):
     # 根据utterance从conversations和scales中检索必要的信息
@@ -68,10 +68,15 @@ def query(utterance, conversations, scales):
     response = client.chat.completions.create(
         model=model_name,
         messages=[
-            {"role": "user", "content": f"### 任务\n根据对话内容，从知识库中搜索相关的信息并总结。\n### 对话内容\n{utterance}\n### 知识库\n{conversations}\n{scales}"}
+            {
+                "role": "user",
+                "content": f"### 任务\n根据对话内容，从知识库中搜索相关的信息并总结。\n### 对话内容\n{utterance}\n### 知识库\n{conversations}\n{scales}",
+            }
         ],
-        tools = tools,
-        tool_choice={"type": "function", "function": {"name": "search_knowledge"}}
+        tools=tools,
+        tool_choice={"type": "function", "function": {"name": "search_knowledge"}},
     )
-    knowledge = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["knowledge"]
+    knowledge = json.loads(
+        response.choices[0].message.tool_calls[0].function.arguments
+    )["knowledge"]
     return knowledge

@@ -11,7 +11,7 @@ It is important to note that since this work involves data from counselling reco
 Install the project dependencies using pip:
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## How to Run the Example
@@ -26,19 +26,19 @@ bash emotion.sh
 
 The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
 
-There is an inner example in `run.py`. Install the dependencies and
+There is an inner example provided through the `anna-agent` CLI. Install the dependencies and
 initialize the project before starting the demo:
 
 ```bash
-python initialize.py
-python run.py
+python -m anna_agent.initialize
+anna-agent
 ```
 
 The command accepts an optional `--config` argument if you want to
 use a specific `settings.yaml`:
 
 ```bash
-python run.py --config path/to/settings.yaml
+anna-agent --config path/to/settings.yaml
 ```
 
 Then, you can chat with the virtual seeker.
@@ -46,11 +46,11 @@ Then, you can chat with the virtual seeker.
 ## Project Initialization
 
 The repository offers a small helper to generate default configuration files.
-Run the `initialize.py` script once before starting the example. It creates
+Run the initialization script once before starting the example. It creates
 a `settings.yaml` and `.env` in the target directory:
 
 ```bash
-python initialize.py
+python -m anna_agent.initialize
 ```
 
 The generated `settings.yaml` contains the model service settings and per-module
@@ -84,6 +84,12 @@ In addition, we will continue to train and release emotion inferencers and chief
 
 ## Synthetic Data
 We used the [CPsyCounD](https://github.com/CAS-SIAT-XinHai/CPsyCoun) dataset as a seed to synthesize a seeker bank that meets the requirements of the AnnaAgent format using GPT-4o-mini. It can be found at this [link](https://huggingface.co/datasets/sci-m-wang/Anna-CPsyCounD). We will continue to transform more data and will create more realistic seeker characters based on AnnaAgent for use in related research.
+## Developer Guide
+
+For contribution guidelines refer to:
+- [开发者指南 (Chinese)](src/docs/contributing/code.md)
+- [Developer Guide (English)](src/docs/contributing/code_en.md)
+
 
 ## Citation
 ```bibtex

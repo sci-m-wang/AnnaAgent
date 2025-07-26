@@ -67,7 +67,9 @@ def _parse(file_extension: str, contents: str) -> dict[str, Any]:
         return yaml.safe_load(contents)
     if file_extension == ".json":
         return json.loads(contents)
-    raise ValueError(f"Unable to parse config. Unsupported file extension: {file_extension}")
+    raise ValueError(
+        f"Unable to parse config. Unsupported file extension: {file_extension}"
+    )
 
 
 def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
