@@ -132,6 +132,7 @@ def fill_scales_previous(profile, report):
         messages=[
             {"role": "user", "content": optimized_prompt}
         ],
+        temperature=0.1,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "fill_bdi"}}
     )
@@ -199,6 +200,7 @@ def fill_scales_previous(profile, report):
     response = client.chat.completions.create(
         model=model_name,
         messages=messages,
+        temperature=0.1,
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "fill_ghq"}}
     )
@@ -255,6 +257,7 @@ def fill_scales_previous(profile, report):
         messages=[
             {"role": "user", "content": optimized_prompt}
         ],
+        temperature=0.1,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "fill_sass"}}
     )
@@ -307,8 +310,8 @@ def fill_scales(prompt):
             {"role": "user", "content": prompt}
         ],
         tools = tools,
-        tool_choice={"type": "function", "function": {"name": "fill_bdi"}},
-        temperature=0
+        temperature=0.1,
+        tool_choice={"type": "function", "function": {"name": "fill_bdi"}}
     )
     print(response)
     bdi = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["answers"]
@@ -347,6 +350,7 @@ def fill_scales(prompt):
             {"role": "system", "content": task_prompt2},
             {"role": "user", "content": prompt}
         ],
+        temperature=0.1,
         tools = tools,
         tool_choice={"type": "function", "function": {"name": "fill_ghq"}}
     )
@@ -388,6 +392,7 @@ def fill_scales(prompt):
             {"role": "system", "content": task_prompt3},
             {"role": "user", "content": prompt}
         ],
+        temperature=0.1,
         tools = tools,
         tool_choice={"type": "function","function": {"name": "fill_sass"}}
     )
