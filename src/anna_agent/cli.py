@@ -2,8 +2,8 @@ from pathlib import Path
 
 import typer
 
-from ms_patient import MsPatient
-from config.load_config import load_config
+from .ms_patient import MsPatient
+from .config.load_config import load_config
 
 app = typer.Typer(help="AnnaAgent CLI")
 

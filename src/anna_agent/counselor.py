@@ -1,4 +1,4 @@
-from backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client, model_name
 
 
 def counsel(messages):

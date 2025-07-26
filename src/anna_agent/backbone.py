@@ -2,7 +2,7 @@
 
 from openai import OpenAI
 
-from config import AnnaEngineConfig
+from .config import AnnaEngineConfig
 
 _cfg = AnnaEngineConfig.load()
 
