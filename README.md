@@ -84,6 +84,12 @@ In addition, we will continue to train and release emotion inferencers and chief
 
 ## Synthetic Data
 We used the [CPsyCounD](https://github.com/CAS-SIAT-XinHai/CPsyCoun) dataset as a seed to synthesize a seeker bank that meets the requirements of the AnnaAgent format using GPT-4o-mini. It can be found at this [link](https://huggingface.co/datasets/sci-m-wang/Anna-CPsyCounD). We will continue to transform more data and will create more realistic seeker characters based on AnnaAgent for use in related research.
+## Developer Guide
+
+For contribution guidelines refer to:
+- [开发者指南 (Chinese)](src/docs/contributing/code.md)
+- [Developer Guide (English)](src/docs/contributing/code_en.md)
+
 
 ## Citation
 ```bibtex
