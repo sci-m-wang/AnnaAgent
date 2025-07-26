@@ -1,15 +1,68 @@
+import json
 from pathlib import Path
 
 import typer
+import yaml
 
-from .ms_patient import MsPatient
 from .config.load_config import load_config
 
-app = typer.Typer(help="AnnaAgent CLI")
+# Possible names for the interactive configuration file
+_interactive_config_files = ["interactive.yaml", "interactive.yml", "interactive.json"]
+
+app = typer.Typer(help="AnnaAgent CLI", invoke_without_command=True)
+
+
+def _get_config_path(root: Path, config: Path | None) -> Path:
+    """Return the path to the interactive config file."""
+    if config:
+        return config
+    for name in _interactive_config_files:
+        candidate = root / name
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f"Interactive config file not found in {root}")
+
+
+def _load_seeker_data(config_path: Path) -> tuple[dict, dict, list]:
+    """Load portrait, report and previous conversations from config."""
+    text = config_path.read_text(encoding="utf-8")
+    if config_path.suffix in {".yaml", ".yml"}:
+        data = yaml.safe_load(text)
+    elif config_path.suffix == ".json":
+        data = json.loads(text)
+    else:
+        raise ValueError(f"Unsupported config extension: {config_path.suffix}")
+    src = data.get("interactive", data)
+    try:
+        portrait = src["portrait"]
+        report = src["report"]
+        conversations = src["previous_conversations"]
+    except KeyError as exc:  # pragma: no cover - validated in tests
+        raise KeyError(
+            "Config must contain 'portrait', 'report' and 'previous_conversations'"
+        ) from exc
+    return portrait, report, conversations
+
+
+def _interactive_chat(seeker: "MsPatient") -> None:
+    """Interact with the seeker until the user types 'exit'."""
+    while True:
+        message = input("请输入您的消息: ")
+        if message.lower() == "exit":
+            break
+        try:
+            response = seeker.chat(message)
+        except Exception as err:  # pragma: no cover - demo code
+            print("Error:", err)
+            continue
+        print("Counselor:", message)
+        print("Seeker:", response)
 
 
 def _interactive_demo() -> None:
     """Run the interactive seeker demo."""
+    from .ms_patient import MsPatient
+
     portrait = {
         "drisk": 3,
         "srisk": 2,
@@ -75,17 +128,7 @@ def _interactive_demo() -> None:
     ]
 
     seeker = MsPatient(portrait, report, previous_conversations)
-    while True:
-        message = input("请输入您的消息: ")
-        if message.lower() == "exit":
-            break
-        try:
-            response = seeker.chat(message)
-        except Exception as err:  # pragma: no cover - demo code
-            print("Error:", err)
-            continue
-        print("Counselor:", message)
-        print("Seeker:", response)
+    _interactive_chat(seeker)
 
 
 @app.command()
@@ -113,6 +156,41 @@ def demo(
     """Run the interactive demo."""
     load_config(root, config, None)
     _interactive_demo()
+
+
+@app.callback()
+def main(
+    ctx: typer.Context,
+    config: Path | None = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Configuration file to use.",
+        exists=True,
+        file_okay=True,
+        readable=True,
+    ),
+    root: Path = typer.Option(
+        Path(),
+        "--root",
+        "-r",
+        help="Project root directory.",
+        exists=True,
+        dir_okay=True,
+        writable=True,
+        resolve_path=True,
+    ),
+) -> None:
+    """Run AnnaAgent using the given configuration."""
+    from .ms_patient import MsPatient
+
+    if ctx.invoked_subcommand is not None:
+        return
+    load_config(root, None, None)
+    cfg_path = _get_config_path(root, config)
+    portrait, report, conv = _load_seeker_data(cfg_path)
+    seeker = MsPatient(portrait, report, conv)
+    _interactive_chat(seeker)
 
 
 if __name__ == "__main__":

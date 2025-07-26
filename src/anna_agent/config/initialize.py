@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from .init_content import INIT_DOTENV, INIT_YAML
+from .init_content import INIT_DOTENV, INIT_INTERACTIVE_YAML, INIT_YAML
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,13 @@ def initialize_project_at(path: Path, force: bool = False) -> None:
 
     with settings_yaml.open("w", encoding="utf-8") as file:
         file.write(INIT_YAML)
+
+    interactive_yaml = root / "interactive.yaml"
+    if interactive_yaml.exists() and not force:
+        raise ValueError(f"Project already initialized at {root}")
+
+    with interactive_yaml.open("w", encoding="utf-8") as file:
+        file.write(INIT_INTERACTIVE_YAML)
 
     dotenv = root / ".env"
     if not dotenv.exists() or force:
