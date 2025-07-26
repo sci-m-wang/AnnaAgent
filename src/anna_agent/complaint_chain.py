@@ -1,5 +1,5 @@
-from backbone import get_complaint_client
-from event_trigger import event_trigger
+from .backbone import get_complaint_client
+from .event_trigger import event_trigger
 import json
 
 

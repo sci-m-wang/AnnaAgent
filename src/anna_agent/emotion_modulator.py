@@ -1,6 +1,6 @@
 from random import randint
-from emotion_pertuber import perturb_state
-from backbone import get_emotion_client
+from .emotion_pertuber import perturb_state
+from .backbone import get_emotion_client
 import json
 
 

@@ -1,14 +1,14 @@
-from backbone import get_counselor_client, model_name
-from fill_scales import fill_scales, fill_scales_previous
-from event_trigger import event_trigger, situationalising_events
-from emotion_modulator import emotion_modulation
-from querier import query, is_need
-from complaint_elicitor import switch_complaint, transform_chain
-from complaint_chain import gen_complaint_chain
-from short_term_memory import summarize_scale_changes
-from style_analyzer import analyze_style
+from .backbone import get_counselor_client, model_name
+from .fill_scales import fill_scales, fill_scales_previous
+from .event_trigger import event_trigger, situationalising_events
+from .emotion_modulator import emotion_modulation
+from .querier import query, is_need
+from .complaint_elicitor import switch_complaint, transform_chain
+from .complaint_chain import gen_complaint_chain
+from .short_term_memory import summarize_scale_changes
+from .style_analyzer import analyze_style
 import random
-from anna_agent_template import prompt_template
+from .anna_agent_template import prompt_template
 
 class MsPatient:
     def __init__(self, portrait:dict, report:dict, previous_conversations:list):
