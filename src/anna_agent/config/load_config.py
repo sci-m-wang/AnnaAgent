@@ -33,15 +33,12 @@ def _load_dotenv(config_path: Path | str) -> None:
         load_dotenv(dotenv_path)
 
 
-def _get_config_path(root_dir: Path, config_filepath: Path | None) -> Path:
-    if config_filepath:
-        config_path = config_filepath.resolve()
-        if not config_path.exists():
-            raise FileNotFoundError(f"Specified Config file not found: {config_path}")
-    else:
-        config_path = _search_for_config_in_root_dir(root_dir)
+def _get_config_path(root_dir: Path) -> Path:
+    config_path = _search_for_config_in_root_dir(root_dir)
     if not config_path:
-        raise FileNotFoundError(f"Config file not found in root directory: {root_dir}")
+        raise FileNotFoundError(
+            f"Config file not found in root directory: {root_dir}"
+        )
     return config_path
 
 
@@ -96,11 +93,10 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
 
 def load_config(
     root_dir: Path,
-    config_filepath: Path | None = None,
     cli_overrides: dict[str, Any] | None = None,
 ) -> AnnaEngineConfig:
     root = root_dir.resolve()
-    config_path = _get_config_path(root, config_filepath)
+    config_path = _get_config_path(root)
     _load_dotenv(config_path)
     config_extension = config_path.suffix
     config_text = config_path.read_text(encoding="utf-8")

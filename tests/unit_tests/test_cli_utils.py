@@ -59,6 +59,9 @@ def test_load_seeker_data_missing(tmp_path: Path) -> None:
 def test_get_config_path_default(tmp_path: Path) -> None:
     """_get_config_path should prefer interactive.yaml if present."""
     interactive = tmp_path / "interactive.yaml"
-    interactive.write_text("portrait: {}\nreport: {}\nprevious_conversations: []", encoding="utf-8")
-    path = _get_config_path(tmp_path, None)
+    interactive.write_text(
+        "portrait: {}\nreport: {}\nprevious_conversations: []",
+        encoding="utf-8",
+    )
+    path = _get_config_path(tmp_path)
     assert path == interactive
