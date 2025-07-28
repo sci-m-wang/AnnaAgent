@@ -34,14 +34,34 @@ python -m anna_agent.initialize
 anna-agent
 ```
 
-The command accepts an optional `--config` argument to load a custom
-`interactive.yaml`:
+After initialization you can chat with the virtual seeker.
+
+## CLI Usage
+
+AnnaAgent provides a small Typer-based command line interface with two entry
+points. After initializing the project you can either run the built-in demo or
+start a conversation using your own `interactive.yaml`.
+
+### Demo
+
+Launch the demo seeker defined in the source code:
 
 ```bash
-anna-agent --config path/to/my_interactive.yaml
+anna-agent demo
 ```
 
-Then, you can chat with the virtual seeker.
+Both `demo` and the main command accept `--workspace` (also available as
+`--root`) to specify the project directory. Each workspace directory should
+contain both a `settings.yaml` and an `interactive.yaml` file.
+
+### Interactive mode
+
+Running `anna-agent` without a subcommand uses the `interactive.yaml` in the
+project directory and starts chatting with the virtual seeker:
+
+```bash
+anna-agent
+```
 
 ## Project Initialization
 

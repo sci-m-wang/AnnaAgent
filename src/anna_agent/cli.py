@@ -12,10 +12,8 @@ _interactive_config_files = ["interactive.yaml", "interactive.yml", "interactive
 app = typer.Typer(help="AnnaAgent CLI", invoke_without_command=True)
 
 
-def _get_config_path(root: Path, config: Path | None) -> Path:
+def _get_config_path(root: Path) -> Path:
     """Return the path to the interactive config file."""
-    if config:
-        return config
     for name in _interactive_config_files:
         candidate = root / name
         if candidate.is_file():
@@ -133,20 +131,16 @@ def _interactive_demo() -> None:
 
 @app.command()
 def demo(
-    config: Path | None = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Configuration file to use.",
-        exists=True,
-        file_okay=True,
-        readable=True,
-    ),
-    root: Path = typer.Option(
+    workspace: Path = typer.Option(
         Path(),
+        "--workspace",
         "--root",
+        "-w",
         "-r",
-        help="Project root directory.",
+        help=(
+            "Directory containing settings.yaml and interactive.yaml. "
+            "Defaults to the current working directory."
+        ),
         exists=True,
         dir_okay=True,
         writable=True,
@@ -154,27 +148,23 @@ def demo(
     ),
 ) -> None:
     """Run the interactive demo."""
-    load_config(root, config, None)
+    load_config(workspace)
     _interactive_demo()
 
 
 @app.callback()
 def main(
     ctx: typer.Context,
-    config: Path | None = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Configuration file to use.",
-        exists=True,
-        file_okay=True,
-        readable=True,
-    ),
-    root: Path = typer.Option(
+    workspace: Path = typer.Option(
         Path(),
+        "--workspace",
         "--root",
+        "-w",
         "-r",
-        help="Project root directory.",
+        help=(
+            "Directory containing settings.yaml and interactive.yaml. "
+            "Defaults to the current working directory."
+        ),
         exists=True,
         dir_okay=True,
         writable=True,
@@ -186,8 +176,8 @@ def main(
 
     if ctx.invoked_subcommand is not None:
         return
-    load_config(root, None, None)
-    cfg_path = _get_config_path(root, config)
+    load_config(workspace)
+    cfg_path = _get_config_path(workspace)
     portrait, report, conv = _load_seeker_data(cfg_path)
     seeker = MsPatient(portrait, report, conv)
     _interactive_chat(seeker)
