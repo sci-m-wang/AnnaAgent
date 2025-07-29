@@ -74,10 +74,11 @@ python -m anna_agent.initialize
 ```
 
 The generated `settings.yaml` contains the model service settings and per-module
-server configuration including API keys and base URLs for the complaint,
-counselor and emotion modules. `interactive.yaml` holds a sample portrait,
-report and conversation history used by the main CLI. Environment variables are
-written to `.env` with the `ANNA_ENGINE_` prefix for easy override.
+server configuration including API keys, base URLs and model names for the
+complaint, counselor and emotion modules. `interactive.yaml` holds a sample
+portrait, report and conversation history used by the main CLI. Environment
+variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
+override.
 
 ## Work Progress
 

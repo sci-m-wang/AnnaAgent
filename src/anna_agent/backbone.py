@@ -15,6 +15,8 @@ emotion_api_key: str = _cfg.emotion_api_key
 complaint_base_url: str = _cfg.complaint_base_url
 counselor_base_url: str = _cfg.counselor_base_url
 emotion_base_url: str = _cfg.emotion_base_url
+complaint_model_name: str = _cfg.complaint_model_name
+emotion_model_name: str = _cfg.emotion_model_name
 
 
 def get_openai_client(

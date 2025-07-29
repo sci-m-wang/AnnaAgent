@@ -16,6 +16,12 @@ class AnnaEngineConfig(BaseModel):
     complaint_api_key: str = Field(default=anna_engine_defaults.complaint_api_key)
     counselor_api_key: str = Field(default=anna_engine_defaults.counselor_api_key)
     emotion_api_key: str = Field(default=anna_engine_defaults.emotion_api_key)
+    complaint_model_name: str = Field(
+        default=anna_engine_defaults.complaint_model_name
+    )
+    emotion_model_name: str = Field(
+        default=anna_engine_defaults.emotion_model_name
+    )
     complaint_base_url: str = Field(default=anna_engine_defaults.complaint_base_url)
     counselor_base_url: str = Field(default=anna_engine_defaults.counselor_base_url)
     emotion_base_url: str = Field(default=anna_engine_defaults.emotion_base_url)
@@ -64,6 +70,14 @@ class AnnaEngineConfig(BaseModel):
                 "emotion_base_url": reader.str(
                     "EMOTION_BASE_URL",
                     default_value=anna_engine_defaults.emotion_base_url,
+                ),
+                "complaint_model_name": reader.str(
+                    "COMPLAINT_MODEL_NAME",
+                    default_value=anna_engine_defaults.complaint_model_name,
+                ),
+                "emotion_model_name": reader.str(
+                    "EMOTION_MODEL_NAME",
+                    default_value=anna_engine_defaults.emotion_model_name,
                 ),
             }
         return cls(**values)

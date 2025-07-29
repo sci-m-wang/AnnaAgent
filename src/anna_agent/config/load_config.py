@@ -80,6 +80,7 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
     complaint = servers.get("complaint") or {}
     values["complaint_api_key"] = complaint.get("api_key")
     values["complaint_base_url"] = complaint.get("base_url")
+    values["complaint_model_name"] = complaint.get("model_name")
 
     counselor = servers.get("counselor") or {}
     values["counselor_api_key"] = counselor.get("api_key")
@@ -88,6 +89,7 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
     emotion = servers.get("emotion") or {}
     values["emotion_api_key"] = emotion.get("api_key")
     values["emotion_base_url"] = emotion.get("base_url")
+    values["emotion_model_name"] = emotion.get("model_name")
     return values
 
 
