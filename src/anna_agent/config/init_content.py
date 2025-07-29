@@ -9,12 +9,14 @@ model_service:
   base_url: {anna_engine_defaults.base_url}
 servers:
   complaint:
+    model_name: {anna_engine_defaults.complaint_model_name}
     api_key: {anna_engine_defaults.complaint_api_key}
     base_url: {anna_engine_defaults.complaint_base_url}
   counselor:
     api_key: {anna_engine_defaults.counselor_api_key}
     base_url: {anna_engine_defaults.counselor_base_url}
   emotion:
+    model_name: {anna_engine_defaults.emotion_model_name}
     api_key: {anna_engine_defaults.emotion_api_key}
     base_url: {anna_engine_defaults.emotion_base_url}
 """

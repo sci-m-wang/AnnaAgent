@@ -15,12 +15,14 @@ model_service:
   base_url: https://example.com
 servers:
   complaint:
+    model_name: cm
     api_key: ckey
     base_url: https://c.example.com
   counselor:
     api_key: cokey
     base_url: https://co.example.com
   emotion:
+    model_name: em
     api_key: ekey
     base_url: https://e.example.com
 """,
@@ -30,3 +32,5 @@ servers:
     assert config.model_name == "test-model"
     assert config.complaint_base_url == "https://c.example.com"
     assert config.counselor_api_key == "cokey"
+    assert config.complaint_model_name == "cm"
+    assert config.emotion_model_name == "em"

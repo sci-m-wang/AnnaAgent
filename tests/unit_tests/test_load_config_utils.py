@@ -23,9 +23,17 @@ def test_flatten_config():
             "base_url": "u",
         },
         "servers": {
-            "complaint": {"api_key": "c", "base_url": "cu"},
+            "complaint": {
+                "api_key": "c",
+                "base_url": "cu",
+                "model_name": "cm",
+            },
             "counselor": {"api_key": "co", "base_url": "cou"},
-            "emotion": {"api_key": "e", "base_url": "eu"},
+            "emotion": {
+                "api_key": "e",
+                "base_url": "eu",
+                "model_name": "em",
+            },
         },
     }
     result = _flatten_config(src)
@@ -39,4 +47,6 @@ def test_flatten_config():
         "counselor_base_url": "cou",
         "emotion_api_key": "e",
         "emotion_base_url": "eu",
+        "complaint_model_name": "cm",
+        "emotion_model_name": "em",
     }
