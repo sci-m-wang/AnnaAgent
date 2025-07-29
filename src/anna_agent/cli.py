@@ -135,8 +135,6 @@ def demo(
         Path(),
         "--workspace",
         "--root",
-        "-w",
-        "-r",
         help=(
             "Directory containing settings.yaml and interactive.yaml. "
             "Defaults to the current working directory."
@@ -159,8 +157,6 @@ def main(
         Path(),
         "--workspace",
         "--root",
-        "-w",
-        "-r",
         help=(
             "Directory containing settings.yaml and interactive.yaml. "
             "Defaults to the current working directory."

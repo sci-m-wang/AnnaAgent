@@ -48,11 +48,6 @@ def configure(workspace: Path | None = None) -> None:
     emotion_model_name = cfg.emotion_model_name
 
 
-# Initial configuration uses either the ``ANNA_AGENT_WORKSPACE`` environment
-# variable or the current working directory.
-configure()
-
-
 def get_openai_client(
     api_key_override: str | None = None, base_url_override: str | None = None
 ) -> OpenAI:
