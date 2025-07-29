@@ -1,22 +1,56 @@
-"""Load base OpenAI configuration from environment."""
+"""Load base OpenAI configuration for the OpenAI clients."""
+
+from pathlib import Path
+import os
 
 from openai import OpenAI
 
-from .config import AnnaEngineConfig
+from .config import AnnaEngineConfig, load_config
 
-_cfg = AnnaEngineConfig.load()
 
-model_name: str = _cfg.model_name
-api_key: str = _cfg.api_key
-base_url: str = _cfg.base_url
-complaint_api_key: str = _cfg.complaint_api_key
-counselor_api_key: str = _cfg.counselor_api_key
-emotion_api_key: str = _cfg.emotion_api_key
-complaint_base_url: str = _cfg.complaint_base_url
-counselor_base_url: str = _cfg.counselor_base_url
-emotion_base_url: str = _cfg.emotion_base_url
-complaint_model_name: str = _cfg.complaint_model_name
-emotion_model_name: str = _cfg.emotion_model_name
+def _load_engine_config(workspace: Path | None = None) -> AnnaEngineConfig:
+    """Load the engine configuration.
+
+    The function first attempts to load ``settings.yaml`` using :func:`load_config`.
+    ``workspace`` can be passed explicitly or is read from the ``ANNA_AGENT_WORKSPACE``
+    environment variable. If no configuration file is found, the function falls
+    back to loading values from the environment via :meth:`AnnaEngineConfig.load`.
+    """
+
+    root = Path(
+        workspace if workspace is not None else os.getenv("ANNA_AGENT_WORKSPACE", Path.cwd())
+    )
+    try:
+        return load_config(root)
+    except FileNotFoundError:  # pragma: no cover - optional fallback
+        return AnnaEngineConfig.load(root)
+
+
+def configure(workspace: Path | None = None) -> None:
+    """(Re)load configuration from ``workspace`` and update globals."""
+
+    cfg = _load_engine_config(workspace)
+    global model_name, api_key, base_url
+    global complaint_api_key, counselor_api_key, emotion_api_key
+    global complaint_base_url, counselor_base_url, emotion_base_url
+    global complaint_model_name, emotion_model_name
+
+    model_name = cfg.model_name
+    api_key = cfg.api_key
+    base_url = cfg.base_url
+    complaint_api_key = cfg.complaint_api_key
+    counselor_api_key = cfg.counselor_api_key
+    emotion_api_key = cfg.emotion_api_key
+    complaint_base_url = cfg.complaint_base_url
+    counselor_base_url = cfg.counselor_base_url
+    emotion_base_url = cfg.emotion_base_url
+    complaint_model_name = cfg.complaint_model_name
+    emotion_model_name = cfg.emotion_model_name
+
+
+# Initial configuration uses either the ``ANNA_AGENT_WORKSPACE`` environment
+# variable or the current working directory.
+configure()
 
 
 def get_openai_client(

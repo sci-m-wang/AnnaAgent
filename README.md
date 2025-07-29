@@ -80,6 +80,13 @@ portrait, report and conversation history used by the main CLI. Environment
 variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
 override.
 
+The `anna_agent` package loads its configuration from the workspace directory at
+runtime using `settings.yaml`. By default the current working directory is used,
+but you can override the location by setting the `ANNA_AGENT_WORKSPACE`
+environment variable.  When using the library programmatically you can also
+call `anna_agent.backbone.configure(<workspace>)` to load the desired
+configuration on demand.
+
 ## Work Progress
 
 To make it easier for readers to learn how to use it, we have added the flowchart below:
