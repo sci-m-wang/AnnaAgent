@@ -4,7 +4,7 @@ from pathlib import Path
 import typer
 import yaml
 
-from .config.load_config import load_config
+from . import backbone
 
 # Possible names for the interactive configuration file
 _interactive_config_files = ["interactive.yaml", "interactive.yml", "interactive.json"]
@@ -148,7 +148,7 @@ def demo(
     ),
 ) -> None:
     """Run the interactive demo."""
-    load_config(workspace)
+    backbone.configure(workspace)
     _interactive_demo()
 
 
@@ -176,7 +176,7 @@ def main(
 
     if ctx.invoked_subcommand is not None:
         return
-    load_config(workspace)
+    backbone.configure(workspace)
     cfg_path = _get_config_path(workspace)
     portrait, report, conv = _load_seeker_data(cfg_path)
     seeker = MsPatient(portrait, report, conv)
