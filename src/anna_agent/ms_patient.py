@@ -8,7 +8,17 @@ from .complaint_chain import gen_complaint_chain
 from .short_term_memory import summarize_scale_changes
 from .style_analyzer import analyze_style
 import random
+import logging
 from .anna_agent_template import prompt_template
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# 控制台打印
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+
+logger.addHandler(handler)
 
 
 class MsPatient:
@@ -133,5 +143,6 @@ class MsPatient:
             )
             return response.choices[0].message.content
         except Exception as err:
-            print("chat error:", err)
+            logger.error("Exception", err)  
+
             return ""
