@@ -13,6 +13,7 @@ servers:
     api_key: {anna_engine_defaults.complaint_api_key}
     base_url: {anna_engine_defaults.complaint_base_url}
   counselor:
+    model_name: {anna_engine_defaults.counselor_model_name}
     api_key: {anna_engine_defaults.counselor_api_key}
     base_url: {anna_engine_defaults.counselor_base_url}
   emotion:

@@ -35,7 +35,7 @@ def analyze_style(profile, conversations):
     )
 
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=[
             {
                 "role": "user",

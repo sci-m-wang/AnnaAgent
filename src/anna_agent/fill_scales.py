@@ -111,7 +111,7 @@ def fill_scales_previous(profile, report):
 
     # 使用强模型优化提示词（建议用 gpt-4-1106-preview 或 gpt-4o）
     rewritten_response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,  # 此为你目标小模型
+        model=registry.get("anna_engine_config").counselor_model_name,  # 此为你目标小模型
         messages=rewrite_prompt,
     )
 
@@ -120,7 +120,7 @@ def fill_scales_previous(profile, report):
     print(f"optimized_prompt:{optimized_prompt}")
     # Step 2：使用目标模型调用工具，填写BDI量表
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,  # 此为你目标小模型
+        model=registry.get("anna_engine_config").counselor_model_name,  # 此为你目标小模型
         messages=[{"role": "user", "content": optimized_prompt}],
         temperature=0.1,
         tools=tools,
@@ -171,7 +171,7 @@ def fill_scales_previous(profile, report):
 
     # 使用更强大的模型重写提示词（推荐用 gpt-4-1106-preview 或 gpt-4o）
     rewritten_response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name, messages=rewrite_prompt
+        model=registry.get("anna_engine_config").counselor_model_name, messages=rewrite_prompt
     )
 
     # 获取优化后的提示词内容
@@ -184,7 +184,7 @@ def fill_scales_previous(profile, report):
     print(messages)
     # 填写GHQ-28量表
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=messages,
         temperature=0.1,
         tools=tools,
@@ -231,7 +231,7 @@ def fill_scales_previous(profile, report):
 
     # 使用大模型重写提示词（建议使用 gpt-4o 或 gpt-4-1106-preview）
     optimized_prompt_response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name, messages=rewrite_prompt
+        model=registry.get("anna_engine_config").counselor_model_name, messages=rewrite_prompt
     )
 
     # 获取优化后的提示词内容
@@ -240,7 +240,7 @@ def fill_scales_previous(profile, report):
     print(f"optimized_prompt:{optimized_prompt}")
     # Step 2：将优化后的提示词交给小模型执行工具调用（填写 SASS 量表）
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,  # 小模型
+        model=registry.get("anna_engine_config").counselor_model_name,  # 小模型
         messages=[{"role": "user", "content": optimized_prompt}],
         temperature=0.1,
         tools=tools,
@@ -286,7 +286,7 @@ def fill_scales(prompt):
     )
 
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=[
             {"role": "system", "content": task_prompt1},
             {"role": "user", "content": prompt},
@@ -324,7 +324,7 @@ def fill_scales(prompt):
     )
 
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=[
             {"role": "system", "content": task_prompt2},
             {"role": "user", "content": prompt},
@@ -368,7 +368,7 @@ def fill_scales(prompt):
     )
 
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=[
             {"role": "system", "content": task_prompt3},
             {"role": "user", "content": prompt},

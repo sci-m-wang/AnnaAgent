@@ -19,6 +19,9 @@ class AnnaEngineConfig(BaseModel):
     complaint_model_name: str = Field(
         default=anna_engine_defaults.complaint_model_name
     )
+    counselor_model_name: str = Field(
+        default=anna_engine_defaults.counselor_model_name
+    )
     emotion_model_name: str = Field(
         default=anna_engine_defaults.emotion_model_name
     )
@@ -74,6 +77,10 @@ class AnnaEngineConfig(BaseModel):
                 "complaint_model_name": reader.str(
                     "COMPLAINT_MODEL_NAME",
                     default_value=anna_engine_defaults.complaint_model_name,
+                ),
+                "counselor_model_name": reader.str(
+                    "COUNSELOR_MODEL_NAME",
+                    default_value=anna_engine_defaults.counselor_model_name,
                 ),
                 "emotion_model_name": reader.str(
                     "EMOTION_MODEL_NAME",

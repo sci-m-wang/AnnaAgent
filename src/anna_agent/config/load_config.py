@@ -85,6 +85,7 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
     counselor = servers.get("counselor") or {}
     values["counselor_api_key"] = counselor.get("api_key")
     values["counselor_base_url"] = counselor.get("base_url")
+    values["counselor_model_name"] = counselor.get("model_name")
 
     emotion = servers.get("emotion") or {}
     values["emotion_api_key"] = emotion.get("api_key")

@@ -14,6 +14,7 @@ class AnnaEngineDefaults:
     emotion_api_key: str = "emotion_inferencer"
 
     complaint_model_name: str = "complaint"
+    counselor_model_name: str = "counselor"
     emotion_model_name: str = "emotion"
 
     complaint_base_url: str = "http://localhost:8001/v1"

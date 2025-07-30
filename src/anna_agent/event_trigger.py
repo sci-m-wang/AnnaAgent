@@ -55,7 +55,7 @@ def situationalising_events(profile):
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}"
     event = event_trigger(profile)
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=[
             {
                 "role": "user",

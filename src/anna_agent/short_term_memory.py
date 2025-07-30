@@ -103,7 +103,7 @@ def analyzing_changes(scales):
     print(messages)
     # 总结bdi的变化
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=messages,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
@@ -160,7 +160,7 @@ def analyzing_changes(scales):
     print(messages)
     # 总结ghq的变化
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=messages,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
@@ -208,7 +208,7 @@ def analyzing_changes(scales):
 
     # 总结sass的变化
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=messages,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
@@ -246,7 +246,7 @@ def summarize_scale_changes(scales):
     print(messages)
     # 总结量表变化
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=messages,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_changes"}},
