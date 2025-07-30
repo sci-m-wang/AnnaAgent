@@ -1,4 +1,5 @@
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client
+from .common.registry import registry
 import json
 
 tools = [
@@ -63,14 +64,14 @@ def switch_complaint(chain, index, conversation):
 
         # 用 GPT-4o 调用
         rewrite_response = client.chat.completions.create(
-            model=model_name,
+            model=registry.get("anna_engine_config").model_name,
             messages=rewrite_prompt,
         )
 
         # 得到结构优化后的提示词内容
         optimized_prompt = rewrite_response.choices[0].message.content
         response = client.chat.completions.create(
-            model=model_name,  # 小模型，如 gpt-3.5 或更轻量模型
+            model=registry.get("anna_engine_config").model_name,  # 小模型，如 gpt-3.5 或更轻量模型
             messages=[{"role": "user", "content": optimized_prompt}],
             tools=tools,
             tool_choice={"type": "function", "function": {"name": "is_recognized"}},

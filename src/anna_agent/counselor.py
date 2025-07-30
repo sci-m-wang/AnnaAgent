@@ -1,10 +1,11 @@
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client
+from .common.registry import registry
 
 
 def counsel(messages):
     client = get_counselor_client()
     response = client.chat.completions.create(
         messages=messages,
-        model=model_name,
+        model=registry.get("anna_engine_config").model_name,
     )
     return response.choices[0].message.content

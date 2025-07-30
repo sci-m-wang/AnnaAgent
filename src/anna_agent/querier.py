@@ -1,5 +1,6 @@
 import json
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client
+from .common.registry import registry
 
 tools = [
     {
@@ -51,7 +52,7 @@ def is_need(utterance):
 
     print(messages)
     response = client.chat.completions.create(
-        model=model_name,
+        model=registry.get("anna_engine_config").model_name,
         messages=messages,
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "is_need"}},
@@ -102,7 +103,7 @@ def query(utterance, conversations, scales):
 
     # 用强模型（如 GPT-4o）生成优化提示词
     rewritten_prompt_response = client.chat.completions.create(
-        model=model_name,  # 推荐用强模型
+        model=registry.get("anna_engine_config").model_name,  # 推荐用强模型
         messages=rewrite_prompt
     )
 
@@ -110,7 +111,7 @@ def query(utterance, conversations, scales):
     optimized_prompt = rewritten_prompt_response.choices[0].message.content
     # 用小模型调用工具
     response = client.chat.completions.create(
-        model=model_name,  # 小模型名称
+        model=registry.get("anna_engine_config").model_name,  # 小模型名称
         messages=[
             {
                 "role": "user",
