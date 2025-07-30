@@ -1,4 +1,5 @@
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client
+from .common.registry import registry
 from .fill_scales import fill_scales, fill_scales_previous
 from .event_trigger import event_trigger, situationalising_events
 from .emotion_modulator import emotion_modulation
@@ -115,7 +116,8 @@ class MsPatient:
                 print(messages)
 
                 response = self.client.chat.completions.create(
-                    model=model_name, messages=messages
+                    model=registry.get("anna_engine_config").model_name,
+                    messages=messages,
                 )
             else:
                 # 生成回复
@@ -131,7 +133,8 @@ class MsPatient:
                 )
                 print(messages)
                 response = self.client.chat.completions.create(
-                    model=model_name, messages=messages
+                    model=registry.get("anna_engine_config").model_name,
+                    messages=messages,
                 )
 
             # 更新消息列表

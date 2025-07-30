@@ -1,6 +1,7 @@
 from random import randint
 from .emotion_pertuber import perturb_state
-from .backbone import get_emotion_client, emotion_model_name
+from .backbone import get_emotion_client
+from .common.registry import registry
 import json
 
 
@@ -63,7 +64,7 @@ def emotion_inferencer(profile, conversation):
         [f"{conv['role']}: {conv['content']}" for conv in conversation]
     )
     response = client.chat.completions.create(
-        model=emotion_model_name,
+        model=registry.get("anna_engine_config").emotion_model_name,
         messages=[
             {
                 "role": "user",

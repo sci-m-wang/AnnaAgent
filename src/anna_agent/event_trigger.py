@@ -1,7 +1,8 @@
 import pandas as pd
 from pathlib import Path
 from random import choice
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client
+from .common.registry import registry
 import json
 
 
@@ -54,7 +55,7 @@ def situationalising_events(profile):
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}"
     event = event_trigger(profile)
     response = client.chat.completions.create(
-        model=model_name,
+        model=registry.get("anna_engine_config").model_name,
         messages=[
             {
                 "role": "user",
