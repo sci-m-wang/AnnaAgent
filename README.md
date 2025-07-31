@@ -80,6 +80,16 @@ portrait, report and conversation history used by the main CLI. Environment
 variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
 override.
 
+### `interactive.yaml` Overview
+
+`interactive.yaml` defines the virtual seeker's configuration. The main fields are:
+
+- **portrait** – basic profile and psychological risk scores (e.g. `drisk`, `srisk`).
+- **report** – case description including categories and applied techniques.
+- **previous_conversations** – optional conversation history from earlier sessions.
+
+A ready-to-use example can be found at [docs/interactive_demo.yaml](docs/interactive_demo.yaml). It follows the psychological scale format used by the project and can be copied as your starting configuration.
+
 The `anna_agent` package loads its configuration from the workspace directory at
 runtime using `settings.yaml`. By default the current working directory is used,
 but you can override the location by setting the `ANNA_AGENT_WORKSPACE`
