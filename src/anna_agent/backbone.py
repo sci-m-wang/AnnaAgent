@@ -32,7 +32,22 @@ def configure(workspace: Path | None = None) -> None:
 
     cfg = _load_engine_config(workspace)
     # Register configuration for global access
-    registry.register("anna_engine_config", cfg) 
+    registry.register("anna_engine_config", cfg)
+    globals().update(
+        {
+            "api_key": cfg.api_key,
+            "base_url": cfg.base_url,
+            "complaint_api_key": cfg.complaint_api_key,
+            "counselor_api_key": cfg.counselor_api_key,
+            "emotion_api_key": cfg.emotion_api_key,
+            "complaint_model_name": cfg.complaint_model_name,
+            "counselor_model_name": cfg.counselor_model_name,
+            "emotion_model_name": cfg.emotion_model_name,
+            "complaint_base_url": cfg.complaint_base_url,
+            "counselor_base_url": cfg.counselor_base_url,
+            "emotion_base_url": cfg.emotion_base_url,
+        }
+    )
 
 def get_openai_client(
     api_key_override: str | None = None, base_url_override: str | None = None

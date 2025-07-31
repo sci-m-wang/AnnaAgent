@@ -72,25 +72,37 @@ def _parse(file_extension: str, contents: str) -> dict[str, Any]:
 def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
     values: dict[str, Any] = {}
     model_service = data.get("model_service") or {}
-    values["model_name"] = model_service.get("model_name")
-    values["api_key"] = model_service.get("api_key")
-    values["base_url"] = model_service.get("base_url")
+    if model_service.get("model_name") is not None:
+        values["model_name"] = model_service.get("model_name")
+    if model_service.get("api_key") is not None:
+        values["api_key"] = model_service.get("api_key")
+    if model_service.get("base_url") is not None:
+        values["base_url"] = model_service.get("base_url")
 
     servers = data.get("servers") or {}
     complaint = servers.get("complaint") or {}
-    values["complaint_api_key"] = complaint.get("api_key")
-    values["complaint_base_url"] = complaint.get("base_url")
-    values["complaint_model_name"] = complaint.get("model_name")
+    if complaint.get("api_key") is not None:
+        values["complaint_api_key"] = complaint.get("api_key")
+    if complaint.get("base_url") is not None:
+        values["complaint_base_url"] = complaint.get("base_url")
+    if complaint.get("model_name") is not None:
+        values["complaint_model_name"] = complaint.get("model_name")
 
     counselor = servers.get("counselor") or {}
-    values["counselor_api_key"] = counselor.get("api_key")
-    values["counselor_base_url"] = counselor.get("base_url")
-    values["counselor_model_name"] = counselor.get("model_name")
+    if counselor.get("api_key") is not None:
+        values["counselor_api_key"] = counselor.get("api_key")
+    if counselor.get("base_url") is not None:
+        values["counselor_base_url"] = counselor.get("base_url")
+    if counselor.get("model_name") is not None:
+        values["counselor_model_name"] = counselor.get("model_name")
 
     emotion = servers.get("emotion") or {}
-    values["emotion_api_key"] = emotion.get("api_key")
-    values["emotion_base_url"] = emotion.get("base_url")
-    values["emotion_model_name"] = emotion.get("model_name")
+    if emotion.get("api_key") is not None:
+        values["emotion_api_key"] = emotion.get("api_key")
+    if emotion.get("base_url") is not None:
+        values["emotion_base_url"] = emotion.get("base_url")
+    if emotion.get("model_name") is not None:
+        values["emotion_model_name"] = emotion.get("model_name")
     return values
 
 
