@@ -1,4 +1,5 @@
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client, get_openai_client
+from .common.registry import registry
 from .fill_scales import fill_scales, fill_scales_previous
 from .event_trigger import event_trigger, situationalising_events
 from .emotion_modulator import emotion_modulation
@@ -8,7 +9,17 @@ from .complaint_chain import gen_complaint_chain
 from .short_term_memory import summarize_scale_changes
 from .style_analyzer import analyze_style
 import random
+import logging
 from .anna_agent_template import prompt_template
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# 控制台打印
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+
+logger.addHandler(handler)
 
 
 class MsPatient:
@@ -70,7 +81,7 @@ class MsPatient:
         # 选取对话样例
         self.system = prompt_template.format(**self.configuration)
         self.chain_index = 1
-        self.client = get_counselor_client()
+        self.client = get_openai_client()
 
     def chat(self, message):
         # 更新消息列表
@@ -82,7 +93,7 @@ class MsPatient:
             self.chain_index = switch_complaint(
                 self.complaint_chain, self.chain_index, self.conversation
             )
-            print(self.complaint_chain)
+            logger.info(f"complaint_chain: {self.complaint_chain}")
             complaint = transform_chain(self.complaint_chain)[self.chain_index]
             # 判断是否涉及前疗程内容
             if is_need(message):
@@ -105,7 +116,8 @@ class MsPatient:
                 print(messages)
 
                 response = self.client.chat.completions.create(
-                    model=model_name, messages=messages
+                    model=registry.get("anna_engine_config").model_name,
+                    messages=messages,
                 )
             else:
                 # 生成回复
@@ -121,7 +133,8 @@ class MsPatient:
                 )
                 print(messages)
                 response = self.client.chat.completions.create(
-                    model=model_name, messages=messages
+                    model=registry.get("anna_engine_config").model_name,
+                    messages=messages,
                 )
 
             # 更新消息列表
@@ -133,5 +146,6 @@ class MsPatient:
             )
             return response.choices[0].message.content
         except Exception as err:
-            print("chat error:", err)
+            logger.error("Exception", err)  
+
             return ""

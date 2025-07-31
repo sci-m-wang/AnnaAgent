@@ -1,4 +1,5 @@
 from .backbone import get_complaint_client
+from .common.registry import registry
 from .event_trigger import event_trigger
 import json
 
@@ -33,7 +34,6 @@ tools = [
     }
 ]
 
-model_name = "complaint"
 
 
 def gen_complaint_chain(profile):
@@ -41,7 +41,7 @@ def gen_complaint_chain(profile):
     event = event_trigger(profile)
     client = get_complaint_client()
     response = client.chat.completions.create(
-        model=model_name,
+        model=registry.get("anna_engine_config").complaint_model_name,
         messages=[
             {
                 "role": "user",

@@ -1,4 +1,5 @@
-from .backbone import get_counselor_client, model_name
+from .backbone import get_counselor_client
+from .common.registry import registry
 import json
 
 tools = [
@@ -34,7 +35,7 @@ def analyze_style(profile, conversations):
     )
 
     response = client.chat.completions.create(
-        model=model_name,
+        model=registry.get("anna_engine_config").counselor_model_name,
         messages=[
             {
                 "role": "user",

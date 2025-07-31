@@ -34,29 +34,68 @@ python -m anna_agent.initialize
 anna-agent
 ```
 
-The command accepts an optional `--config` argument if you want to
-use a specific `settings.yaml`:
+After initialization you can chat with the virtual seeker.
+
+## CLI Usage
+
+AnnaAgent provides a small Typer-based command line interface with two entry
+points. After initializing the project you can either run the built-in demo or
+start a conversation using your own `interactive.yaml`.
+
+### Demo
+
+Launch the demo seeker defined in the source code:
 
 ```bash
-anna-agent --config path/to/settings.yaml
+anna-agent demo
 ```
 
-Then, you can chat with the virtual seeker.
+Both `demo` and the main command accept `--workspace` (also available as
+`--root`) to specify the project directory. Each workspace directory should
+contain both a `settings.yaml` and an `interactive.yaml` file.
+
+### Interactive mode
+
+Running `anna-agent` without a subcommand uses the `interactive.yaml` in the
+project directory and starts chatting with the virtual seeker:
+
+```bash
+anna-agent
+```
 
 ## Project Initialization
 
 The repository offers a small helper to generate default configuration files.
 Run the initialization script once before starting the example. It creates
-a `settings.yaml` and `.env` in the target directory:
+a `settings.yaml`, an `interactive.yaml` and `.env` in the target directory:
 
 ```bash
 python -m anna_agent.initialize
 ```
 
 The generated `settings.yaml` contains the model service settings and per-module
-server configuration including API keys and base URLs for the complaint,
-counselor and emotion modules. Environment variables are written to `.env` with
-the `ANNA_ENGINE_` prefix for easy override.
+server configuration including API keys, base URLs and model names for the
+complaint, counselor and emotion modules. `interactive.yaml` holds a sample
+portrait, report and conversation history used by the main CLI. Environment
+variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
+override.
+
+### `interactive.yaml` Overview
+
+`interactive.yaml` defines the virtual seeker's configuration. The main fields are:
+
+- **portrait** – basic profile and psychological risk scores (e.g. `drisk`, `srisk`).
+- **report** – case description including categories and applied techniques.
+- **previous_conversations** – optional conversation history from earlier sessions.
+
+A ready-to-use example can be found at [docs/interactive_demo.yaml](docs/interactive_demo.yaml). It follows the psychological scale format used by the project and can be copied as your starting configuration.
+
+The `anna_agent` package loads its configuration from the workspace directory at
+runtime using `settings.yaml`. By default the current working directory is used,
+but you can override the location by setting the `ANNA_AGENT_WORKSPACE`
+environment variable.  When using the library programmatically you can also
+call `anna_agent.backbone.configure(<workspace>)` to load the desired
+configuration on demand.
 
 ## Work Progress
 

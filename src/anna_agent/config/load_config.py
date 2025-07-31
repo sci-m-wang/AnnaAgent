@@ -33,15 +33,12 @@ def _load_dotenv(config_path: Path | str) -> None:
         load_dotenv(dotenv_path)
 
 
-def _get_config_path(root_dir: Path, config_filepath: Path | None) -> Path:
-    if config_filepath:
-        config_path = config_filepath.resolve()
-        if not config_path.exists():
-            raise FileNotFoundError(f"Specified Config file not found: {config_path}")
-    else:
-        config_path = _search_for_config_in_root_dir(root_dir)
+def _get_config_path(root_dir: Path) -> Path:
+    config_path = _search_for_config_in_root_dir(root_dir)
     if not config_path:
-        raise FileNotFoundError(f"Config file not found in root directory: {root_dir}")
+        raise FileNotFoundError(
+            f"Config file not found in root directory: {root_dir}"
+        )
     return config_path
 
 
@@ -75,32 +72,46 @@ def _parse(file_extension: str, contents: str) -> dict[str, Any]:
 def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
     values: dict[str, Any] = {}
     model_service = data.get("model_service") or {}
-    values["model_name"] = model_service.get("model_name")
-    values["api_key"] = model_service.get("api_key")
-    values["base_url"] = model_service.get("base_url")
+    if model_service.get("model_name") is not None:
+        values["model_name"] = model_service.get("model_name")
+    if model_service.get("api_key") is not None:
+        values["api_key"] = model_service.get("api_key")
+    if model_service.get("base_url") is not None:
+        values["base_url"] = model_service.get("base_url")
 
     servers = data.get("servers") or {}
     complaint = servers.get("complaint") or {}
-    values["complaint_api_key"] = complaint.get("api_key")
-    values["complaint_base_url"] = complaint.get("base_url")
+    if complaint.get("api_key") is not None:
+        values["complaint_api_key"] = complaint.get("api_key")
+    if complaint.get("base_url") is not None:
+        values["complaint_base_url"] = complaint.get("base_url")
+    if complaint.get("model_name") is not None:
+        values["complaint_model_name"] = complaint.get("model_name")
 
     counselor = servers.get("counselor") or {}
-    values["counselor_api_key"] = counselor.get("api_key")
-    values["counselor_base_url"] = counselor.get("base_url")
+    if counselor.get("api_key") is not None:
+        values["counselor_api_key"] = counselor.get("api_key")
+    if counselor.get("base_url") is not None:
+        values["counselor_base_url"] = counselor.get("base_url")
+    if counselor.get("model_name") is not None:
+        values["counselor_model_name"] = counselor.get("model_name")
 
     emotion = servers.get("emotion") or {}
-    values["emotion_api_key"] = emotion.get("api_key")
-    values["emotion_base_url"] = emotion.get("base_url")
+    if emotion.get("api_key") is not None:
+        values["emotion_api_key"] = emotion.get("api_key")
+    if emotion.get("base_url") is not None:
+        values["emotion_base_url"] = emotion.get("base_url")
+    if emotion.get("model_name") is not None:
+        values["emotion_model_name"] = emotion.get("model_name")
     return values
 
 
 def load_config(
     root_dir: Path,
-    config_filepath: Path | None = None,
     cli_overrides: dict[str, Any] | None = None,
 ) -> AnnaEngineConfig:
     root = root_dir.resolve()
-    config_path = _get_config_path(root, config_filepath)
+    config_path = _get_config_path(root)
     _load_dotenv(config_path)
     config_extension = config_path.suffix
     config_text = config_path.read_text(encoding="utf-8")

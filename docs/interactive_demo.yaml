@@ -1,28 +1,3 @@
-"""Default initialization content."""
-
-from .defaults import anna_engine_defaults
-
-INIT_YAML = f"""\
-model_service:
-  model_name: {anna_engine_defaults.model_name}
-  api_key: {anna_engine_defaults.api_key}
-  base_url: {anna_engine_defaults.base_url}
-servers:
-  complaint:
-    model_name: {anna_engine_defaults.complaint_model_name}
-    api_key: {anna_engine_defaults.complaint_api_key}
-    base_url: {anna_engine_defaults.complaint_base_url}
-  counselor:
-    model_name: {anna_engine_defaults.counselor_model_name}
-    api_key: {anna_engine_defaults.counselor_api_key}
-    base_url: {anna_engine_defaults.counselor_base_url}
-  emotion:
-    model_name: {anna_engine_defaults.emotion_model_name}
-    api_key: {anna_engine_defaults.emotion_api_key}
-    base_url: {anna_engine_defaults.emotion_base_url}
-"""
-
-INIT_INTERACTIVE_YAML = """\
 portrait:
   drisk: 3
   srisk: 2
@@ -84,9 +59,3 @@ previous_conversations:
     content: "确实容易焦躁。头晕的话没事"
   - role: "Counselor"
     content: "ok。你的情况我基本了解了。虽然你不愿意说你难过的原因。但是不用有太大压力。无论发生什么都要尽量乐观点。平常可以多和朋友聊聊。多去走走 可以放轻松。那今天就到这里啦"
-"""
-
-INIT_DOTENV = """\
-GLOBAL_RETRIES=3
-SCHEDULE_PARAM=default
-"""
