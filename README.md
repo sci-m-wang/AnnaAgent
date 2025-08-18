@@ -132,13 +132,30 @@ For contribution guidelines refer to:
 
 ## Citation
 ```bibtex
-@article{wang2025annaagentdynamicevolutionagent,
-      title={AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation}, 
-      author={Ming Wang and Peidong Wang and Lin Wu and Xiaocui Yang and Daling Wang and Shi Feng and Yuxin Chen and Bixuan Wang and Yifei Zhang},
-      year={2025},
-      eprint={2506.00551},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2506.00551}, 
+@inproceedings{wang-etal-2025-annaagent,
+    title = "{A}nna{A}gent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation",
+    author = "Wang, Ming  and
+      Wang, Peidong  and
+      Wu, Lin  and
+      Yang, Xiaocui  and
+      Wang, Daling  and
+      Feng, Shi  and
+      Chen, Yuxin  and
+      Wang, Bixuan  and
+      Zhang, Yifei",
+    editor = "Che, Wanxiang  and
+      Nabende, Joyce  and
+      Shutova, Ekaterina  and
+      Pilehvar, Mohammad Taher",
+    booktitle = "Findings of the Association for Computational Linguistics: ACL 2025",
+    month = jul,
+    year = "2025",
+    address = "Vienna, Austria",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.findings-acl.1192/",
+    doi = "10.18653/v1/2025.findings-acl.1192",
+    pages = "23221--23235",
+    ISBN = "979-8-89176-256-5",
+    abstract = "Constrained by the cost and ethical concerns of involving real seekers in AI-driven mental health, researchers develop LLM-based conversational agents (CAs) with tailored configurations, such as profiles, symptoms, and scenarios, to simulate seekers. While these efforts advance AI in mental health, achieving more realistic seeker simulation remains hindered by two key challenges: dynamic evolution and multi-session memory. Seekers' mental states often fluctuate during counseling, which typically spans multiple sessions. To address this, we propose **AnnaAgent**, an emotional and cognitive dynamic agent system equipped with tertiary memory. AnnaAgent incorporates an emotion modulator and a complaint elicitor trained on real counseling dialogues, enabling dynamic control of the simulator{'}s configurations. Additionally, its tertiary memory mechanism effectively integrates short-term and long-term memory across sessions. Evaluation results, both automated and manual, demonstrate that AnnaAgent achieves more realistic seeker simulation in psychological counseling compared to existing baselines. The ethically reviewed and screened code can be found on [https://github.com/sci-m-wang/AnnaAgent](https://github.com/sci-m-wang/AnnaAgent)."
 }
 ```
