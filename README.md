@@ -101,7 +101,7 @@ configuration on demand.
 
 To make it easier for readers to learn how to use it, we have added the flowchart below:
 
-![https://github.com/sci-m-wang/AnnaAgent/blob/main/figure/whiteboard_exported_image_en.png](https://github.com/sci-m-wang/AnnaAgent/blob/main/src/anna_agent/figure/readme.md)
+![](https://github.com/sci-m-wang/AnnaAgent/blob/main/src/anna_agent/figure/whiteboard_exported_image_en.png)
 
 With two groups of agents (for **Dynamic Evolution** & **Multi-session Memory**, respectively), AnnaAgent simulates seekers via two main stages, i.e., the **initialization stage** to set the seeker's configuration (including profile, situation, symptoms, etc) and the **conversation stage** to interact with the counselor. The agent group for dynamic evolution contains an emotion modulator, a chief complaint chain generator and a complaint switcher. There are three agents in the agent group for multi-session memory: a situation analyzer, a status analyzer, and a memory retriever.
 
