@@ -57,7 +57,13 @@ class MsPatient:
             for utterance in self.previous_conversations
             if utterance["role"] == "Seeker"
         ]
-        self.configuration["statement"] = random.choices(seeker_utterances, k=3)
+        # 兼容空的历史会话，避免 random.choices 在空列表上触发"list index out of range"
+        if seeker_utterances:
+            k = 3 if len(seeker_utterances) >= 3 else len(seeker_utterances)
+            self.configuration["statement"] = random.choices(seeker_utterances, k=k)
+        else:
+            # 提供一个合理的默认主述，保证下游 Prompt 渲染不失败
+            self.configuration["statement"] = ["最近工作压力有点大，睡眠也不太好。"]
         # 填写当前量表
         # bdi = ["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B"]
         # ghq = ["C","C","B","B","D","C","B","C","B","B","D","B","C","B","D","B","C","B","D","B","C","B","B","B","D","B","B","B"]
@@ -94,7 +100,15 @@ class MsPatient:
                 self.complaint_chain, self.chain_index, self.conversation
             )
             logger.info(f"complaint_chain: {self.complaint_chain}")
-            complaint = transform_chain(self.complaint_chain)[self.chain_index]
+            # 安全地获取complaint，避免list index out of range错误
+            transformed_chain = transform_chain(self.complaint_chain)
+            if transformed_chain and len(transformed_chain) > self.chain_index:
+                complaint = transformed_chain[self.chain_index]
+            else:
+                logger.warning(
+                    f"chain_index {self.chain_index} 超出范围，使用默认complaint"
+                )
+                complaint = "工作焦虑，失眠问题"
             # 判断是否涉及前疗程内容
             if is_need(message):
                 # 生成前疗程内容
@@ -138,14 +152,19 @@ class MsPatient:
                 )
 
             # 更新消息列表
-            self.conversation.append(
-                {"role": "Seeker", "content": response.choices[0].message.content}
-            )
-            self.messages.append(
-                {"role": "assistant", "content": response.choices[0].message.content}
-            )
-            return response.choices[0].message.content
+            # 安全地提取响应内容，避免list index out of range错误
+            if response.choices and len(response.choices) > 0:
+                response_content = response.choices[0].message.content
+            else:
+                logger.warning("OpenAI API返回空的choices数组，使用默认响应")
+                response_content = (
+                    "抱歉，我刚才走神了...最近工作太忙，脑子有点乱。你刚才说什么？"
+                )
+
+            self.conversation.append({"role": "Seeker", "content": response_content})
+            self.messages.append({"role": "assistant", "content": response_content})
+            return response_content
         except Exception as err:
-            logger.error("Exception", err)  
+            logger.error("Exception", err)
 
             return ""
