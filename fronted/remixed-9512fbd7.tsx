@@ -1,12 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MessageCircle, User, Brain, Settings, RotateCcw, Play, Pause, FileText, Clock, Heart, Calendar, UserCheck, History, ArrowLeft, ArrowRight } from 'lucide-react';
 
+// CSS样式支持文本截断
+const styles = `
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+`;
+
+// 注入样式
+if (typeof document !== 'undefined' && !document.querySelector('#custom-styles')) {
+  const styleSheet = document.createElement('style');
+  styleSheet.id = 'custom-styles';
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
+
 type Message = {
   id: number;
   type: 'system' | 'counselor' | 'client';
   content: string;
   timestamp: string;
   emotion?: string;
+  complaint?: string;
 };
 
 type PreviousSession = { session: number; date: string; summary: string };
@@ -42,6 +62,12 @@ const PsychologyTrainingInterface = () => {
   // 按场景缓存会话与消息，避免切换时重复初始化
   const [sessionsByScenario, setSessionsByScenario] = useState<Record<string, string>>({});
   const [messagesByScenario, setMessagesByScenario] = useState<Record<string, Message[]>>({});
+  const [availablePatients, setAvailablePatients] = useState<any[]>([]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPatients, setTotalPatients] = useState(0);
+  const patientsPerPage = 8; // 每页显示8个病人
 
   // 后端 API 基址
   const apiBase = 'http://127.0.0.1:8080';
@@ -120,14 +146,30 @@ const PsychologyTrainingInterface = () => {
     }
   };
 
-  // 模拟场景选项
-  const scenarios = [
-    { name: '焦虑症状咨询', difficulty: '初级', description: '来访者表现出焦虑情绪和睡眠问题' },
-    { name: '抑郁情绪疏导', difficulty: '中级', description: '来访者情绪低落，对生活失去兴趣' },
-    { name: '人际关系困扰', difficulty: '初级', description: '来访者在人际交往中遇到困难' },
-    { name: '职场压力应对', difficulty: '中级', description: '来访者面临工作压力和职业倦怠' },
-    { name: '家庭关系冲突', difficulty: '高级', description: '来访者家庭关系紧张，需要深度疏导' }
-  ];
+  // 加载病人数据
+  const loadPatients = async (page = 1) => {
+    setIsLoadingPatients(true);
+    try {
+      const response = await fetch(`${apiBase}/api/patients?page=${page}&page_size=${patientsPerPage}&random_order=false`);
+      const data = await response.json();
+      setAvailablePatients(data.patients || []);
+      setTotalPatients(data.total || 0);
+      setTotalPages(Math.ceil((data.total || 0) / patientsPerPage));
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('加载病人数据失败:', error);
+      setAvailablePatients([]);
+      setTotalPatients(0);
+      setTotalPages(1);
+    } finally {
+      setIsLoadingPatients(false);
+    }
+  };
+
+  // 组件加载时获取病人数据
+  useEffect(() => {
+    loadPatients();
+  }, []);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -192,7 +234,8 @@ const PsychologyTrainingInterface = () => {
         id: Date.now() + 1,
         type: 'client',
         content: data.response,
-        emotion: undefined,
+        emotion: data.emotion,
+        complaint: data.complaint,
         timestamp: new Date().toLocaleTimeString()
       };
       setMessages(prev => [...prev, clientResponse]);
@@ -235,12 +278,12 @@ const PsychologyTrainingInterface = () => {
     }
   };
 
-  const startNewSession = async (scenario) => {
-    const scenarioName = scenario.name;
-    const profile = clientProfiles[scenarioName];
+  const startNewSession = async (patient) => {
+    const patientId = patient.id;
+    const patientName = patient.name;
 
-    // 若重复点击同一场景且已有会话，直接返回
-    if (currentScenario === scenarioName && sessionId) {
+    // 若重复点击同一病人且已有会话，直接返回
+    if (currentScenario === patientName && sessionId) {
       return;
     }
 
@@ -252,104 +295,164 @@ const PsychologyTrainingInterface = () => {
       }));
     }
 
-    setCurrentScenario(scenarioName);
-    setClientProfile(profile);
+    setCurrentScenario(patientName);
     setSessionTime(0);
     setIsSessionActive(false);
-    setCurrentSession(profile.previousSessions.length + 1);
+    setCurrentSession(1); // 重置为第1次会话
 
-    // 若该场景已有缓存，直接恢复
-    const cachedSessionId = sessionsByScenario[scenarioName];
-    const cachedMessages = messagesByScenario[scenarioName];
+    // 若该病人已有缓存，直接恢复
+    const cachedSessionId = sessionsByScenario[patientId];
+    const cachedMessages = messagesByScenario[patientId];
     if (cachedSessionId) {
       setSessionId(cachedSessionId);
       if (Array.isArray(cachedMessages) && cachedMessages.length > 0) {
         setMessages(cachedMessages);
       } else {
-        const greetingCached = reviewPreviousSessions
+        const greeting = reviewPreviousSessions
           ? `您好，医生。距离我们上次见面已经一周了，我想继续聊聊之前的话题...`
-          : getInitialGreeting(profile, scenarioName);
+          : getInitialGreeting(patient);
         setMessages([
           {
             id: 1,
             type: 'system',
-            content: `已开始第 ${profile.previousSessions.length + 1} 次「${scenarioName}」模拟训练 (${scenario.difficulty})`,
+            content: `已开始与「${patientName}」的模拟咨询 (${patient.difficulty})`,
             timestamp: new Date().toLocaleTimeString()
           },
           {
             id: 2,
             type: 'client',
-            content: greetingCached,
-            emotion: getInitialEmotion(profile),
+            content: greeting,
+            emotion: getInitialEmotion(patient),
             timestamp: new Date().toLocaleTimeString()
           }
         ]);
       }
+      // 设置当前病人档案
+      setClientProfile({
+        name: patient.name,
+        age: parseInt(patient.age),
+        gender: patient.gender,
+        occupation: patient.occupation,
+        background: patient.description,
+        personality: '待了解',
+        symptoms: patient.symptoms,
+        previousSessions: [],
+        avatar: getAvatarForPatient(patient)
+      });
       return;
     }
 
-    // 首次进入该场景：创建新会话并缓存
+    // 首次选择该病人：创建新会话并缓存
     try {
-      const payload = {
-        profile: {
-          age: String(profile.age),
-          gender: String(profile.gender),
-          occupation: String(profile.occupation),
-          martial_status: '未婚',
-          symptoms: Array.isArray(profile.symptoms) ? profile.symptoms.join('，') : String(profile.symptoms || '')
-        },
-        report: { title: scenarioName },
-        previous_conversations: []
-      };
-      const res = await fetch(`${apiBase}/api/sessions`, {
+      const res = await fetch(`${apiBase}/api/sessions/by_id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ patient_id: patientId })
       });
       const data = await res.json();
       setSessionId(data.session_id);
-      setSessionsByScenario((prev) => ({ ...prev, [scenarioName]: data.session_id }));
+      setSessionsByScenario((prev) => ({ ...prev, [patientId]: data.session_id }));
 
-      const greeting = reviewPreviousSessions ?
-        `您好，医生。距离我们上次见面已经一周了，我想继续聊聊之前的话题...` :
-        getInitialGreeting(profile, scenarioName);
+      const greeting = reviewPreviousSessions
+        ? `您好，医生。距离我们上次见面已经一周了，我想继续聊聊之前的话题...`
+        : getInitialGreeting(patient);
 
       setMessages([
         {
           id: 1,
           type: 'system',
-          content: `已开始第 ${profile.previousSessions.length + 1} 次「${scenarioName}」模拟训练 (${scenario.difficulty})`,
+          content: `已开始与「${patientName}」的模拟咨询 (${patient.difficulty})`,
           timestamp: new Date().toLocaleTimeString()
         },
         {
           id: 2,
           type: 'client',
           content: greeting,
-          emotion: getInitialEmotion(profile),
+          emotion: getInitialEmotion(patient),
           timestamp: new Date().toLocaleTimeString()
         }
       ]);
+      
+      // 设置当前病人档案
+      setClientProfile({
+        name: patient.name,
+        age: parseInt(patient.age),
+        gender: patient.gender,
+        occupation: patient.occupation,
+        background: patient.description,
+        personality: '待了解',
+        symptoms: patient.symptoms,
+        previousSessions: [],
+        avatar: getAvatarForPatient(patient)
+      });
     } catch (e) {
+      console.error('创建会话失败:', e);
       setSessionId(null);
     }
   };
 
-  const getInitialGreeting = (profile, scenarioName) => {
-    const greetings = {
-      '焦虑症状咨询': '你好，医生... 我最近总是感到很焦虑，晚上睡不着觉。',
-      '抑郁情绪疏导': '医生，我最近总是感到很沮丧，对什么事都提不起兴趣...',
-      '人际关系困扰': '医生，我想和您聊一下我最近在人际关系上遇到的问题...',
-      '职场压力应对': '医生，我工作压力很大，感觉快要承受不住了...',
-      '家庭关系冲突': '医生，我和家人的关系最近很紧张，不知道该怎么办...'
-    };
-    return greetings[scenarioName] || '医生，我想和您聊一下我最近遇到的一些问题...';
+  const getAvatarForPatient = (patient) => {
+    // 基于性别和年龄选择头像
+    const age = parseInt(patient.age) || 30;
+    if (patient.gender === '男') {
+      if (age < 18) {
+        return 'https://images.unsplash.com/photo-1566217688581-b2191944c2f9?w=100&h=100&fit=crop&crop=face';
+      } else if (age < 30) {
+        return 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face';
+      } else if (age < 50) {
+        return 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face';
+      } else {
+        return 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face';
+      }
+    } else {
+      if (age < 18) {
+        return 'https://images.unsplash.com/photo-1569407228235-f571695b87f2?w=100&h=100&fit=crop&crop=face';
+      } else if (age < 30) {
+        return 'https://images.unsplash.com/photo-1494790108755-2616b2b5a6d4?w=100&h=100&fit=crop&crop=face';
+      } else if (age < 50) {
+        return 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face';
+      } else {
+        return 'https://images.unsplash.com/photo-1546456073-92b9f0a8d413?w=100&h=100&fit=crop&crop=face';
+      }
+    }
   };
 
-  const getInitialEmotion = (profile) => {
-    if (profile.symptoms.includes('失眠')) return '焦虑';
-    if (profile.symptoms.includes('情绪低落')) return '低落';
-    if (profile.symptoms.includes('人际冲突')) return '困惑';
-    return '紧张';
+  const getInitialGreeting = (patient) => {
+    // 基于病人症状生成相应的打招呼语
+    const symptoms = patient.symptoms || [];
+    
+    if (symptoms.includes('焦虑') || symptoms.includes('失眠')) {
+      return '你好，医生... 我最近总是感到很焦虑，晚上睡不着觉。';
+    } 
+    if (symptoms.includes('抑郁') || symptoms.includes('情绪低落')) {
+      return '医生，我最近总是感到很沉丧，对什么事都提不起兴趣...';
+    }
+    if (symptoms.includes('人际') || symptoms.includes('沟通') || symptoms.includes('关系')) {
+      return '医生，我想和您聊一下我最近在人际关系上遇到的问题...';
+    }
+    if (symptoms.includes('压力') || symptoms.includes('工作')) {
+      return '医生，我工作压力很大，感觉快要承受不住了...';
+    }
+    if (symptoms.includes('家庭') || symptoms.includes('婚姻')) {
+      return '医生，我和家人的关系最近很紧张，不知道该怎么办...';
+    }
+    
+    return '医生，我想和您聊一下我最近遇到的一些问题...';
+  };
+
+  const getInitialEmotion = (patient) => {
+    const symptoms = patient.symptoms || [];
+    
+    // 基于症状确定初始情绪
+    for (const symptom of symptoms) {
+      if (symptom.includes('焦虑') || symptom.includes('失眠')) return '焦虑';
+      if (symptom.includes('抑郁') || symptom.includes('低落')) return '低落';
+      if (symptom.includes('人际') || symptom.includes('困惑')) return '困惑';
+      if (symptom.includes('恐惧') || symptom.includes('急迫')) return '紧张';
+      if (symptom.includes('怒') || symptom.includes('愤')) return '愤怒';
+    }
+    
+    return '紧张'; // 默认情绪
   };
 
   const getEmotionColor = (emotion) => {
@@ -379,8 +482,8 @@ const PsychologyTrainingInterface = () => {
 
       <div className="relative z-10 flex h-screen">
         {/* 左侧功能面板 */}
-        <div className="w-96 bg-white/70 backdrop-blur-xl border-r border-emerald-200/50 shadow-xl">
-          <div className="p-6">
+        <div className="w-96 bg-white/70 backdrop-blur-xl border-r border-emerald-200/50 shadow-xl flex flex-col">
+          <div className="flex-1 p-6 overflow-hidden flex flex-col">
             {/* 标题区域 */}
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg">
@@ -393,7 +496,7 @@ const PsychologyTrainingInterface = () => {
             </div>
 
             {/* 当前会话信息 */}
-            <div className="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-2xl p-4 mb-6 border border-emerald-200/50">
+            <div className="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-2xl p-4 mb-4 border border-emerald-200/50">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-emerald-700">当前场景</span>
                 <div className="flex items-center gap-2 text-emerald-600">
@@ -427,9 +530,9 @@ const PsychologyTrainingInterface = () => {
               </div>
             </div>
 
-            {/* 来访者档案 */}
+            {/* 病人档案 */}
             {showProfile && clientProfile && (
-              <div className="bg-white/80 rounded-2xl p-4 mb-6 border border-emerald-200/50 shadow-lg">
+              <div className="bg-white/80 rounded-2xl p-4 mb-4 border border-emerald-200/50 shadow-lg">
                 <div className="flex items-center gap-3 mb-3">
                   <img
                     src={clientProfile.avatar}
@@ -465,7 +568,7 @@ const PsychologyTrainingInterface = () => {
             )}
 
             {/* 疗程记忆设置 */}
-            <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-200/50">
+            <div className="bg-blue-50 rounded-2xl p-4 mb-4 border border-blue-200/50">
               <div className="flex items-center gap-2 mb-3">
                 <History className="w-4 h-4 text-blue-600" />
                 <span className="text-sm font-medium text-blue-700">疗程记忆</span>
@@ -486,13 +589,13 @@ const PsychologyTrainingInterface = () => {
 
             {/* 历史疗程记录 */}
             {clientProfile && (
-              <div className="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-200/50">
+              <div className="bg-gray-50 rounded-2xl p-4 mb-4 border border-gray-200/50">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-4 h-4 text-gray-600" />
                   <span className="text-sm font-medium text-gray-700">历史疗程</span>
                 </div>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {clientProfile.previousSessions.map((session, index) => (
+                <div className="space-y-2 max-h-24 overflow-y-auto">
+                  {clientProfile.previousSessions.slice(0, 2).map((session, index) => (
                     <div key={index} className="bg-white/80 rounded-lg p-2 border border-gray-200/30">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-gray-700">第 {session.session} 次</span>
@@ -501,38 +604,166 @@ const PsychologyTrainingInterface = () => {
                       <p className="text-xs text-gray-600 leading-relaxed">{session.summary}</p>
                     </div>
                   ))}
+                  {clientProfile.previousSessions.length > 2 && (
+                    <div className="text-xs text-gray-500 text-center py-1">
+                      还有 {clientProfile.previousSessions.length - 2} 次疗程记录...
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* 场景选择 */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-emerald-800 mb-3">选择练习场景</h3>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {scenarios.map((scenario, index) => (
-                  <div
-                    key={index}
-                    onClick={() => startNewSession(scenario)}
-                    className="p-3 rounded-xl bg-white/60 hover:bg-white/80 border border-emerald-200/30 hover:border-emerald-300/50 cursor-pointer transition-all duration-200 hover:shadow-md"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-medium text-emerald-800 text-sm">{scenario.name}</h4>
-                      <span className={`text-xs px-2 py-1 rounded-full ${scenario.difficulty === '初级' ? 'bg-green-100 text-green-600' :
-                        scenario.difficulty === '中级' ? 'bg-yellow-100 text-yellow-600' :
-                          'bg-red-100 text-red-600'
-                        }`}>
-                        {scenario.difficulty}
-                      </span>
-                    </div>
-                    <p className="text-xs text-emerald-600 leading-relaxed">{scenario.description}</p>
-                  </div>
-                ))}
+            {/* 病人选择 */}
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-semibold text-emerald-800">选择病人档案</h3>
+                  <p className="text-xs text-emerald-600">共 {totalPatients} 个病人，第 {currentPage}/{totalPages} 页</p>
+                </div>
+                <button
+                  onClick={() => loadPatients(1)}
+                  disabled={isLoadingPatients}
+                  className="text-xs text-emerald-600 hover:text-emerald-700 underline"
+                >
+                  {isLoadingPatients ? '加载中...' : '刷新'}
+                </button>
               </div>
+              
+              {isLoadingPatients ? (
+                <div className="p-4 text-center text-emerald-600">
+                  <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  加载病人数据中...
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2 flex-1 overflow-y-auto pr-2">
+                    {availablePatients.map((patient, index) => (
+                      <div
+                        key={patient.id}
+                        onClick={() => startNewSession(patient)}
+                        className="p-3 rounded-xl bg-white/60 hover:bg-white/80 border border-emerald-200/30 hover:border-emerald-300/50 cursor-pointer transition-all duration-200 hover:shadow-md"
+                      >
+                        <div className="flex items-start gap-3 mb-2">
+                          <div className="flex-shrink-0">
+                            <img
+                              src={getAvatarForPatient(patient)}
+                              alt={patient.name}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-emerald-200 shadow-sm"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23f3f4f6"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="12">${patient.gender === '男' ? '男' : '女'}</text></svg>`;
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-medium text-emerald-800 text-sm">{patient.age}岁{patient.gender}性</h4>
+                              <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
+                                patient.difficulty === '初级' ? 'bg-green-100 text-green-600' :
+                                patient.difficulty === '中级' ? 'bg-yellow-100 text-yellow-600' :
+                                'bg-red-100 text-red-600'
+                              }`}>
+                                {patient.difficulty}
+                              </span>
+                            </div>
+                            <p className="text-xs text-emerald-700 font-medium mb-1 truncate">{patient.case_title}</p>
+                            <p className="text-xs text-emerald-600 leading-relaxed line-clamp-2">{patient.description}</p>
+                          </div>
+                        </div>
+                        {patient.symptoms && patient.symptoms.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {patient.symptoms.slice(0, 3).map((symptom, idx) => (
+                              <span key={idx} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                                {symptom}
+                              </span>
+                            ))}
+                            {patient.symptoms.length > 3 && (
+                              <span className="text-xs text-gray-500 px-2 py-1">+{patient.symptoms.length - 3}个</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {availablePatients.length === 0 && !isLoadingPatients && (
+                      <div className="p-4 text-center text-gray-500">
+                        暂无可用病人数据
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 分页组件 */}
+                  {totalPages > 1 && (
+                    <div className="mt-3 pt-3 border-t border-emerald-200/30">
+                      <div className="flex items-center justify-between text-xs">
+                        <button
+                          onClick={() => currentPage > 1 && loadPatients(currentPage - 1)}
+                          disabled={currentPage <= 1 || isLoadingPatients}
+                          className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-100 text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-emerald-200 transition-colors"
+                        >
+                          <ArrowLeft className="w-3 h-3" />
+                          上一页
+                        </button>
+                        
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => loadPatients(pageNum)}
+                                disabled={isLoadingPatients}
+                                className={`w-6 h-6 rounded text-xs font-medium transition-colors ${
+                                  pageNum === currentPage
+                                    ? 'bg-emerald-500 text-white'
+                                    : 'bg-white/60 text-emerald-700 hover:bg-emerald-100'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                          {totalPages > 5 && currentPage < totalPages - 2 && (
+                            <>
+                              <span className="text-gray-400">...</span>
+                              <button
+                                onClick={() => loadPatients(totalPages)}
+                                disabled={isLoadingPatients}
+                                className="w-6 h-6 rounded text-xs font-medium bg-white/60 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                              >
+                                {totalPages}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        
+                        <button
+                          onClick={() => currentPage < totalPages && loadPatients(currentPage + 1)}
+                          disabled={currentPage >= totalPages || isLoadingPatients}
+                          className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-100 text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-emerald-200 transition-colors"
+                        >
+                          下一页
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
           {/* 底部工具栏 */}
-          <div className="absolute bottom-6 left-6 right-6">
+          <div className="p-6 pt-3 border-t border-emerald-200/30">
             <div className="flex gap-2">
               <button className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-100 hover:bg-emerald-200 transition-colors text-emerald-700 border border-emerald-200">
                 <FileText className="w-4 h-4" />
@@ -628,11 +859,18 @@ const PsychologyTrainingInterface = () => {
                       </p>
                       <div className="flex items-center justify-between mt-3">
                         <span className="text-xs text-gray-500">{message.timestamp}</span>
-                        {message.emotion && (
-                          <span className={`text-xs px-2 py-1 rounded-full bg-gray-100 ${getEmotionColor(message.emotion)}`}>
-                            情绪: {message.emotion}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {message.emotion && (
+                            <span className={`text-xs px-2 py-1 rounded-full bg-gray-100 ${getEmotionColor(message.emotion)}`}>
+                              情绪: {message.emotion}
+                            </span>
+                          )}
+                          {message.complaint && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-600">
+                              主诉: {message.complaint}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
