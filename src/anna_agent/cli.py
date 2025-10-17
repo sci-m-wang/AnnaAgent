@@ -5,7 +5,7 @@ import typer
 import yaml
 
 from . import backbone
-
+from .ms_patient_with_prompt import MsPatient
 # Possible names for the interactive configuration file
 _interactive_config_files = ["interactive.yaml", "interactive.yml", "interactive.json"]
 
