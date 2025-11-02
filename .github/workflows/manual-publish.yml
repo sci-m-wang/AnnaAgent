@@ -1,10 +1,47 @@
-name: Test Workflow
+# GitHub Action 的名称
+name: Manually Publish Python package to PyPI
 
+# 关键：设置触发器为 "workflow_dispatch"
+# 这会使 "Actions" 选项卡中出现一个 "Run workflow" 按钮
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version to publish (e.g., v0.0.2)'
+        required: true
+        default: 'v'
+
+# 权限设置
+permissions:
+  contents: read
 
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "It works!"
+    # 1. 检出（下载）你的代码
+    # 注意：这里我们检出的是用户在运行工作流时输入的分支/标签
+    - uses: actions/checkout@v4
+
+    # 2. 设置 Python
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # 3. 安装依赖
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build
+
+    # 4. 构建你的包
+    - name: Build package
+      run: python -m build
+
+    # 5. 发布到 PyPI
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
