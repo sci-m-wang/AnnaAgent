@@ -10,7 +10,7 @@ import os
 
 # Import existing AnnaAgent components
 from src.anna_agent.backbone import configure
-from fixed_ms_patient import FixedMsPatient
+from src.anna_agent.fixed_ms_patient import FixedMsPatient
 from src.anna_agent.dataset_loader import DatasetLoader
 from src.anna_agent.complaint_chain import gen_complaint_chain
 

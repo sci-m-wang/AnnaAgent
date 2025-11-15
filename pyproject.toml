@@ -129,7 +129,45 @@ dotenv = "dotenv:plugin"
 
 
 # https://python-poetry.org/docs/repositories/
-[[tool.poetry.source]]
-name = "tsinghua"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
-priority = "primary"
+
+[project]
+name = "anna_agent"
+version = "0.1.2"
+description = "Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "openai",
+  "pandas",
+  "typer[all]",
+  "environs",
+  "pydantic",
+  "python-dotenv",
+  "PyYAML",
+]
+
+[project.scripts]
+anna-agent = "anna_agent.cli:app"
+
+[dependency-groups]
+dev = [
+  "jupyter>=1.0.0",
+  "setuptools>=67.6.1",
+]
+lint = [
+  "ruff>=0.1.5",
+]
+test = [
+  "pytest>=7.3.0",
+  "freezegun>=1.2.2",
+  "pytest-mock>=3.10.0",
+  "syrupy>=4.0.2",
+  "pytest-watcher>=0.3.4",
+  "pytest-asyncio>=0.21.1",
+  "grandalf>=0.8",
+  "pytest-profiling>=1.7.0",
+  "responses>=0.25.0",
+]
+
+[tool.uv]
+default-groups = ["dev", "lint", "test"]

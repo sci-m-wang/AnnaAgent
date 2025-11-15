@@ -14,17 +14,14 @@ class FixedMsPatient(OriginalMsPatient):
     """修复list index out of range错误的MsPatient版本"""
 
     def chat(self, message):
-        # 更新消息列表
         self.conversation.append({"role": "Counselor", "content": message})
         self.messages.append({"role": "user", "content": message})
 
         try:
-            # 使用父类的所有初始化逻辑
             from src.anna_agent.emotion_modulator import emotion_modulation
             from src.anna_agent.complaint_elicitor import switch_complaint, transform_chain
             from src.anna_agent.querier import query, is_need
 
-            # 初始化本次对话的状态
             emotion = emotion_modulation(self.portrait, self.conversation)
             self.chain_index = switch_complaint(
                 self.complaint_chain, self.chain_index, self.conversation
@@ -32,14 +29,11 @@ class FixedMsPatient(OriginalMsPatient):
             logger.info(f"complaint_chain: {self.complaint_chain}")
             complaint = transform_chain(self.complaint_chain)[self.chain_index]
 
-            # 判断是否涉及前疗程内容
             if is_need(message):
-                # 生成前疗程内容
                 sup_information = query(
                     message, self.previous_conversations, self.report
                 )
 
-                # 生成回复
                 messages = (
                     [{"role": "system", "content": self.system}]
                     + self.messages
@@ -50,7 +44,6 @@ class FixedMsPatient(OriginalMsPatient):
 
                 response = self._safe_openai_call(messages)
             else:
-                # 生成回复
                 messages = (
                     [{"role": "system", "content": self.system}]
                     + self.messages
@@ -60,10 +53,8 @@ class FixedMsPatient(OriginalMsPatient):
                 print(messages)
                 response = self._safe_openai_call(messages)
 
-            # 安全地提取响应内容
             response_content = self._extract_response_content(response)
 
-            # 更新消息列表
             self.conversation.append(
                 {"role": "Seeker", "content": response_content}
             )
@@ -77,7 +68,6 @@ class FixedMsPatient(OriginalMsPatient):
             return ""
 
     def _safe_openai_call(self, messages):
-        """安全地调用OpenAI API，包含重试逻辑"""
         max_retries = 3
 
         for attempt in range(max_retries):
@@ -89,7 +79,6 @@ class FixedMsPatient(OriginalMsPatient):
                     messages=messages,
                 )
 
-                # 立即检查响应格式
                 if hasattr(response, 'choices') and len(response.choices) > 0:
                     logger.info(f"✅ OpenAI API call successful, got {len(response.choices)} choices")
                     return response
@@ -111,7 +100,6 @@ class FixedMsPatient(OriginalMsPatient):
         return self._create_fallback_response()
 
     def _create_fallback_response(self):
-        """创建一个模拟的OpenAI响应对象，当API失败时使用"""
         class FallbackChoice:
             def __init__(self, content):
                 self.message = type('Message', (), {'content': content})()
@@ -120,14 +108,12 @@ class FixedMsPatient(OriginalMsPatient):
             def __init__(self, content):
                 self.choices = [FallbackChoice(content)]
 
-        # 基于患者档案特征生成合理的回复
         fallback_content = "最近工作确实很忙，压力挺大的...有时候晚上都睡不好觉。 bug "
 
         logger.info(f"🛟 Using fallback response: {fallback_content}")
         return FallbackResponse(fallback_content)
 
     def _extract_response_content(self, response):
-        """安全地从响应中提取内容"""
         try:
             if hasattr(response, 'choices') and len(response.choices) > 0:
                 content = response.choices[0].message.content
@@ -145,7 +131,6 @@ class FixedMsPatient(OriginalMsPatient):
             return self._get_fallback_content()
 
     def _get_fallback_content(self):
-        """获取后备响应内容"""
         fallback_responses = [
             "最近工作确实很忙，压力挺大的...有时候晚上都睡不好觉。",
             "嗯...说实话最近状态不太好，工作上的事情让我挺焦虑的。",

@@ -3,23 +3,23 @@
 all: help
 
 format:
-	poetry run ruff format src tests
+	uv run -- ruff format src tests
 
 lint:
 	./scripts/check_pydantic.sh . || true
 	./scripts/lint_imports.sh || true
-	poetry run ruff check src tests
+	uv run -- ruff check src tests
 
 coverage:
-	poetry run pytest --cov=anna_agent \
+	uv run -- pytest --cov=anna_agent \
 	--cov-report xml \
 	--cov-report term-missing:skip-covered tests/unit_tests
 
 test tests:
-	poetry run pytest tests/unit_tests
+	uv run -- pytest tests/unit_tests
 
 integration_tests:
-	poetry run pytest tests/integration_tests
+	uv run -- pytest tests/integration_tests
 
 help:
 	@echo -- LINTING --

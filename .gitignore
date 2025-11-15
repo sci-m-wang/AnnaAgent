@@ -6,3 +6,6 @@ settings.yaml
 interactive.yaml
 dist
 poetry.lock
+uv.lock
+.venv
+node_modules
