@@ -1,7 +1,7 @@
 # AnnaAgent
 
 The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation`.
-
+<!--
 ## 📰 News
 ![](https://github.com/sci-m-wang/AnnaAgent/blob/main/parallax/parallax-github.png)
 * **[2025-12-07] Powered by Parallax:** We are excited to announce that AnnaAgent now supports efficient deployment using [Parallax](https://github.com/GradientHQ/parallax)! 
@@ -11,7 +11,7 @@ The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Ses
         * **Emotion Inferencer (LoRA):** [sci-m-wang/Emotion_inferencer-Qwen2.5-7B-Instruct](https://huggingface.co/sci-m-wang/Emotion_inferencer-Qwen2.5-7B-Instruct)
         * **Chief Chain Generator (LoRA):** [sci-m-wang/Chief_chain_generator-Qwen2.5-7B-Instruct](https://huggingface.co/sci-m-wang/Chief_chain_generator-Qwen2.5-7B-Instruct)
     * Check out the [Deployment Guide](https://github.com/sci-m-wang/AnnaAgent/blob/main/parallax) to try it out!
-
+-->
 ## CLAIM
 
 It is important to note that since this work involves data from counselling records of **real patients** with psychological disorders, the publicly available code can only be used to demonstrate part of the methodology. Please contact the authors of [this paper](https://aclanthology.org/2022.emnlp-main.156/) if needed.
