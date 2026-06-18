@@ -64,6 +64,15 @@ def is_need(utterance):
 
 def query(utterance, conversations, scales):
     # 根据utterance从conversations和scales中检索必要的信息
+    cfg = registry.get("anna_engine_config")
+    store = registry.get("long_term_memory_store")
+    seeker_id = registry.get("long_term_memory_seeker_id")
+    if cfg and cfg.memory_enabled and store and seeker_id:
+        hits = store.search(utterance, seeker_id=seeker_id, top_k=cfg.memory_top_k)
+        formatted_hits = store.format_hits(hits)
+        if formatted_hits:
+            return formatted_hits
+
     client = get_counselor_client()
     # 原始输入结构
     raw_prompt = {

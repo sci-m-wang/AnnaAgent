@@ -37,6 +37,21 @@ def test_flatten_config():
                 "use_sft_model": True,
             },
         },
+        "memory": {
+            "enabled": True,
+            "auto_index": False,
+            "db_path": ".memory/db",
+            "table_name": "chunks",
+            "top_k": 12,
+            "window_size": 6,
+            "window_stride": 3,
+        },
+        "embedding": {
+            "model_name": "embed-model",
+            "dimension": 32,
+            "api_key": "embed-key",
+            "base_url": "https://embed.example.com",
+        },
     }
     result = _flatten_config(src)
     assert result == {
@@ -53,4 +68,15 @@ def test_flatten_config():
         "emotion_use_sft_model": True,
         "complaint_model_name": "cm",
         "emotion_model_name": "em",
+        "memory_enabled": True,
+        "memory_auto_index": False,
+        "memory_db_path": ".memory/db",
+        "memory_table_name": "chunks",
+        "memory_top_k": 12,
+        "memory_window_size": 6,
+        "memory_window_stride": 3,
+        "embedding_model_name": "embed-model",
+        "embedding_dimension": 32,
+        "embedding_api_key": "embed-key",
+        "embedding_base_url": "https://embed.example.com",
     }

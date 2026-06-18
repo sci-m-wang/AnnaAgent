@@ -38,30 +38,100 @@ After initialization you can chat with the virtual seeker.
 
 ## CLI Usage
 
-AnnaAgent provides a small Typer-based command line interface with two entry
-points. After initializing the project you can either run the built-in demo or
-start a conversation using your own `interactive.yaml`.
-
-### Demo
-
-Launch the demo seeker defined in the source code:
+AnnaAgent provides a Typer-based CLI organized around the reader journey from
+paper reproduction to application use. Start by creating an isolated workspace:
 
 ```bash
-uv run anna-agent demo
+uv run anna-agent init anna-workspace
+uv run anna-agent doctor --workspace anna-workspace
 ```
 
-Both `demo` and the main command accept `--workspace` (also available as
-`--root`) to specify the project directory. Each workspace directory should
-contain both a `settings.yaml` and an `interactive.yaml` file.
-
-### Interactive mode
-
-Running `anna-agent` without a subcommand uses the `interactive.yaml` in the
-project directory and starts chatting with the virtual seeker:
+The workspace contains `settings.yaml`, `.env`, sample cases, prompts, run
+outputs, logs, cache files and an asset manifest. Configure model endpoints with
+the wizard or non-interactive setters:
 
 ```bash
-uv run anna-agent
+uv run anna-agent config wizard --workspace anna-workspace
+uv run anna-agent config set model_service.base_url https://example.com/v1 \
+  --workspace anna-workspace
+uv run anna-agent config show --workspace anna-workspace
+uv run anna-agent config validate --workspace anna-workspace
 ```
+
+Assets are manifest-driven, so paper model/data downloads can be added by
+filling `assets/anna-assets.json` with HuggingFace repositories or direct URLs:
+
+```bash
+uv run anna-agent assets list --workspace anna-workspace
+uv run anna-agent assets pull paper --workspace anna-workspace
+```
+
+Validate and prepare case data before running experiments:
+
+```bash
+uv run anna-agent data validate anna-workspace/cases/family_stress_case.json
+uv run anna-agent data inspect anna-workspace/cases/family_stress_case.json
+uv run anna-agent data sample --out anna-workspace/cases/sample.json
+```
+
+Run connectivity checks separately from expensive experiments:
+
+```bash
+uv run anna-agent test embedding --workspace anna-workspace
+uv run anna-agent test memory --workspace anna-workspace
+uv run anna-agent test model --workspace anna-workspace
+```
+
+Initialization can be run as a full AnnaAgent initialization, or as a prompt-only
+state for cheap dry-runs and reproducible prompt freezing:
+
+```bash
+uv run anna-agent initialize prompt-only anna-workspace/cases/family_stress_case.json \
+  --out anna-workspace/prompts/family.prompt.json
+uv run anna-agent initialize full anna-workspace/cases/family_stress_case.json \
+  --out anna-workspace/prompts/family.full.json --workspace anna-workspace
+uv run anna-agent initialize from-prompt anna-workspace/prompts/family.prompt.json
+```
+
+Chat interactively from either a case file or a frozen prompt state:
+
+```bash
+uv run anna-agent chat --workspace anna-workspace \
+  --case anna-workspace/cases/family_stress_case.json \
+  --save anna-workspace/runs/manual-chat.jsonl
+uv run anna-agent chat --workspace anna-workspace \
+  --state anna-workspace/prompts/family.prompt.json
+```
+
+Batch experiments support dry-run initialization by default and live scripted
+conversation when `--live` is supplied:
+
+```bash
+uv run anna-agent run batch --workspace anna-workspace \
+  --case 'cases/*.json' --out anna-workspace/runs/batch
+uv run anna-agent run batch --workspace anna-workspace \
+  --case 'cases/*.json' --script scripts/counselor_messages.json \
+  --live --out anna-workspace/runs/live-batch
+```
+
+Start the lightweight JSON API service for external experiment drivers:
+
+```bash
+uv run anna-agent serve --workspace anna-workspace --host 127.0.0.1 --port 8000
+```
+
+Diagnostics and cleanup commands are available for local workflows:
+
+```bash
+uv run anna-agent logs tail anna-workspace/logs/anna-agent.log
+uv run anna-agent cache list --workspace anna-workspace
+uv run anna-agent cache clean --workspace anna-workspace --yes
+uv run anna-agent reset workspace --workspace anna-workspace --yes
+```
+
+Running `anna-agent` without a subcommand still starts interactive chat from the
+workspace `interactive.yaml`; `anna-agent demo` creates a sample case if needed
+and starts an example chat.
 
 ## Project Initialization
 
@@ -79,6 +149,77 @@ complaint, counselor and emotion modules. `interactive.yaml` holds a sample
 portrait, report and conversation history used by the main CLI. Environment
 variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
 override.
+
+### Complete Run with a Sample Case
+
+The repository includes a family-stress sample case at
+`docs/family_stress_case.json`:
+
+- `id`: `42289a5f-bbdc-43f9-826a-9569bbbd5feb`
+- `conversation`: previous-session conversation history used as long-term memory
+- `report`: structured counseling case report
+- `portrait`: seeker profile and symptoms
+
+Run a complete one-turn example with the sample case:
+
+```bash
+uv sync
+uv run python -m anna_agent.initialize
+rm -f interactive.yaml
+cp docs/family_stress_case.json interactive.json
+printf "最近一次感到伤心或者失望的时候，是什么原因导致的？\nexit\n" | \
+  ANNA_ENGINE_COMPLAINT_USE_SFT_MODEL=false \
+  ANNA_ENGINE_EMOTION_USE_SFT_MODEL=false \
+  uv run anna-agent
+```
+
+The two `ANNA_ENGINE_*_USE_SFT_MODEL=false` flags make the emotional inferencer
+and chief complaint chain generator use the base model configured in
+`model_service`. This is useful when the SFT checkpoints are unavailable.
+
+### Long-Term Memory with LanceDB
+
+AnnaAgent stores long-term memory in a local LanceDB database. Previous-session
+conversations and reports are chunked into `conversation_turn`,
+`conversation_window`, `session_summary`, `report_section`, and `report_summary`
+records. Session metadata is stored alongside the vector table, so future runs
+can accumulate multiple sessions for the same seeker.
+
+By default, memory data is written to `.anna_memory/`, which is ignored by Git.
+The embedding layer first tries the configured OpenAI-compatible embedding model
+and automatically falls back to a deterministic local hash embedding when the
+embedding service is unavailable.
+
+Embedding credentials can use the AnnaAgent names or common OpenAI-style aliases
+in `.env`:
+
+```bash
+ANNA_ENGINE_EMBEDDING_API_KEY=...
+ANNA_ENGINE_EMBEDDING_BASE_URL=https://your-embedding-endpoint/v1
+ANNA_ENGINE_EMBEDDING_MODEL_NAME=your-embedding-model
+
+# Also supported:
+OPENAI_EMBEDDING_API_KEY=...
+OPENAI_EMBEDDING_BASE_URL=https://your-embedding-endpoint/v1
+OPENAI_EMBEDDING_MODEL=your-embedding-model
+```
+
+Index the sample case into long-term memory:
+
+```bash
+uv run anna-agent memory index docs/family_stress_case.json
+```
+
+Search a seeker's long-term memory:
+
+```bash
+uv run anna-agent memory search "胸闷和家庭压力" \
+  --seeker-id 42289a5f-bbdc-43f9-826a-9569bbbd5feb
+```
+
+During normal interactive runs, AnnaAgent can auto-index the current
+`interactive.json` / `interactive.yaml` previous-session data and use retrieved
+memory when a counselor utterance refers to prior sessions or historical context.
 
 ### Using Base Models Instead of SFT Models
 
@@ -108,6 +249,7 @@ servers:
 - **previous_conversations** – optional conversation history from earlier sessions.
 
 A ready-to-use example can be found at [docs/interactive_demo.yaml](docs/interactive_demo.yaml). It follows the psychological scale format used by the project and can be copied as your starting configuration.
+Another complete sample is [docs/family_stress_case.json](docs/family_stress_case.json), which uses `conversation` as the previous-session conversation field and `marital_status` as a supported alias for `martial_status`.
 
 The `anna_agent` package loads its configuration from the workspace directory at
 runtime using `settings.yaml`. By default the current working directory is used,

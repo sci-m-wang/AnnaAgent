@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -47,6 +48,44 @@ def test_load_seeker_data_yaml_nested(tmp_path: Path) -> None:
     assert portrait["age"] == "20"
     assert report == {"x": 1}
     assert conv[0]["role"] == "a"
+
+
+def test_load_seeker_data_conversation_aliases(tmp_path: Path) -> None:
+    cfg = tmp_path / "settings.yaml"
+    cfg.write_text(
+        yaml.safe_dump(
+            {
+                "id": "sample",
+                "portrait": {"age": "30", "marital_status": "已婚"},
+                "report": {},
+                "conversation": [{"role": "Seeker", "content": "你好"}],
+            },
+            allow_unicode=True,
+        ),
+        encoding="utf-8",
+    )
+    portrait, _, conv = _load_seeker_data(cfg)
+    assert portrait["martial_status"] == "已婚"
+    assert conv[0]["role"] == "Seeker"
+
+
+def test_load_seeker_data_json_conversation_aliases(tmp_path: Path) -> None:
+    cfg = tmp_path / "interactive.json"
+    cfg.write_text(
+        json.dumps(
+            {
+                "id": "sample",
+                "portrait": {"age": "30", "marital_status": "已婚"},
+                "report": {},
+                "conversation": [{"role": "Seeker", "content": "你好"}],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    portrait, _, conv = _load_seeker_data(cfg)
+    assert portrait["martial_status"] == "已婚"
+    assert conv[0]["content"] == "你好"
 
 
 def test_load_seeker_data_missing(tmp_path: Path) -> None:

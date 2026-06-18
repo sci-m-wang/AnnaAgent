@@ -21,6 +21,14 @@ venv/
 settings.yaml
 interactive.yaml
 
+# AnnaAgent local memory store
+.anna_memory/
+.anna_cache/
+runs/
+outputs/
+logs/
+cache/
+
 # OS and editor files
 .DS_Store
 .vscode/

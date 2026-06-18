@@ -1,7 +1,6 @@
 import importlib
-from pathlib import Path
-
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
@@ -28,6 +27,9 @@ servers:
     api_key: ek
     base_url: https://e.example.com
     model_name: em
+memory:
+  enabled: false
+  db_path: .memory/db
 """,
         encoding="utf-8",
     )
@@ -45,3 +47,5 @@ servers:
     assert cfg.emotion_use_sft_model is True
     assert cfg.active_complaint_model_name == "my-model"
     assert cfg.active_emotion_model_name == "em"
+    assert cfg.memory_enabled is False
+    assert cfg.memory_db_path == ".memory/db"

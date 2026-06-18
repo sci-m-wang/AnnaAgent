@@ -7,6 +7,7 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 
+from .defaults import anna_engine_defaults
 from .models.anna_engine_config import AnnaEngineConfig
 
 _default_config_files = ["settings.yaml", "settings.yml", "settings.json"]
@@ -51,8 +52,9 @@ def _apply_overrides(data: dict[str, Any], overrides: dict[str, Any]) -> None:
             current_path += f".{k}"
             target_obj = target.get(k, {})
             if not isinstance(target_obj, dict):
+                message = f"data[{current_path}] is not a dict"
                 raise TypeError(
-                    f"Cannot override non-dict value: data[{current_path}] is not a dict."
+                    f"Cannot override non-dict value: {message}."
                 )
             target[k] = target_obj
             target = target[k]
@@ -107,7 +109,68 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
         values["emotion_model_name"] = emotion.get("model_name")
     if emotion.get("use_sft_model") is not None:
         values["emotion_use_sft_model"] = emotion.get("use_sft_model")
+
+    memory = data.get("memory") or {}
+    if memory.get("enabled") is not None:
+        values["memory_enabled"] = memory.get("enabled")
+    if memory.get("auto_index") is not None:
+        values["memory_auto_index"] = memory.get("auto_index")
+    if memory.get("db_path") is not None:
+        values["memory_db_path"] = memory.get("db_path")
+    if memory.get("table_name") is not None:
+        values["memory_table_name"] = memory.get("table_name")
+    if memory.get("top_k") is not None:
+        values["memory_top_k"] = memory.get("top_k")
+    if memory.get("window_size") is not None:
+        values["memory_window_size"] = memory.get("window_size")
+    if memory.get("window_stride") is not None:
+        values["memory_window_stride"] = memory.get("window_stride")
+
+    embedding = data.get("embedding") or {}
+    if embedding.get("model_name") is not None:
+        values["embedding_model_name"] = embedding.get("model_name")
+    if embedding.get("dimension") is not None:
+        values["embedding_dimension"] = embedding.get("dimension")
+    if embedding.get("api_key") is not None:
+        values["embedding_api_key"] = embedding.get("api_key")
+    if embedding.get("base_url") is not None:
+        values["embedding_base_url"] = embedding.get("base_url")
     return values
+
+
+def _first_env(*keys: str) -> str | None:
+    for key in keys:
+        value = os.environ.get(key)
+        if value:
+            return value
+    return None
+
+
+def _apply_embedding_env_aliases(values: dict[str, Any]) -> None:
+    api_key = _first_env("OPENAI_EMBEDDING_API_KEY", "EMBEDDING_API_KEY")
+    base_url = _first_env("OPENAI_EMBEDDING_BASE_URL", "EMBEDDING_BASE_URL")
+    model_name = _first_env(
+        "OPENAI_EMBEDDING_MODEL",
+        "OPENAI_EMBEDDING_MODEL_NAME",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_MODEL_NAME",
+    )
+    dimension = _first_env("OPENAI_EMBEDDING_DIMENSION", "EMBEDDING_DIMENSION")
+
+    if api_key and not values.get("embedding_api_key"):
+        values["embedding_api_key"] = api_key
+    if base_url and not values.get("embedding_base_url"):
+        values["embedding_base_url"] = base_url
+    if model_name and values.get("embedding_model_name") in {
+        None,
+        anna_engine_defaults.embedding_model_name,
+    }:
+        values["embedding_model_name"] = model_name
+    if dimension and values.get("embedding_dimension") in {
+        None,
+        anna_engine_defaults.embedding_dimension,
+    }:
+        values["embedding_dimension"] = int(dimension)
 
 
 def load_config(
@@ -124,4 +187,5 @@ def load_config(
     if cli_overrides:
         _apply_overrides(config_data, cli_overrides)
     values = _flatten_config(config_data)
+    _apply_embedding_env_aliases(values)
     return AnnaEngineConfig(**values)

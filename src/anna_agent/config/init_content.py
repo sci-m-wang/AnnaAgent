@@ -22,6 +22,19 @@ servers:
     model_name: {anna_engine_defaults.emotion_model_name}
     api_key: {anna_engine_defaults.emotion_api_key}
     base_url: {anna_engine_defaults.emotion_base_url}
+memory:
+  enabled: {str(anna_engine_defaults.memory_enabled).lower()}
+  auto_index: {str(anna_engine_defaults.memory_auto_index).lower()}
+  db_path: {anna_engine_defaults.memory_db_path}
+  table_name: {anna_engine_defaults.memory_table_name}
+  top_k: {anna_engine_defaults.memory_top_k}
+  window_size: {anna_engine_defaults.memory_window_size}
+  window_stride: {anna_engine_defaults.memory_window_stride}
+embedding:
+  model_name: {anna_engine_defaults.embedding_model_name}
+  dimension: {anna_engine_defaults.embedding_dimension}
+  api_key: ""
+  base_url: ""
 """
 
 INIT_INTERACTIVE_YAML = """\

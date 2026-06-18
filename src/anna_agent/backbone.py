@@ -30,9 +30,11 @@ def _load_engine_config(workspace: Path | None = None) -> AnnaEngineConfig:
 def configure(workspace: Path | None = None) -> None:
     """(Re)load configuration from ``workspace`` and update globals."""
 
+    root = Path(workspace if workspace is not None else os.getenv("ANNA_AGENT_WORKSPACE", Path.cwd()))
     cfg = _load_engine_config(workspace)
     # Register configuration for global access
     registry.register("anna_engine_config", cfg)
+    registry.register("anna_agent_workspace", root)
     globals().update(
         {
             "api_key": cfg.api_key,
@@ -48,6 +50,17 @@ def configure(workspace: Path | None = None) -> None:
             "complaint_base_url": cfg.complaint_base_url,
             "counselor_base_url": cfg.counselor_base_url,
             "emotion_base_url": cfg.emotion_base_url,
+            "memory_enabled": cfg.memory_enabled,
+            "memory_auto_index": cfg.memory_auto_index,
+            "memory_db_path": cfg.memory_db_path,
+            "memory_table_name": cfg.memory_table_name,
+            "memory_top_k": cfg.memory_top_k,
+            "memory_window_size": cfg.memory_window_size,
+            "memory_window_stride": cfg.memory_window_stride,
+            "embedding_model_name": cfg.embedding_model_name,
+            "embedding_dimension": cfg.embedding_dimension,
+            "embedding_api_key": cfg.embedding_api_key,
+            "embedding_base_url": cfg.embedding_base_url,
         }
     )
 

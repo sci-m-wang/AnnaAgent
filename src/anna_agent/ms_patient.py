@@ -8,8 +8,10 @@ from .complaint_elicitor import switch_complaint, transform_chain
 from .complaint_chain import gen_complaint_chain
 from .short_term_memory import summarize_scale_changes
 from .style_analyzer import analyze_style
+from .memory import LanceMemoryStore
 import random
 import logging
+from pathlib import Path
 from .anna_agent_template import prompt_template
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,9 @@ class MsPatient:
         self.configuration["marriage"] = self.portrait["martial_status"]
         self.report = report
         self.previous_conversations = previous_conversations
+        self.case_id = self.portrait.get("_case_id", "default-case")
+        self.seeker_id = self.portrait.get("_seeker_id", self.case_id)
+        self._setup_long_term_memory()
         # 填写之前疗程的量表
         self.p_bdi, self.p_ghq, self.p_sass = fill_scales_previous(
             self.portrait, self.report
@@ -88,6 +93,28 @@ class MsPatient:
         self.system = prompt_template.format(**self.configuration)
         self.chain_index = 1
         self.client = get_openai_client()
+
+    def _setup_long_term_memory(self):
+        cfg = registry.get("anna_engine_config")
+        if not cfg or not cfg.memory_enabled:
+            return
+        try:
+            workspace = registry.get("anna_agent_workspace", Path.cwd())
+            store = LanceMemoryStore.from_config(cfg, workspace=workspace)
+            if cfg.memory_auto_index:
+                store.index_case(
+                    seeker_id=self.seeker_id,
+                    case_id=self.case_id,
+                    portrait=self.portrait,
+                    report=self.report,
+                    conversations=self.previous_conversations,
+                    window_size=cfg.memory_window_size,
+                    window_stride=cfg.memory_window_stride,
+                )
+            registry.register("long_term_memory_store", store)
+            registry.register("long_term_memory_seeker_id", self.seeker_id)
+        except Exception as err:
+            logger.warning("Long-term memory setup failed: %s", err)
 
     def chat(self, message):
         # 更新消息列表

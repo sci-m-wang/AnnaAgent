@@ -1,0 +1,103 @@
+import json
+import uuid
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+
+from . import backbone
+from .common.registry import registry
+from .memory import LanceMemoryStore
+from .runtime import FrozenPromptSession, build_prompt_only_state, load_state
+
+
+def serve(workspace: Path, host: str, port: int) -> None:
+    backbone.configure(workspace)
+    sessions: dict[str, FrozenPromptSession] = {}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/health":
+                self._json({"status": "ok", "workspace": str(workspace)})
+                return
+            if self.path == "/v1/sessions":
+                self._json({"sessions": sorted(sessions.keys())})
+                return
+            self._json({"error": "not found"}, status=404)
+
+        def do_POST(self):
+            try:
+                body = self._body()
+                if self.path == "/v1/sessions":
+                    self._create_session(body)
+                    return
+                if self.path == "/v1/chat":
+                    self._chat(body)
+                    return
+                if self.path == "/v1/memory/search":
+                    self._memory_search(body)
+                    return
+                self._json({"error": "not found"}, status=404)
+            except Exception as err:
+                self._json({"error": str(err)}, status=500)
+
+        def log_message(self, format, *args):  # noqa: A002
+            return
+
+        def _create_session(self, body: dict[str, Any]) -> None:
+            state_file = body.get("state_file")
+            case_file = body.get("case_file")
+            if state_file:
+                state = load_state(_resolve_path(workspace, state_file))
+            elif case_file:
+                state = build_prompt_only_state(_resolve_path(workspace, case_file))
+            else:
+                raise ValueError("Provide state_file or case_file")
+            session_id = body.get("session_id") or str(uuid.uuid4())
+            sessions[session_id] = FrozenPromptSession(state)
+            self._json({"session_id": session_id})
+
+        def _chat(self, body: dict[str, Any]) -> None:
+            session_id = body.get("session_id")
+            message = body.get("message")
+            if not session_id or not message:
+                raise ValueError("session_id and message are required")
+            session = sessions.get(session_id)
+            if not session:
+                raise ValueError(f"Unknown session_id: {session_id}")
+            self._json({"response": session.chat(message)})
+
+        def _memory_search(self, body: dict[str, Any]) -> None:
+            cfg = registry.get("anna_engine_config")
+            store = LanceMemoryStore.from_config(cfg, workspace=workspace)
+            query = body.get("query")
+            seeker_id = body.get("seeker_id")
+            if not query or not seeker_id:
+                raise ValueError("query and seeker_id are required")
+            hits = store.search(
+                query,
+                seeker_id=seeker_id,
+                top_k=int(body.get("top_k") or cfg.memory_top_k),
+            )
+            self._json({"hits": [hit.__dict__ for hit in hits]})
+
+        def _body(self) -> dict[str, Any]:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0:
+                return {}
+            return json.loads(self.rfile.read(length).decode("utf-8"))
+
+        def _json(self, data: dict[str, Any], status: int = 200) -> None:
+            raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+
+    server = ThreadingHTTPServer((host, port), Handler)
+    server.serve_forever()
+
+
+def _resolve_path(workspace: Path, value: str) -> Path:
+    path = Path(value)
+    return path if path.is_absolute() else workspace / path
