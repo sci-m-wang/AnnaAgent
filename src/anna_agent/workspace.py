@@ -117,6 +117,33 @@ def set_config_value(workspace: Path, dotted_key: str, value: Any) -> None:
     write_settings(workspace, data)
 
 
+def update_env_values(workspace: Path, values: dict[str, str]) -> None:
+    path = workspace / ".env"
+    if not path.exists():
+        path.write_text(INIT_DOTENV, encoding="utf-8")
+    lines = path.read_text(encoding="utf-8").splitlines()
+    remaining = {key: value for key, value in values.items() if value}
+    updated: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        candidate = stripped[1:].strip() if stripped.startswith("#") else stripped
+        if "=" not in candidate:
+            updated.append(line)
+            continue
+        key = candidate.split("=", 1)[0].strip()
+        if key in remaining:
+            updated.append(f"{key}={_quote_env_value(remaining.pop(key))}")
+        else:
+            updated.append(line)
+    if remaining:
+        if updated and updated[-1]:
+            updated.append("")
+        updated.append("# Added by anna-agent config wizard")
+        for key, value in remaining.items():
+            updated.append(f"{key}={_quote_env_value(value)}")
+    path.write_text("\n".join(updated) + "\n", encoding="utf-8")
+
+
 def redact_config(data: dict[str, Any]) -> dict[str, Any]:
     def redact(value: Any, key: str = "") -> Any:
         if isinstance(value, dict):
@@ -143,3 +170,9 @@ def _write_json(path: Path, data: dict[str, Any], force: bool) -> None:
     if path.exists() and not force:
         return
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _quote_env_value(value: str) -> str:
+    if not value or any(char.isspace() for char in value) or "#" in value:
+        return json.dumps(value)
+    return value

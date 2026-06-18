@@ -82,3 +82,21 @@ def test_assets_pull_reports_unconfigured_assets(tmp_path: Path):
 
     assert result.exit_code == 0, result.output
     assert "unconfigured" in result.output
+
+
+def test_config_secrets_writes_hidden_values_to_dotenv(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        ["config", "secrets", "--workspace", str(workspace)],
+        input="base-secret\nembed-secret\n",
+    )
+
+    assert result.exit_code == 0, result.output
+    dotenv_text = (workspace / ".env").read_text(encoding="utf-8")
+    assert "ANNA_ENGINE_API_KEY=base-secret" in dotenv_text
+    assert "ANNA_ENGINE_EMBEDDING_API_KEY=embed-secret" in dotenv_text
+    assert "base-secret" not in result.output

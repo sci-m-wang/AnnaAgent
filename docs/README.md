@@ -8,5 +8,5 @@ This folder contains sample configurations for `interactive.yaml`.
 You can index a sample into LanceDB long-term memory with:
 
 ```bash
-uv run anna-agent memory index docs/family_stress_case.json
+anna memory index docs/family_stress_case.json
 ```

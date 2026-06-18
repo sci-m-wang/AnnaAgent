@@ -24,7 +24,7 @@ def _search_for_config_in_root_dir(root: str | Path) -> Path | None:
 
 
 def _parse_env_variables(text: str) -> str:
-    return Template(text).substitute(os.environ)
+    return Template(text).safe_substitute(os.environ)
 
 
 def _load_dotenv(config_path: Path | str) -> None:
@@ -147,6 +147,23 @@ def _first_env(*keys: str) -> str | None:
 
 
 def _apply_embedding_env_aliases(values: dict[str, Any]) -> None:
+    api_key = _first_env("ANNA_ENGINE_EMBEDDING_API_KEY")
+    base_url = _first_env("ANNA_ENGINE_EMBEDDING_BASE_URL")
+    model_name = _first_env("ANNA_ENGINE_EMBEDDING_MODEL_NAME")
+    dimension = _first_env("ANNA_ENGINE_EMBEDDING_DIMENSION")
+
+    if api_key:
+        values["embedding_api_key"] = api_key
+    if base_url:
+        values["embedding_base_url"] = base_url
+    if model_name:
+        values["embedding_model_name"] = model_name
+    if dimension:
+        values["embedding_dimension"] = int(dimension)
+
+    if api_key or base_url or model_name or dimension:
+        return
+
     api_key = _first_env("OPENAI_EMBEDDING_API_KEY", "EMBEDDING_API_KEY")
     base_url = _first_env("OPENAI_EMBEDDING_BASE_URL", "EMBEDDING_BASE_URL")
     model_name = _first_env(
@@ -173,6 +190,36 @@ def _apply_embedding_env_aliases(values: dict[str, Any]) -> None:
         values["embedding_dimension"] = int(dimension)
 
 
+def _apply_model_env_aliases(values: dict[str, Any]) -> None:
+    api_key = _first_env("ANNA_ENGINE_API_KEY", "MIMO_API_KEY")
+    base_url = _first_env("ANNA_ENGINE_BASE_URL", "MIMO_BASE_URL")
+    model_name = _first_env("ANNA_ENGINE_MODEL_NAME", "MIMO_MODEL")
+    if api_key and values.get("api_key") in {None, anna_engine_defaults.api_key}:
+        values["api_key"] = api_key
+    if base_url and values.get("base_url") in {None, anna_engine_defaults.base_url}:
+        values["base_url"] = base_url
+    if model_name and values.get("model_name") in {
+        None,
+        anna_engine_defaults.model_name,
+    }:
+        values["model_name"] = model_name
+
+    env_mappings = {
+        "complaint_api_key": "ANNA_ENGINE_COMPLAINT_API_KEY",
+        "counselor_api_key": "ANNA_ENGINE_COUNSELOR_API_KEY",
+        "emotion_api_key": "ANNA_ENGINE_EMOTION_API_KEY",
+    }
+    defaults = {
+        "complaint_api_key": anna_engine_defaults.complaint_api_key,
+        "counselor_api_key": anna_engine_defaults.counselor_api_key,
+        "emotion_api_key": anna_engine_defaults.emotion_api_key,
+    }
+    for field, env_key in env_mappings.items():
+        env_value = _first_env(env_key)
+        if env_value and values.get(field) in {None, defaults[field]}:
+            values[field] = env_value
+
+
 def load_config(
     root_dir: Path,
     cli_overrides: dict[str, Any] | None = None,
@@ -187,5 +234,6 @@ def load_config(
     if cli_overrides:
         _apply_overrides(config_data, cli_overrides)
     values = _flatten_config(config_data)
+    _apply_model_env_aliases(values)
     _apply_embedding_env_aliases(values)
     return AnnaEngineConfig(**values)

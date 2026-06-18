@@ -89,3 +89,35 @@ embedding:
     assert config.embedding_api_key == "real-embed-key"
     assert config.embedding_base_url == "https://embed.example.com/v1"
     assert config.embedding_dimension == 1024
+
+
+def test_load_config_uses_dotenv_secret_placeholders(tmp_path: Path):
+    cfg = tmp_path / "settings.yaml"
+    cfg.write_text(
+        """
+model_service:
+  model_name: counselor
+  api_key: counselor
+  base_url: http://localhost:8002/v1
+embedding:
+  model_name: text-embedding-3-small
+  dimension: 1536
+  api_key: ""
+  base_url: ""
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / ".env").write_text(
+        """
+ANNA_ENGINE_API_KEY=base-secret
+ANNA_ENGINE_EMBEDDING_API_KEY=embed-secret
+ANNA_ENGINE_EMBEDDING_BASE_URL=https://embed.example.com/v1
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(tmp_path)
+
+    assert config.api_key == "base-secret"
+    assert config.embedding_api_key == "embed-secret"
+    assert config.embedding_base_url == "https://embed.example.com/v1"

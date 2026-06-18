@@ -17,11 +17,46 @@ It is important to note that since this work involves data from counselling reco
 
 ## Installation
 
-Install the project dependencies into a project-local `.venv` using
-[uv](https://docs.astral.sh/uv/):
+### Install as a terminal command
+
+For most readers, install AnnaAgent as a terminal command with
+[uv](https://docs.astral.sh/uv/) or `pipx`:
 
 ```bash
+# Install the latest GitHub version as a standalone tool.
+uv tool install git+https://github.com/sci-m-wang/AnnaAgent.git
+
+# Or, if you use pipx:
+pipx install git+https://github.com/sci-m-wang/AnnaAgent.git
+```
+
+After installation, the short command `anna` is available in any terminal:
+
+```bash
+anna --version
+anna init anna-workspace
+anna doctor --workspace anna-workspace
+```
+
+The longer command name `anna-agent` is kept as a compatibility alias.
+
+### Develop from source
+
+If you are modifying the code, install the project dependencies into a
+project-local `.venv` using `uv`:
+
+```bash
+git clone https://github.com/sci-m-wang/AnnaAgent.git
+cd AnnaAgent
 uv sync
+uv run anna --help
+```
+
+You can also expose the local checkout as the terminal command:
+
+```bash
+uv tool install --editable .
+anna --help
 ```
 
 ## How to Run the Example
@@ -36,12 +71,12 @@ bash src/anna_agent/server/emotion.sh
 
 The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
 
-There is an inner example provided through the `anna-agent` CLI. Install the dependencies and
+There is an inner example provided through the `anna` CLI. Install the dependencies and
 initialize the project before starting the demo:
 
 ```bash
 uv run python -m anna_agent.initialize
-uv run anna-agent
+uv run anna
 ```
 
 After initialization you can chat with the virtual seeker.
@@ -52,8 +87,8 @@ AnnaAgent provides a Typer-based CLI organized around the reader journey from
 paper reproduction to application use. Start by creating an isolated workspace:
 
 ```bash
-uv run anna-agent init anna-workspace
-uv run anna-agent doctor --workspace anna-workspace
+anna init anna-workspace
+anna doctor --workspace anna-workspace
 ```
 
 The workspace contains `settings.yaml`, `.env`, sample cases, prompts, run
@@ -61,56 +96,62 @@ outputs, logs, cache files and an asset manifest. Configure model endpoints with
 the wizard or non-interactive setters:
 
 ```bash
-uv run anna-agent config wizard --workspace anna-workspace
-uv run anna-agent config set model_service.base_url https://example.com/v1 \
+anna config wizard --workspace anna-workspace
+anna config secrets --workspace anna-workspace
+anna config set model_service.base_url https://example.com/v1 \
   --workspace anna-workspace
-uv run anna-agent config show --workspace anna-workspace
-uv run anna-agent config validate --workspace anna-workspace
+anna config show --workspace anna-workspace
+anna config validate --workspace anna-workspace
 ```
+
+`config wizard` and `config secrets` use hidden password-style prompts for API
+keys and write them to `.env`. The generated `.env` and `.env.example` files
+include commented placeholders showing exactly where to put base-model, SFT and
+embedding credentials if you prefer manual editing.
 
 Assets are manifest-driven. The default `paper` preset points to the released
 HuggingFace SFT models and synthetic data, and you can override or extend it in
 `assets/anna-assets.json` with your own repositories or direct URLs:
 
 ```bash
-uv run anna-agent assets list --workspace anna-workspace
-uv run anna-agent assets pull paper --workspace anna-workspace
+anna assets list --workspace anna-workspace
+anna assets pull paper --workspace anna-workspace
 ```
 
 Validate and prepare case data before running experiments:
 
 ```bash
-uv run anna-agent data validate anna-workspace/cases/family_stress_case.json
-uv run anna-agent data inspect anna-workspace/cases/family_stress_case.json
-uv run anna-agent data sample --out anna-workspace/cases/sample.json
+anna data validate anna-workspace/cases/family_stress_case.json
+anna data inspect anna-workspace/cases/family_stress_case.json
+anna data sample --out anna-workspace/cases/sample.json
 ```
 
 Run connectivity checks separately from expensive experiments:
 
 ```bash
-uv run anna-agent test embedding --workspace anna-workspace
-uv run anna-agent test memory --workspace anna-workspace
-uv run anna-agent test model --workspace anna-workspace
+anna test embedding --workspace anna-workspace
+anna test memory --workspace anna-workspace
+anna test model --workspace anna-workspace
 ```
 
 Initialization can be run as a full AnnaAgent initialization, or as a prompt-only
 state for cheap dry-runs and reproducible prompt freezing:
 
 ```bash
-uv run anna-agent initialize prompt-only anna-workspace/cases/family_stress_case.json \
+anna initialize prompt-only anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.prompt.json
-uv run anna-agent initialize full anna-workspace/cases/family_stress_case.json \
+anna initialize full anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.full.json --workspace anna-workspace
-uv run anna-agent initialize from-prompt anna-workspace/prompts/family.prompt.json
+anna initialize from-prompt anna-workspace/prompts/family.prompt.json
 ```
 
 Chat interactively from either a case file or a frozen prompt state:
 
 ```bash
-uv run anna-agent chat --workspace anna-workspace \
+anna chat --workspace anna-workspace \
   --case anna-workspace/cases/family_stress_case.json \
   --save anna-workspace/runs/manual-chat.jsonl
-uv run anna-agent chat --workspace anna-workspace \
+anna chat --workspace anna-workspace \
   --state anna-workspace/prompts/family.prompt.json
 ```
 
@@ -118,9 +159,9 @@ Batch experiments support dry-run initialization by default and live scripted
 conversation when `--live` is supplied:
 
 ```bash
-uv run anna-agent run batch --workspace anna-workspace \
+anna run batch --workspace anna-workspace \
   --case 'cases/*.json' --out anna-workspace/runs/batch
-uv run anna-agent run batch --workspace anna-workspace \
+anna run batch --workspace anna-workspace \
   --case 'cases/*.json' --script scripts/counselor_messages.json \
   --live --out anna-workspace/runs/live-batch
 ```
@@ -128,20 +169,20 @@ uv run anna-agent run batch --workspace anna-workspace \
 Start the lightweight JSON API service for external experiment drivers:
 
 ```bash
-uv run anna-agent serve --workspace anna-workspace --host 127.0.0.1 --port 8000
+anna serve --workspace anna-workspace --host 127.0.0.1 --port 8000
 ```
 
 Diagnostics and cleanup commands are available for local workflows:
 
 ```bash
-uv run anna-agent logs tail anna-workspace/logs/anna-agent.log
-uv run anna-agent cache list --workspace anna-workspace
-uv run anna-agent cache clean --workspace anna-workspace --yes
-uv run anna-agent reset workspace --workspace anna-workspace --yes
+anna logs tail anna-workspace/logs/anna-agent.log
+anna cache list --workspace anna-workspace
+anna cache clean --workspace anna-workspace --yes
+anna reset workspace --workspace anna-workspace --yes
 ```
 
-Running `anna-agent` without a subcommand still starts interactive chat from the
-workspace `interactive.yaml`; `anna-agent demo` creates a sample case if needed
+Running `anna` without a subcommand still starts interactive chat from the
+workspace `interactive.yaml`; `anna demo` creates a sample case if needed
 and starts an example chat.
 
 ## Project Initialization
@@ -181,7 +222,7 @@ cp docs/family_stress_case.json interactive.json
 printf "最近一次感到伤心或者失望的时候，是什么原因导致的？\nexit\n" | \
   ANNA_ENGINE_COMPLAINT_USE_SFT_MODEL=false \
   ANNA_ENGINE_EMOTION_USE_SFT_MODEL=false \
-  uv run anna-agent
+  uv run anna
 ```
 
 The two `ANNA_ENGINE_*_USE_SFT_MODEL=false` flags make the emotional inferencer
@@ -218,13 +259,13 @@ OPENAI_EMBEDDING_MODEL=your-embedding-model
 Index the sample case into long-term memory:
 
 ```bash
-uv run anna-agent memory index docs/family_stress_case.json
+anna memory index docs/family_stress_case.json
 ```
 
 Search a seeker's long-term memory:
 
 ```bash
-uv run anna-agent memory search "胸闷和家庭压力" \
+anna memory search "胸闷和家庭压力" \
   --seeker-id 42289a5f-bbdc-43f9-826a-9569bbbd5feb
 ```
 

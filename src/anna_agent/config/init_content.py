@@ -102,6 +102,45 @@ previous_conversations:
 """
 
 INIT_DOTENV = """\
+# AnnaAgent environment template.
+# Keep real secrets in this file and do not commit it.
+
+# Base OpenAI-compatible chat model service.
+# ANNA_ENGINE_API_KEY=your-chat-model-api-key
+# ANNA_ENGINE_BASE_URL=https://your-chat-endpoint/v1
+# ANNA_ENGINE_MODEL_NAME=your-chat-model
+
+# MIMO aliases are also supported for the base chat model.
+# MIMO_API_KEY=your-mimo-api-key
+# MIMO_BASE_URL=https://your-mimo-endpoint/v1
+# MIMO_MODEL=your-mimo-model
+
+# Embedding service for LanceDB long-term memory.
+# ANNA_ENGINE_EMBEDDING_API_KEY=your-embedding-api-key
+# ANNA_ENGINE_EMBEDDING_BASE_URL=https://your-embedding-endpoint/v1
+# ANNA_ENGINE_EMBEDDING_MODEL_NAME=your-embedding-model
+# ANNA_ENGINE_EMBEDDING_DIMENSION=1536
+
+# OpenAI-style embedding aliases are also supported.
+# OPENAI_EMBEDDING_API_KEY=your-embedding-api-key
+# OPENAI_EMBEDDING_BASE_URL=https://your-embedding-endpoint/v1
+# OPENAI_EMBEDDING_MODEL=your-embedding-model
+
+# Optional SFT service credentials. Set USE_SFT_MODEL=false to use the base model.
+# ANNA_ENGINE_COMPLAINT_API_KEY=your-complaint-sft-key
+# ANNA_ENGINE_COMPLAINT_BASE_URL=https://your-complaint-sft-endpoint/v1
+# ANNA_ENGINE_COMPLAINT_MODEL_NAME=your-complaint-sft-model
+# ANNA_ENGINE_COMPLAINT_USE_SFT_MODEL=true
+
+# ANNA_ENGINE_COUNSELOR_API_KEY=your-counselor-key
+# ANNA_ENGINE_COUNSELOR_BASE_URL=https://your-counselor-endpoint/v1
+# ANNA_ENGINE_COUNSELOR_MODEL_NAME=your-counselor-model
+
+# ANNA_ENGINE_EMOTION_API_KEY=your-emotion-sft-key
+# ANNA_ENGINE_EMOTION_BASE_URL=https://your-emotion-sft-endpoint/v1
+# ANNA_ENGINE_EMOTION_MODEL_NAME=your-emotion-sft-model
+# ANNA_ENGINE_EMOTION_USE_SFT_MODEL=true
+
 GLOBAL_RETRIES=3
 SCHEDULE_PARAM=default
 """

@@ -38,6 +38,7 @@ from .workspace import (
     load_settings,
     redact_config,
     set_config_value,
+    update_env_values,
     write_settings,
 )
 
@@ -246,9 +247,46 @@ def config_wizard(
         "Embedding base URL", default=data.get("embedding", {}).get("base_url", "")
     )
     write_settings(workspace, data)
+    _prompt_and_write_secrets(workspace)
     console.print(
-        "[green]Configuration wizard complete.[/green] Secrets should stay in .env."
+        "[green]Configuration wizard complete.[/green] Secrets were written to .env."
     )
+
+
+@config_app.command("secrets")
+def config_secrets(
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+    sft: bool = typer.Option(False, "--sft", help="Also prompt for SFT service keys."),
+) -> None:
+    _prompt_and_write_secrets(workspace, include_sft=sft)
+    console.print("[green]Secrets updated in .env.[/green]")
+
+
+def _prompt_and_write_secrets(workspace: Path, include_sft: bool = False) -> None:
+    prompts = [
+        ("ANNA_ENGINE_API_KEY", "Base model API key"),
+        ("ANNA_ENGINE_EMBEDDING_API_KEY", "Embedding API key"),
+    ]
+    if include_sft:
+        prompts.extend(
+            [
+                ("ANNA_ENGINE_COMPLAINT_API_KEY", "Complaint SFT API key"),
+                ("ANNA_ENGINE_COUNSELOR_API_KEY", "Counselor API key"),
+                ("ANNA_ENGINE_EMOTION_API_KEY", "Emotion SFT API key"),
+            ]
+        )
+    updates = {}
+    for env_key, label in prompts:
+        value = typer.prompt(
+            f"{label} (leave blank to keep current)",
+            default="",
+            hide_input=True,
+            show_default=False,
+        )
+        if value:
+            updates[env_key] = value
+    if updates:
+        update_env_values(workspace, updates)
 
 
 @test_app.command("embedding")

@@ -18,6 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
+anna = "anna_agent.cli:app"
 anna-agent = "anna_agent.cli:app"
 
 [dependency-groups]
