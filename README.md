@@ -140,6 +140,23 @@ anna assets list --workspace anna-workspace
 anna assets pull paper --workspace anna-workspace
 ```
 
+Always pass `--workspace` or `--manifest` when pulling assets. Without either,
+`anna assets pull` uses the current directory as the workspace and may download
+to `./assets/...` instead of your intended AnnaAgent workspace. You can pull one
+specific resource or override the target directory explicitly:
+
+```bash
+# Pull one asset from anna-workspace/assets/anna-assets.json.
+anna assets pull complaint-sft --workspace anna-workspace
+
+# Use an explicit manifest JSON, including absolute target paths in that file.
+anna assets pull complaint-sft --manifest anna-workspace/assets/anna-assets.json
+
+# Override the target directory for exactly one selected asset.
+anna assets pull complaint-sft --workspace anna-workspace \
+  --target /path/to/models/complaint-sft
+```
+
 Choose the model mode explicitly before experiments. Use the base model for the
 lowest setup cost, configure existing SFT endpoints if you already deployed them,
 or let AnnaAgent start local vLLM services:
@@ -162,6 +179,9 @@ anna models deploy --target emotion --backend vllm --workspace anna-workspace
 the service URL/model name/use-SFT flag back to `settings.yaml`, writes API keys
 to `.env`, and records logs/PIDs under `logs/services/` and `runs/services/`.
 Use `--dry-run` to print the vLLM command without starting anything.
+When `--model-path` is omitted, deploy reads the corresponding SFT asset target
+from `assets/anna-assets.json`, including absolute paths. Pass the same
+`--workspace` or `--manifest` that you used during `assets pull`.
 
 Validate and prepare case data before running experiments:
 

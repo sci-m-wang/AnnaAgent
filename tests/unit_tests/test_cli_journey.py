@@ -84,6 +84,56 @@ def test_assets_pull_reports_unconfigured_assets(tmp_path: Path):
     assert "unconfigured" in result.output
 
 
+def test_assets_list_resolves_manifest_absolute_targets(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+    manifest = json.loads(manifest_path(workspace).read_text(encoding="utf-8"))
+    absolute_target = Path("/tmp/a")
+    manifest["assets"] = [
+        {
+            "name": "emotion-sft",
+            "kind": "model",
+            "target": str(absolute_target),
+            "source": {
+                "type": "huggingface",
+                "repo_id": "sci-m-wang/Emotion_inferencer-Qwen2.5-7B-Instruct",
+                "repo_type": "model",
+                "revision": "main",
+            },
+        }
+    ]
+    manifest_path(workspace).write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+    result = runner.invoke(app, ["assets", "list", "--workspace", str(workspace)])
+
+    assert result.exit_code == 0, result.output
+    assert str(absolute_target) in result.output
+
+
+def test_assets_pull_target_override_requires_single_asset(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        [
+            "assets",
+            "pull",
+            "paper",
+            "--workspace",
+            str(workspace),
+            "--target",
+            str(tmp_path / "one-target"),
+        ],
+    )
+
+    assert result.exit_code != 0
+
+
 def test_config_secrets_writes_hidden_values_to_dotenv(tmp_path: Path):
     workspace = tmp_path / "workspace"
     result = runner.invoke(app, ["init", str(workspace)])

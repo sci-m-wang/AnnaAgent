@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -83,3 +84,36 @@ def test_deploy_vllm_dry_run_does_not_require_files(tmp_path: Path):
     assert result["model_name"] == "emotion"
     assert result["api_key"] == "emotion-key"
     assert result["pid"] is None
+
+
+def test_deploy_vllm_uses_manifest_absolute_target(tmp_path: Path):
+    initialize_workspace(tmp_path)
+    absolute_target = tmp_path / "external" / "complaint-model"
+    manifest = {
+        "schema_version": 1,
+        "assets": [
+            {
+                "name": "complaint-sft",
+                "kind": "model",
+                "target": str(absolute_target),
+                "source": {
+                    "type": "huggingface",
+                    "repo_id": "sci-m-wang/Chief_chain_generator-Qwen2.5-7B-Instruct",
+                    "repo_type": "model",
+                    "revision": "main",
+                },
+            }
+        ],
+    }
+    manifest_path = tmp_path / "assets" / "anna-assets.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = deploy_vllm_service(
+        tmp_path,
+        target="complaint",
+        dry_run=True,
+        pull=False,
+    )
+
+    assert result["model_path"] == str(absolute_target)
+    assert str(absolute_target) in result["command"]

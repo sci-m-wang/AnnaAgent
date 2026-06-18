@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from . import __version__, backbone
-from .assets import list_assets, manifest_path, pull_assets
+from .assets import list_assets, manifest_path, pull_assets, resolve_asset_target
 from .case_data import (
     discover_case_files,
     get_interactive_config_path,
@@ -173,13 +173,20 @@ def init_workspace(
 @assets_app.command("list")
 def assets_list(
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+    manifest: Path | None = typer.Option(
+        None,
+        "--manifest",
+        help="Path to an asset manifest JSON file.",
+        resolve_path=True,
+    ),
 ) -> None:
-    table = Table(title=f"Assets manifest: {manifest_path(workspace)}")
+    table = Table(title=f"Assets manifest: {manifest_path(workspace, manifest)}")
     table.add_column("Name")
     table.add_column("Kind")
     table.add_column("Status")
     table.add_column("Target")
-    for asset in list_assets(workspace):
+    table.add_column("Resolved Path")
+    for asset in list_assets(workspace, manifest_file=manifest):
         source = asset.get("source", {})
         configured = bool(source.get("url")) or bool(source.get("repo_id"))
         table.add_row(
@@ -187,6 +194,7 @@ def assets_list(
             asset.get("kind", ""),
             "configured" if configured else "unconfigured",
             asset.get("target", ""),
+            str(resolve_asset_target(workspace, asset, manifest_file=manifest)),
         )
     console.print(table)
 
@@ -196,8 +204,25 @@ def assets_pull(
     names: list[str] = typer.Argument(None, help="Asset names or preset names."),
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
     force: bool = typer.Option(False, "--force", help="Redownload existing files."),
+    manifest: Path | None = typer.Option(
+        None,
+        "--manifest",
+        help="Path to an asset manifest JSON file.",
+        resolve_path=True,
+    ),
+    target: Path | None = typer.Option(
+        None,
+        "--target",
+        help="Override target directory for one explicitly selected asset.",
+    ),
 ) -> None:
-    results = pull_assets(workspace, names or [], force=force)
+    results = pull_assets(
+        workspace,
+        names or [],
+        force=force,
+        manifest_file=manifest,
+        target_override=target,
+    )
     table = Table(title="Asset Pull Results")
     table.add_column("Name")
     table.add_column("Status")
@@ -597,6 +622,12 @@ def models_deploy(
     target: str = typer.Option(..., help="complaint, emotion, or all."),
     backend: str = typer.Option("vllm", help="Deployment backend. Currently: vllm."),
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+    manifest: Path | None = typer.Option(
+        None,
+        "--manifest",
+        help="Path to an asset manifest JSON file.",
+        resolve_path=True,
+    ),
     model_path: Path | None = typer.Option(
         None, help="Local model path. Defaults to asset path."
     ),
@@ -646,6 +677,7 @@ def models_deploy(
             workspace,
             target=item_target,
             model_path=model_path,
+            manifest_file=manifest,
             host=host,
             public_host=public_host,
             port=port,

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .assets import pull_assets
+from .assets import find_asset, pull_assets, resolve_asset_target
 from .workspace import load_settings, update_env_values, write_settings
 
 
@@ -144,6 +144,7 @@ def deploy_vllm_service(
     *,
     target: str,
     model_path: Path | None = None,
+    manifest_file: Path | None = None,
     host: str = "127.0.0.1",
     public_host: str = "127.0.0.1",
     port: int | None = None,
@@ -157,15 +158,23 @@ def deploy_vllm_service(
     dry_run: bool = False,
     extra_args: list[str] | None = None,
 ) -> dict[str, Any]:
+    load_settings(workspace)
     spec = SFT_SERVICE_SPECS[target]
-    resolved_model_path = _resolve_model_path(workspace, spec, model_path)
+    resolved_model_path = _resolve_model_path(
+        workspace, spec, model_path, manifest_file=manifest_file
+    )
     if (
         pull
         and not dry_run
         and model_path is None
         and not _has_files(resolved_model_path)
     ):
-        pull_assets(workspace, [spec.asset_name], force=False)
+        pull_assets(
+            workspace,
+            [spec.asset_name],
+            force=False,
+            manifest_file=manifest_file,
+        )
     if not _has_files(resolved_model_path) and not dry_run:
         raise FileNotFoundError(
             f"Model files not found at {resolved_model_path}. "
@@ -247,10 +256,16 @@ def service_status(workspace: Path) -> list[dict[str, Any]]:
 
 
 def _resolve_model_path(
-    workspace: Path, spec: SFTServiceSpec, model_path: Path | None
+    workspace: Path,
+    spec: SFTServiceSpec,
+    model_path: Path | None,
+    manifest_file: Path | None = None,
 ) -> Path:
     if model_path is not None:
         return model_path if model_path.is_absolute() else workspace / model_path
+    asset = find_asset(workspace, spec.asset_name, manifest_file=manifest_file)
+    if asset:
+        return resolve_asset_target(workspace, asset, manifest_file=manifest_file)
     return workspace / spec.asset_path
 
 

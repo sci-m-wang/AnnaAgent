@@ -7,19 +7,23 @@ from urllib.request import urlretrieve
 from .workspace import default_asset_manifest
 
 
-def manifest_path(workspace: Path) -> Path:
+def manifest_path(workspace: Path, manifest_file: Path | None = None) -> Path:
+    if manifest_file is not None:
+        return manifest_file
     return workspace / "assets" / "anna-assets.json"
 
 
-def load_manifest(workspace: Path) -> dict[str, Any]:
-    path = manifest_path(workspace)
+def load_manifest(workspace: Path, manifest_file: Path | None = None) -> dict[str, Any]:
+    path = manifest_path(workspace, manifest_file)
     if not path.exists():
         return default_asset_manifest()
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def save_manifest(workspace: Path, manifest: dict[str, Any]) -> None:
-    path = manifest_path(workspace)
+def save_manifest(
+    workspace: Path, manifest: dict[str, Any], manifest_file: Path | None = None
+) -> None:
+    path = manifest_path(workspace, manifest_file)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -39,16 +43,24 @@ def resolve_asset_names(manifest: dict[str, Any], names: list[str]) -> list[str]
     return resolved
 
 
-def list_assets(workspace: Path) -> list[dict[str, Any]]:
-    manifest = load_manifest(workspace)
+def list_assets(
+    workspace: Path, manifest_file: Path | None = None
+) -> list[dict[str, Any]]:
+    manifest = load_manifest(workspace, manifest_file)
     return manifest.get("assets", [])
 
 
 def pull_assets(
-    workspace: Path, names: list[str], force: bool = False
+    workspace: Path,
+    names: list[str],
+    force: bool = False,
+    manifest_file: Path | None = None,
+    target_override: Path | None = None,
 ) -> list[dict[str, str]]:
-    manifest = load_manifest(workspace)
-    requested = set(resolve_asset_names(manifest, names))
+    manifest = load_manifest(workspace, manifest_file)
+    requested = list(dict.fromkeys(resolve_asset_names(manifest, names)))
+    if target_override is not None and len(requested) != 1:
+        raise ValueError("--target can only be used when pulling exactly one asset")
     assets = {asset["name"]: asset for asset in manifest.get("assets", [])}
     results: list[dict[str, str]] = []
     for name in requested:
@@ -56,16 +68,51 @@ def pull_assets(
         if not asset:
             results.append({"name": name, "status": "missing", "path": ""})
             continue
-        results.extend(_pull_asset(workspace, asset, force=force))
-    save_manifest(workspace, manifest)
+        if target_override is not None:
+            asset = dict(asset)
+            asset["target"] = str(target_override)
+        results.extend(
+            _pull_asset(
+                workspace,
+                asset,
+                force=force,
+                manifest_file=manifest_file,
+            )
+        )
+    if manifest_file is None:
+        save_manifest(workspace, manifest)
     return results
 
 
+def find_asset(
+    workspace: Path, name: str, manifest_file: Path | None = None
+) -> dict[str, Any] | None:
+    manifest = load_manifest(workspace, manifest_file)
+    for asset in manifest.get("assets", []):
+        if asset.get("name") == name:
+            return asset
+    return None
+
+
+def resolve_asset_target(
+    workspace: Path,
+    asset: dict[str, Any],
+    manifest_file: Path | None = None,
+) -> Path:
+    target = Path(asset.get("target", "assets"))
+    if target.is_absolute():
+        return target
+    return _relative_target_base(workspace, manifest_file) / target
+
+
 def _pull_asset(
-    workspace: Path, asset: dict[str, Any], force: bool
+    workspace: Path,
+    asset: dict[str, Any],
+    force: bool,
+    manifest_file: Path | None = None,
 ) -> list[dict[str, str]]:
     source = asset.get("source", {})
-    target = workspace / asset.get("target", "assets")
+    target = resolve_asset_target(workspace, asset, manifest_file)
     target.mkdir(parents=True, exist_ok=True)
     source_type = source.get("type")
     if source_type == "url":
@@ -103,6 +150,15 @@ def _pull_asset(
             "path": str(target),
         }
     ]
+
+
+def _relative_target_base(workspace: Path, manifest_file: Path | None) -> Path:
+    if manifest_file is None:
+        return workspace
+    path = manifest_file.resolve()
+    if path.parent.name == "assets":
+        return path.parent.parent
+    return path.parent
 
 
 def _download(name: str, url: str, path: Path, force: bool) -> dict[str, str]:

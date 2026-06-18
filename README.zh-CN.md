@@ -120,6 +120,20 @@ anna assets list --workspace anna-workspace
 anna assets pull paper --workspace anna-workspace
 ```
 
+下载资产时请始终传入 `--workspace` 或 `--manifest`。如果两个都不传，`anna assets pull` 会把当前目录当成工作区，可能下载到 `./assets/...`，而不是你的 AnnaAgent 工作区。你可以只下载某一个资源，也可以显式覆盖目标目录：
+
+```bash
+# 从 anna-workspace/assets/anna-assets.json 下载单个资源。
+anna assets pull complaint-sft --workspace anna-workspace
+
+# 直接指定资产 JSON；其中的绝对 target 路径会被原样使用。
+anna assets pull complaint-sft --manifest anna-workspace/assets/anna-assets.json
+
+# 对单个资源显式指定下载目录。
+anna assets pull complaint-sft --workspace anna-workspace \
+  --target /path/to/models/complaint-sft
+```
+
 默认资产包括：
 
 - 情绪推断 SFT 模型：`sci-m-wang/Emotion_inferencer-Qwen2.5-7B-Instruct`
@@ -165,6 +179,8 @@ anna models configure --target emotion \
 ```
 
 `models deploy` 会启动后台 vLLM OpenAI-compatible 服务，把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
+
+如果没有传 `--model-path`，`models deploy` 会从 `assets/anna-assets.json` 中读取对应 SFT 资源的 target 路径，包括你在 JSON 中写的绝对路径。请确保 deploy 时使用和 pull 时相同的 `--workspace` 或 `--manifest`。
 
 ### 4. 数据准备与校验
 
