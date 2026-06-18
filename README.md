@@ -1,5 +1,7 @@
 # AnnaAgent
 
+[中文说明](README.zh-CN.md) | English
+
 The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation`.
 
 > **Important repository update:** We have removed the previous web application
@@ -66,8 +68,9 @@ uv run anna-agent config show --workspace anna-workspace
 uv run anna-agent config validate --workspace anna-workspace
 ```
 
-Assets are manifest-driven, so paper model/data downloads can be added by
-filling `assets/anna-assets.json` with HuggingFace repositories or direct URLs:
+Assets are manifest-driven. The default `paper` preset points to the released
+HuggingFace SFT models and synthetic data, and you can override or extend it in
+`assets/anna-assets.json` with your own repositories or direct URLs:
 
 ```bash
 uv run anna-agent assets list --workspace anna-workspace
