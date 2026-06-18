@@ -1,6 +1,14 @@
 # AnnaAgent
 
 The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation`.
+
+> **Important repository update:** We have removed the previous web application
+> code and refactored this repository into a cleaner AnnaAgent core toolkit so
+> that the method is easier to understand, install, and use for experiments or
+> downstream applications. If you need the web application, please use the
+> deployed site at [anna.kinamind.org](https://anna.kinamind.org/) or the
+> AnnApod repository at [github.com/kinamind/annapod](https://github.com/kinamind/annapod).
+
 ## CLAIM
 
 It is important to note that since this work involves data from counselling records of **real patients** with psychological disorders, the publicly available code can only be used to demonstrate part of the methodology. Please contact the authors of [this paper](https://aclanthology.org/2022.emnlp-main.156/) if needed.
