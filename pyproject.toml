@@ -1,68 +1,45 @@
-[tool.poetry]
-name = "anna_agent"
+[project]
+name = "anna-agent"
 version = "0.1.2"
 description = "Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation"
-authors = []
 readme = "README.md"
-packages = [{ include = "anna_agent", from = "src" }]
+requires-python = ">=3.10"
+dependencies = [
+    "openai",
+    "pandas",
+    "typer",
+    "environs",
+    "pydantic",
+    "python-dotenv",
+    "PyYAML",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-openai = "*"
-pandas = "*"
-typer = {extras = ["all"], version = "*"}
-environs = "*"
-pydantic = "*"
-python-dotenv = "*"
-PyYAML = "*"
-
-[tool.poetry.scripts]
+[project.scripts]
 anna-agent = "anna_agent.cli:app"
 
-
-[tool.poetry.group.test]
-optional = true
-
-[tool.poetry.group.test.dependencies]
-# The only dependencies that should be added are
-# dependencies used for running tests (e.g., pytest, freezegun, response).
-# Any dependencies that do not meet that criteria will be removed.
-# The only dependencies that should be added are
-# dependencies used for running tests (e.g., pytest, freezegun, response).
-# Any dependencies that do not meet that criteria will be removed.
-pytest = "^7.3.0"
-freezegun = "^1.2.2"
-pytest-mock = "^3.10.0"
-syrupy = "^4.0.2"
-pytest-watcher = "^0.3.4"
-pytest-asyncio = "^0.21.1"
-grandalf = "^0.8"
-pytest-profiling = "^1.7.0"
-responses = "^0.25.0"
-
-
-[tool.poetry.group.lint]
-optional = true
-
-[tool.poetry.group.lint.dependencies]
-ruff = "^0.1.5"
-
-
-[tool.poetry.group.codespell]
-optional = true
-
-[tool.poetry.group.codespell.dependencies]
-codespell = "^2.2.0"
-
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-jupyter = "^1.0.0"
-setuptools = "^67.6.1"
-
-
+[dependency-groups]
+test = [
+    "pytest>=7.3.0",
+    "pytest-cov>=4.1.0",
+    "freezegun>=1.2.2",
+    "pytest-mock>=3.10.0",
+    "syrupy>=4.0.2",
+    "pytest-watcher>=0.3.4",
+    "pytest-asyncio>=0.21.1",
+    "grandalf>=0.8",
+    "pytest-profiling>=1.7.0",
+    "responses>=0.25.0",
+]
+lint = [
+    "ruff>=0.1.5",
+]
+codespell = [
+    "codespell>=2.2.0",
+]
+dev = [
+    "jupyter>=1.0.0",
+    "setuptools>=67.6.1",
+]
 
 [tool.ruff]
 exclude = [
@@ -89,8 +66,23 @@ omit = [
 ]
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-plugin-pypi-mirror==0.4.2"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+anna_agent = [
+    "datasets/*.csv",
+    "figure/*.md",
+    "figure/*.png",
+    "scales/*.json",
+    "server/*.sh",
+]
 
 [tool.pytest.ini_options]
 # --strict-markers will raise errors on unknown marks.
@@ -114,22 +106,10 @@ markers = [
 
 
 [tool.codespell]
-skip = '.git,*.pdf,*.svg,*.pdf,*.yaml,*.ipynb,poetry.lock,*.min.js,*.css,package-lock.json,example_data,_dist,examples,*.trig,*.json,*.md,*.html,*.txt,*.csv'
+skip = '.git,*.pdf,*.svg,*.pdf,*.yaml,*.ipynb,uv.lock,*.min.js,*.css,package-lock.json,example_data,_dist,examples,*.trig,*.json,*.md,*.html,*.txt,*.csv'
 # Ignore latin etc
 ignore-regex = '.*(Stati Uniti|Tense=Pres).*'
 # whats is a typo but used frequently in queries so kept as is
 # aapply - async apply
 # unsecure - typo but part of API, decided to not bother for now
 ignore-words-list = 'momento,collison,ned,foor,reworkd,parth,whats,aapply,mysogyny,unsecure,damon,crate,aadd,symbl,precesses,accademia,nin'
-
-[tool.poetry.plugins.dotenv]
-ignore = "false"
-dotenv = "dotenv:plugin"
-
-
-
-# https://python-poetry.org/docs/repositories/
-[[tool.poetry.source]]
-name = "tsinghua"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
-priority = "primary"

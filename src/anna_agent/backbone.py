@@ -40,6 +40,8 @@ def configure(workspace: Path | None = None) -> None:
             "complaint_api_key": cfg.complaint_api_key,
             "counselor_api_key": cfg.counselor_api_key,
             "emotion_api_key": cfg.emotion_api_key,
+            "complaint_use_sft_model": cfg.complaint_use_sft_model,
+            "emotion_use_sft_model": cfg.emotion_use_sft_model,
             "complaint_model_name": cfg.complaint_model_name,
             "counselor_model_name": cfg.counselor_model_name,
             "emotion_model_name": cfg.emotion_model_name,
@@ -48,6 +50,7 @@ def configure(workspace: Path | None = None) -> None:
             "emotion_base_url": cfg.emotion_base_url,
         }
     )
+
 
 def get_openai_client(
     api_key_override: str | None = None, base_url_override: str | None = None
@@ -63,6 +66,8 @@ def get_openai_client(
 def get_complaint_client() -> OpenAI:
     """Create a client for the complaint server."""
     cfg = registry.get("anna_engine_config")
+    if not cfg.complaint_use_sft_model:
+        return get_openai_client()
     return get_openai_client(cfg.complaint_api_key, cfg.complaint_base_url)
 
 
@@ -75,4 +80,6 @@ def get_counselor_client() -> OpenAI:
 def get_emotion_client() -> OpenAI:
     """Create a client for the emotion server."""
     cfg = registry.get("anna_engine_config")
+    if not cfg.emotion_use_sft_model:
+        return get_openai_client()
     return get_openai_client(cfg.emotion_api_key, cfg.emotion_base_url)

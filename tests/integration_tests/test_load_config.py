@@ -15,6 +15,7 @@ model_service:
   base_url: https://example.com
 servers:
   complaint:
+    use_sft_model: false
     model_name: cm
     api_key: ckey
     base_url: https://c.example.com
@@ -22,6 +23,7 @@ servers:
     api_key: cokey
     base_url: https://co.example.com
   emotion:
+    use_sft_model: false
     model_name: em
     api_key: ekey
     base_url: https://e.example.com
@@ -34,3 +36,7 @@ servers:
     assert config.counselor_api_key == "cokey"
     assert config.complaint_model_name == "cm"
     assert config.emotion_model_name == "em"
+    assert config.complaint_use_sft_model is False
+    assert config.emotion_use_sft_model is False
+    assert config.active_complaint_model_name == "test-model"
+    assert config.active_emotion_model_name == "test-model"

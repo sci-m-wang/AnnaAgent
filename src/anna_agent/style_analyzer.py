@@ -1,6 +1,6 @@
 from .backbone import get_counselor_client
 from .common.registry import registry
-import json
+from .common.tool_calls import extract_tool_call_arguments
 
 tools = [
     {
@@ -46,7 +46,8 @@ def analyze_style(profile, conversations):
         tool_choice={"type": "function", "function": {"name": "analyze_style"}},
     )
     print(response)
-    style = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "style"
-    ]
+    args = extract_tool_call_arguments(response)
+    style = args.get("style") if args else None
+    if not isinstance(style, list):
+        return ["表达克制", "描述具体症状"]
     return style

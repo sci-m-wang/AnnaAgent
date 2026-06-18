@@ -1,8 +1,26 @@
-__pycache__
-.DS_Store
-.vscode/launch.json
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local environment and workspace config
 .env
+.venv/
+venv/
 settings.yaml
 interactive.yaml
-dist
-poetry.lock
+
+# OS and editor files
+.DS_Store
+.vscode/

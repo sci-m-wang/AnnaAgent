@@ -1,27 +1,17 @@
 # AnnaAgent
 
 The code for the paper `AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation`.
-<!--
-## 📰 News
-![](https://github.com/sci-m-wang/AnnaAgent/blob/main/parallax/parallax-github.png)
-* **[2025-12-07] Powered by Parallax:** We are excited to announce that AnnaAgent now supports efficient deployment using [Parallax](https://github.com/GradientHQ/parallax)! 
-    * Parallax provides excellent distributed support and allows us to serve our multiple specialized LoRA adapters on a single base model instance, significantly optimizing resource usage.
-    * **Deployed Models:**
-        * **Base:** Qwen2.5-7B-Instruct
-        * **Emotion Inferencer (LoRA):** [sci-m-wang/Emotion_inferencer-Qwen2.5-7B-Instruct](https://huggingface.co/sci-m-wang/Emotion_inferencer-Qwen2.5-7B-Instruct)
-        * **Chief Chain Generator (LoRA):** [sci-m-wang/Chief_chain_generator-Qwen2.5-7B-Instruct](https://huggingface.co/sci-m-wang/Chief_chain_generator-Qwen2.5-7B-Instruct)
-    * Check out the [Deployment Guide](https://github.com/sci-m-wang/AnnaAgent/blob/main/parallax) to try it out!
--->
 ## CLAIM
 
 It is important to note that since this work involves data from counselling records of **real patients** with psychological disorders, the publicly available code can only be used to demonstrate part of the methodology. Please contact the authors of [this paper](https://aclanthology.org/2022.emnlp-main.156/) if needed.
 
 ## Installation
 
-Install the project dependencies using pip:
+Install the project dependencies into a project-local `.venv` using
+[uv](https://docs.astral.sh/uv/):
 
 ```bash
-pip install -e .
+uv sync
 ```
 
 ## How to Run the Example
@@ -29,9 +19,9 @@ First, you need to deploy the servers with these commands:
 
 ```bash
 # need vllm, the version we used is 0.6.4.
-bash complaint.sh
-bash counselor.sh
-bash emotion.sh
+bash src/anna_agent/server/complaint.sh
+bash src/anna_agent/server/counselor.sh
+bash src/anna_agent/server/emotion.sh
 ```
 
 The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
@@ -40,8 +30,8 @@ There is an inner example provided through the `anna-agent` CLI. Install the dep
 initialize the project before starting the demo:
 
 ```bash
-python -m anna_agent.initialize
-anna-agent
+uv run python -m anna_agent.initialize
+uv run anna-agent
 ```
 
 After initialization you can chat with the virtual seeker.
@@ -57,7 +47,7 @@ start a conversation using your own `interactive.yaml`.
 Launch the demo seeker defined in the source code:
 
 ```bash
-anna-agent demo
+uv run anna-agent demo
 ```
 
 Both `demo` and the main command accept `--workspace` (also available as
@@ -70,7 +60,7 @@ Running `anna-agent` without a subcommand uses the `interactive.yaml` in the
 project directory and starts chatting with the virtual seeker:
 
 ```bash
-anna-agent
+uv run anna-agent
 ```
 
 ## Project Initialization
@@ -80,7 +70,7 @@ Run the initialization script once before starting the example. It creates
 a `settings.yaml`, an `interactive.yaml` and `.env` in the target directory:
 
 ```bash
-python -m anna_agent.initialize
+uv run python -m anna_agent.initialize
 ```
 
 The generated `settings.yaml` contains the model service settings and per-module
@@ -89,6 +79,25 @@ complaint, counselor and emotion modules. `interactive.yaml` holds a sample
 portrait, report and conversation history used by the main CLI. Environment
 variables are written to `.env` with the `ANNA_ENGINE_` prefix for easy
 override.
+
+### Using Base Models Instead of SFT Models
+
+The emotional inferencer and chief complaint chain generator are designed to use
+trained SFT models by default. If the latest SFT checkpoints are unavailable,
+set `use_sft_model` to `false` for either module in `settings.yaml`. The module
+will then call the base model defined in `model_service`.
+
+```yaml
+model_service:
+  model_name: counselor
+  api_key: counselor
+  base_url: http://localhost:8002/v1
+servers:
+  complaint:
+    use_sft_model: false
+  emotion:
+    use_sft_model: false
+```
 
 ### `interactive.yaml` Overview
 

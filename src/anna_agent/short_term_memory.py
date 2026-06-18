@@ -2,6 +2,18 @@ import json
 import importlib.resources
 from .backbone import get_counselor_client
 from .common.registry import registry
+from .common.tool_calls import extract_tool_call_arguments
+
+
+def _fallback_scale_changes(scale_name, previous_answers, current_answers):
+    return [
+        {
+            "item": f"{scale_name}-{index}",
+            "change": "无变化",
+            "explanation": "模型未返回结构化工具调用，使用保守默认结果。",
+        }
+        for index, _ in enumerate(zip(previous_answers, current_answers), start=1)
+    ]
 
 tools = [
     {
@@ -108,9 +120,12 @@ def analyzing_changes(scales):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
     )
-    bdi_changes = json.loads(
-        response.choices[0].message.tool_calls[0].function.arguments
-    )["changes"]
+    args = extract_tool_call_arguments(response)
+    bdi_changes = (
+        args.get("changes")
+        if args and isinstance(args.get("changes"), list)
+        else _fallback_scale_changes("BDI", scales["p_bdi"], scales["bdi"])
+    )
     messages = [
         {
             "role": "system",
@@ -165,9 +180,12 @@ def analyzing_changes(scales):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
     )
-    ghq_changes = json.loads(
-        response.choices[0].message.tool_calls[0].function.arguments
-    )["changes"]
+    args = extract_tool_call_arguments(response)
+    ghq_changes = (
+        args.get("changes")
+        if args and isinstance(args.get("changes"), list)
+        else _fallback_scale_changes("GHQ", scales["p_ghq"], scales["ghq"])
+    )
     messages = [
         {
             "role": "system",
@@ -213,9 +231,12 @@ def analyzing_changes(scales):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_scale"}},
     )
-    sass_changes = json.loads(
-        response.choices[0].message.tool_calls[0].function.arguments
-    )["changes"]
+    args = extract_tool_call_arguments(response)
+    sass_changes = (
+        args.get("changes")
+        if args and isinstance(args.get("changes"), list)
+        else _fallback_scale_changes("SASS", scales["p_sass"], scales["sass"])
+    )
     return bdi_changes, ghq_changes, sass_changes
 
 
@@ -252,7 +273,10 @@ def summarize_scale_changes(scales):
         tool_choice={"type": "function", "function": {"name": "summarizing_changes"}},
     )
     print(response)
-    status = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "status"
-    ]
+    args = extract_tool_call_arguments(response)
+    status = (
+        args.get("status")
+        if args and isinstance(args.get("status"), str)
+        else "模型未返回结构化状态总结，暂按量表结果保守记录为状态稳定。"
+    )
     return status

@@ -1,6 +1,6 @@
-import json
 from .backbone import get_counselor_client
 from .common.registry import registry
+from .common.tool_calls import extract_tool_call_arguments
 
 tools = [
     {
@@ -58,9 +58,8 @@ def is_need(utterance):
         tool_choice={"type": "function", "function": {"name": "is_need"}},
     )
 
-    return json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "is_need"
-    ]
+    args = extract_tool_call_arguments(response)
+    return bool(args.get("is_need")) if args else False
 
 
 def query(utterance, conversations, scales):
@@ -123,6 +122,7 @@ def query(utterance, conversations, scales):
     )
     print(response)
     # 提取结构化知识字段
-    knowledge = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["knowledge"]
+    args = extract_tool_call_arguments(response)
+    knowledge = args.get("knowledge") if args else ""
 
     return knowledge

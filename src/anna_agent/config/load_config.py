@@ -87,6 +87,8 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
         values["complaint_base_url"] = complaint.get("base_url")
     if complaint.get("model_name") is not None:
         values["complaint_model_name"] = complaint.get("model_name")
+    if complaint.get("use_sft_model") is not None:
+        values["complaint_use_sft_model"] = complaint.get("use_sft_model")
 
     counselor = servers.get("counselor") or {}
     if counselor.get("api_key") is not None:
@@ -103,6 +105,8 @@ def _flatten_config(data: dict[str, Any]) -> dict[str, Any]:
         values["emotion_base_url"] = emotion.get("base_url")
     if emotion.get("model_name") is not None:
         values["emotion_model_name"] = emotion.get("model_name")
+    if emotion.get("use_sft_model") is not None:
+        values["emotion_use_sft_model"] = emotion.get("use_sft_model")
     return values
 
 

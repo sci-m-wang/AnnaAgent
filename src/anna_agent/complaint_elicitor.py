@@ -1,6 +1,6 @@
 from .backbone import get_counselor_client, get_openai_client
 from .common.registry import registry
-import json
+from .common.tool_calls import extract_tool_call_arguments
 
 tools = [
     {
@@ -76,9 +76,8 @@ def switch_complaint(chain, index, conversation):
             tools=tools,
             tool_choice={"type": "function", "function": {"name": "is_recognized"}},
         )
-        if json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-            "is_recognized"
-        ]:
+        args = extract_tool_call_arguments(response)
+        if args and args.get("is_recognized"):
             return index + 1
     except Exception as err:
         print("switch_complaint error:", err)

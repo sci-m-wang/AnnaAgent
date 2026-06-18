@@ -27,12 +27,14 @@ def test_flatten_config():
                 "api_key": "c",
                 "base_url": "cu",
                 "model_name": "cm",
+                "use_sft_model": False,
             },
             "counselor": {"api_key": "co", "base_url": "cou"},
             "emotion": {
                 "api_key": "e",
                 "base_url": "eu",
                 "model_name": "em",
+                "use_sft_model": True,
             },
         },
     }
@@ -43,10 +45,12 @@ def test_flatten_config():
         "base_url": "u",
         "complaint_api_key": "c",
         "complaint_base_url": "cu",
+        "complaint_use_sft_model": False,
         "counselor_api_key": "co",
         "counselor_base_url": "cou",
         "emotion_api_key": "e",
         "emotion_base_url": "eu",
+        "emotion_use_sft_model": True,
         "complaint_model_name": "cm",
         "emotion_model_name": "em",
     }

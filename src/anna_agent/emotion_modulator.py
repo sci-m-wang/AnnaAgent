@@ -2,7 +2,7 @@ from random import randint
 from .emotion_pertuber import perturb_state
 from .backbone import get_emotion_client
 from .common.registry import registry
-import json
+from .common.tool_calls import extract_tool_call_arguments
 
 
 tools = [
@@ -63,8 +63,9 @@ def emotion_inferencer(profile, conversation):
     dialogue_history = "\n".join(
         [f"{conv['role']}: {conv['content']}" for conv in conversation]
     )
+    config = registry.get("anna_engine_config")
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").emotion_model_name,
+        model=config.active_emotion_model_name,
         messages=[
             {
                 "role": "user",
@@ -74,9 +75,10 @@ def emotion_inferencer(profile, conversation):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "emotion_inference"}},
     )
-    emotion = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "emotion"
-    ]
+    args = extract_tool_call_arguments(response)
+    emotion = args.get("emotion") if args else None
+    if not isinstance(emotion, str):
+        return "neutral"
     return emotion
 
 

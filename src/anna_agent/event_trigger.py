@@ -3,7 +3,7 @@ from pathlib import Path
 from random import choice
 from .backbone import get_counselor_client
 from .common.registry import registry
-import json
+from .common.tool_calls import extract_tool_call_arguments
 
 
 _data_dir = Path(__file__).resolve().parent / "datasets"
@@ -68,7 +68,8 @@ def situationalising_events(profile):
             "function": {"name": "situationalising_events"},
         },
     )
-    situation = json.loads(
-        response.choices[0].message.tool_calls[0].function.arguments
-    )["situation"]
+    args = extract_tool_call_arguments(response)
+    situation = args.get("situation") if args else None
+    if not isinstance(situation, str):
+        return event
     return situation

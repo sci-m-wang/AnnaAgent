@@ -38,7 +38,6 @@ class Registry:
             current = current[part]
 
         current[path[-1]] = obj
-        print(f" Key with which the item will be registered {current}")
 
     @classmethod
     def register_path(cls, name, path):

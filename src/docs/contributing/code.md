@@ -1,6 +1,6 @@
 # 开发者指南
 
-本文档说明如何在本仓库进行开发和贡献代码。本仓库使用 [Poetry](https://python-poetry.org/) 管理依赖，并通过 `Makefile` 提供常用的格式化、代码检查和测试命令。
+本文档说明如何在本仓库进行开发和贡献代码。本仓库使用 [uv](https://docs.astral.sh/uv/) 管理项目级 `.venv` 环境，并通过 `Makefile` 提供常用的格式化、代码检查和测试命令。
 
 ## 代码贡献流程
 
@@ -11,23 +11,22 @@
 
 ## 依赖安装
 
-本项目依赖使用 Poetry 管理。在安装 Poetry 之前，如使用 Conda，建议先创建并激活新的环境，例如：
+本项目依赖使用 uv 管理。uv 会在仓库根目录创建项目级 `.venv`，不需要手动创建全局或 Conda 环境。先安装 uv：
 
 ```bash
-conda create -n annaagent python=3.10
-conda activate annaagent
-```
-
-安装 Poetry 可参考其 [官方文档](https://python-poetry.org/docs/#installing-with-pipx)。安装完成后，如使用 Conda 或 Pyenv 管理 Python，请执行：
-
-```bash
-poetry config virtualenvs.prefer-active-python true
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 在仓库根目录执行以下命令安装开发所需依赖（包含 lint 与测试工具）：
 
 ```bash
-poetry install --with lint,test
+uv sync --all-groups
+```
+
+如果只需要运行 AnnaAgent，不需要开发工具，可以执行：
+
+```bash
+uv sync
 ```
 
 ## 常用开发命令

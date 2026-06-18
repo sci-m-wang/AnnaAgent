@@ -9,6 +9,7 @@ model_service:
   base_url: {anna_engine_defaults.base_url}
 servers:
   complaint:
+    use_sft_model: {str(anna_engine_defaults.complaint_use_sft_model).lower()}
     model_name: {anna_engine_defaults.complaint_model_name}
     api_key: {anna_engine_defaults.complaint_api_key}
     base_url: {anna_engine_defaults.complaint_base_url}
@@ -17,6 +18,7 @@ servers:
     api_key: {anna_engine_defaults.counselor_api_key}
     base_url: {anna_engine_defaults.counselor_base_url}
   emotion:
+    use_sft_model: {str(anna_engine_defaults.emotion_use_sft_model).lower()}
     model_name: {anna_engine_defaults.emotion_model_name}
     api_key: {anna_engine_defaults.emotion_api_key}
     base_url: {anna_engine_defaults.emotion_base_url}

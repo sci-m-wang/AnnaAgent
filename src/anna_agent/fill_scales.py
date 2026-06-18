@@ -1,6 +1,14 @@
-import json
 from .backbone import get_counselor_client
 from .common.registry import registry
+from .common.tool_calls import extract_tool_call_arguments
+
+
+def _extract_answers(response, expected_length, default="B"):
+    args = extract_tool_call_arguments(response)
+    answers = args.get("answers") if args else None
+    if isinstance(answers, list) and len(answers) == expected_length:
+        return answers
+    return [default] * expected_length
 
 tools = [
     {
@@ -128,9 +136,7 @@ def fill_scales_previous(profile, report):
     )
 
     print(response)
-    bdi = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "answers"
-    ]
+    bdi = _extract_answers(response, 21)
 
     # 用户原始输入
     raw_prompt = {
@@ -191,9 +197,7 @@ def fill_scales_previous(profile, report):
         tool_choice={"type": "function", "function": {"name": "fill_ghq"}},
     )
     # print(response.choices[0].message.tool_calls[0].function.arguments)
-    ghq = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "answers"
-    ]
+    ghq = _extract_answers(response, 28)
 
     # Step 0：原始内容结构
     raw_prompt = {
@@ -248,9 +252,7 @@ def fill_scales_previous(profile, report):
     )
 
     # Step 3：提取量表答案
-    sass = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "answers"
-    ]
+    sass = _extract_answers(response, 21)
 
     return bdi, ghq, sass
 
@@ -296,9 +298,7 @@ def fill_scales(prompt):
         tool_choice={"type": "function", "function": {"name": "fill_bdi"}},
     )
     print(response)
-    bdi = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "answers"
-    ]
+    bdi = _extract_answers(response, 21)
     # 填写GHQ-28量表
     task_prompt2 = (
         "你是一位极其严谨、格式敏感、执行精确的心理量表填写助手，专门负责引导用户完成 GHQ-28（一般健康问卷）自评任务。"
@@ -335,9 +335,7 @@ def fill_scales(prompt):
     )
 
     print(response)
-    ghq = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "answers"
-    ]
+    ghq = _extract_answers(response, 28)
     # 填写SASS量表
     task_prompt3 = (
         "你是一位极其严谨、格式敏感、任务导向的心理健康评估助理，"
@@ -379,7 +377,5 @@ def fill_scales(prompt):
     )
 
     print(response)
-    sass = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "answers"
-    ]
+    sass = _extract_answers(response, 21)
     return bdi, ghq, sass

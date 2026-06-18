@@ -13,6 +13,9 @@ class AnnaEngineDefaults:
     counselor_api_key: str = "counselor"
     emotion_api_key: str = "emotion_inferencer"
 
+    complaint_use_sft_model: bool = True
+    emotion_use_sft_model: bool = True
+
     complaint_model_name: str = "complaint"
     counselor_model_name: str = "counselor"
     emotion_model_name: str = "emotion"

@@ -1,6 +1,6 @@
 # Developer Guide
 
-This document describes how to develop and contribute code to this repository. The project uses [Poetry](https://python-poetry.org/) to manage dependencies and provides a `Makefile` with common formatting, linting and testing commands.
+This document describes how to develop and contribute code to this repository. The project uses [uv](https://docs.astral.sh/uv/) to manage a project-local `.venv` and provides a `Makefile` with common formatting, linting and testing commands.
 
 ## Contribution Workflow
 
@@ -11,23 +11,22 @@ This document describes how to develop and contribute code to this repository. T
 
 ## Dependency Installation
 
-The project dependencies are managed with Poetry. If you are using Conda, it is recommended to create and activate a new environment first:
+The project dependencies are managed with uv. uv creates a project-local `.venv` in the repository root, so a global or Conda environment is not required. Install uv first:
 
 ```bash
-conda create -n annaagent python=3.10
-conda activate annaagent
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Install Poetry following its [official guide](https://python-poetry.org/docs/#installing-with-pipx). After installation, if you use Conda or Pyenv, run:
+Then install all development dependencies from the repository root:
 
 ```bash
-poetry config virtualenvs.prefer-active-python true
+uv sync --all-groups
 ```
 
-Then install all development dependencies (including lint and test tools) from the repository root:
+If you only need to run AnnaAgent without development tools, use:
 
 ```bash
-poetry install --with lint,test
+uv sync
 ```
 
 ## Common Development Commands

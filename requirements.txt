@@ -1,7 +1,0 @@
-openai
-pandas
-typer[all]
-environs
-pydantic
-python-dotenv
-PyYAML

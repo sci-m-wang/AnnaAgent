@@ -1,7 +1,7 @@
 from .backbone import get_complaint_client
 from .common.registry import registry
+from .common.tool_calls import extract_tool_call_arguments
 from .event_trigger import event_trigger
-import json
 
 
 tools = [
@@ -40,8 +40,9 @@ def gen_complaint_chain(profile):
     patient_info = f"### 患者信息\n年龄：{profile['age']}\n性别：{profile['gender']}\n职业：{profile['occupation']}\n婚姻状况：{profile['martial_status']}\n症状：{profile['symptoms']}"
     event = event_trigger(profile)
     client = get_complaint_client()
+    config = registry.get("anna_engine_config")
     response = client.chat.completions.create(
-        model=registry.get("anna_engine_config").complaint_model_name,
+        model=config.active_complaint_model_name,
         messages=[
             {
                 "role": "user",
@@ -54,7 +55,12 @@ def gen_complaint_chain(profile):
             "function": {"name": "generate_complaint_chain"},
         },
     )
-    chain = json.loads(response.choices[0].message.tool_calls[0].function.arguments)[
-        "chain"
-    ]
+    args = extract_tool_call_arguments(response)
+    chain = args.get("chain") if args else None
+    if not isinstance(chain, list):
+        return [
+            {"stage": 1, "content": profile["symptoms"]},
+            {"stage": 2, "content": "开始意识到困扰对生活和情绪的影响"},
+            {"stage": 3, "content": "尝试在咨询中表达并理解自己的核心困扰"},
+        ]
     return chain

@@ -16,6 +16,7 @@ model_service:
   base_url: https://example.com
 servers:
   complaint:
+    use_sft_model: false
     api_key: ck
     base_url: https://c.example.com
     model_name: cm
@@ -23,6 +24,7 @@ servers:
     api_key: cok
     base_url: https://co.example.com
   emotion:
+    use_sft_model: true
     api_key: ek
     base_url: https://e.example.com
     model_name: em
@@ -39,4 +41,7 @@ servers:
     cfg = registry.get("anna_engine_config")
     assert cfg.base_url == "https://example.com"
     assert cfg.complaint_api_key == "ck"
-
+    assert cfg.complaint_use_sft_model is False
+    assert cfg.emotion_use_sft_model is True
+    assert cfg.active_complaint_model_name == "my-model"
+    assert cfg.active_emotion_model_name == "em"
