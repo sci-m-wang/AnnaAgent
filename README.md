@@ -60,16 +60,38 @@ anna --help
 ```
 
 ## How to Run the Example
-First, you need to deploy the servers with these commands:
+First, create a workspace, choose whether to use the SFT modules, and let the CLI
+write the resulting configuration:
 
 ```bash
-# need vllm, the version we used is 0.6.4.
-bash src/anna_agent/server/complaint.sh
-bash src/anna_agent/server/counselor.sh
-bash src/anna_agent/server/emotion.sh
+anna init anna-workspace
+
+# Fast path: use the base chat model for complaint-chain and emotion modules.
+anna models use-base --target all --workspace anna-workspace
+
+# SFT path: deploy local vLLM services from downloaded HuggingFace assets.
+anna assets pull paper --workspace anna-workspace
+anna models deploy --target all --backend vllm --workspace anna-workspace
 ```
 
-The trained model will be updated here at the end of the submission progress. You can also use an untrained LLM as an alternative, it might be less effective.
+You can also connect self-hosted OpenAI-compatible SFT endpoints instead of
+letting AnnaAgent start vLLM:
+
+```bash
+anna models configure --target complaint \
+  --base-url http://127.0.0.1:8001/v1 \
+  --model-name complaint \
+  --workspace anna-workspace
+
+anna models configure --target emotion \
+  --base-url http://127.0.0.1:8000/v1 \
+  --model-name emotion \
+  --workspace anna-workspace
+```
+
+Using the base model is easier to start with. The SFT modules usually produce
+more faithful emotion inference and chief-complaint chains when GPU resources
+are available.
 
 There is an inner example provided through the `anna` CLI. Install the dependencies and
 initialize the project before starting the demo:
@@ -117,6 +139,29 @@ HuggingFace SFT models and synthetic data, and you can override or extend it in
 anna assets list --workspace anna-workspace
 anna assets pull paper --workspace anna-workspace
 ```
+
+Choose the model mode explicitly before experiments. Use the base model for the
+lowest setup cost, configure existing SFT endpoints if you already deployed them,
+or let AnnaAgent start local vLLM services:
+
+```bash
+anna models use-base --target all --workspace anna-workspace
+anna models use-sft --target all --workspace anna-workspace
+anna models status --workspace anna-workspace
+
+anna models configure --target complaint \
+  --base-url http://127.0.0.1:8001/v1 \
+  --model-name complaint \
+  --workspace anna-workspace
+
+anna models deploy --target complaint --backend vllm --workspace anna-workspace
+anna models deploy --target emotion --backend vllm --workspace anna-workspace
+```
+
+`models deploy` starts a vLLM OpenAI-compatible server in the background, writes
+the service URL/model name/use-SFT flag back to `settings.yaml`, writes API keys
+to `.env`, and records logs/PIDs under `logs/services/` and `runs/services/`.
+Use `--dry-run` to print the vLLM command without starting anything.
 
 Validate and prepare case data before running experiments:
 
@@ -273,12 +318,25 @@ During normal interactive runs, AnnaAgent can auto-index the current
 `interactive.json` / `interactive.yaml` previous-session data and use retrieved
 memory when a counselor utterance refers to prior sessions or historical context.
 
-### Using Base Models Instead of SFT Models
+### Choosing Base Models or SFT Models
 
-The emotional inferencer and chief complaint chain generator are designed to use
-trained SFT models by default. If the latest SFT checkpoints are unavailable,
-set `use_sft_model` to `false` for either module in `settings.yaml`. The module
-will then call the base model defined in `model_service`.
+The emotional inferencer and chief complaint chain generator can either use the
+base model configured in `model_service`, self-hosted SFT endpoints, or local
+vLLM services launched by AnnaAgent. Prefer the explicit CLI commands over
+manual YAML edits:
+
+```bash
+anna models use-base --target all --workspace anna-workspace
+anna models use-sft --target all --workspace anna-workspace
+anna models configure --target emotion \
+  --base-url http://127.0.0.1:8000/v1 \
+  --model-name emotion \
+  --workspace anna-workspace
+anna models deploy --target emotion --backend vllm --workspace anna-workspace
+```
+
+Manual configuration is still supported. Set `use_sft_model` to `false` to use
+the base model, or `true` to call the configured SFT endpoint.
 
 ```yaml
 model_service:

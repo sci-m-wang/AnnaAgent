@@ -100,3 +100,70 @@ def test_config_secrets_writes_hidden_values_to_dotenv(tmp_path: Path):
     assert "ANNA_ENGINE_API_KEY=base-secret" in dotenv_text
     assert "ANNA_ENGINE_EMBEDDING_API_KEY=embed-secret" in dotenv_text
     assert "base-secret" not in result.output
+
+
+def test_models_commands_configure_sft_modes(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        ["models", "use-base", "--workspace", str(workspace), "--target", "all"],
+    )
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        [
+            "models",
+            "configure",
+            "--workspace",
+            str(workspace),
+            "--target",
+            "emotion",
+            "--base-url",
+            "http://127.0.0.1:9000/v1",
+            "--model-name",
+            "emotion-local",
+        ],
+        input="emotion-secret\n",
+    )
+    assert result.exit_code == 0, result.output
+    settings = (workspace / "settings.yaml").read_text(encoding="utf-8")
+    dotenv = (workspace / ".env").read_text(encoding="utf-8")
+    assert "use_sft_model: true" in settings
+    assert "http://127.0.0.1:9000/v1" in settings
+    assert "model_name: emotion-local" in settings
+    assert "ANNA_ENGINE_EMOTION_API_KEY=emotion-secret" in dotenv
+
+
+def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        [
+            "models",
+            "deploy",
+            "--workspace",
+            str(workspace),
+            "--target",
+            "complaint",
+            "--model-path",
+            str(tmp_path / "missing-model"),
+            "--port",
+            "9001",
+            "--dry-run",
+            "--no-pull",
+        ],
+        input="deploy-secret\n",
+    )
+    assert result.exit_code == 0, result.output
+    assert "vllm serve" in result.output
+    assert "--port 9001" in result.output
+    assert "deploy-secret" not in result.output
+    assert "--api-key ***" in result.output
+    assert "Dry run only" in result.output

@@ -128,6 +128,44 @@ anna assets pull paper --workspace anna-workspace
 
 你也可以编辑 `assets/anna-assets.json`，加入自己的 HuggingFace 仓库或直接下载 URL。
 
+### 3.1 显式选择 base 模型或 SFT 模型
+
+情绪推断器和主诉链生成器不应该靠读者手动部署后再填写 key。AnnaAgent 现在提供两条路径：
+
+- **自行指定 endpoint**：如果你已经部署了 OpenAI-compatible SFT 服务，用 `anna models configure` 写入配置。
+- **本地 vLLM 自动部署**：如果你有 GPU 和 vLLM，用 `anna models deploy --backend vllm` 自动启动服务并写回配置。
+
+如果只是想先跑通流程，可以明确使用 base model：
+
+```bash
+anna models use-base --target all --workspace anna-workspace
+```
+
+如果要使用 SFT 模型，可以先下载论文资产，然后自动部署：
+
+```bash
+anna assets pull paper --workspace anna-workspace
+anna models deploy --target complaint --backend vllm --workspace anna-workspace
+anna models deploy --target emotion --backend vllm --workspace anna-workspace
+anna models status --workspace anna-workspace
+```
+
+也可以接入你自己部署好的 SFT endpoint：
+
+```bash
+anna models configure --target complaint \
+  --base-url http://127.0.0.1:8001/v1 \
+  --model-name complaint \
+  --workspace anna-workspace
+
+anna models configure --target emotion \
+  --base-url http://127.0.0.1:8000/v1 \
+  --model-name emotion \
+  --workspace anna-workspace
+```
+
+`models deploy` 会启动后台 vLLM OpenAI-compatible 服务，把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
+
 ### 4. 数据准备与校验
 
 运行实验前建议先校验案例格式：
@@ -281,9 +319,21 @@ anna reset workspace --workspace anna-workspace --yes
 anna doctor --workspace anna-workspace
 ```
 
-## 使用基础模型替代 SFT 模型
+## 选择基础模型或 SFT 模型
 
-情绪推断器和主诉链生成器默认设计为调用训练后的 SFT 模型。如果暂时没有部署 SFT checkpoint，可以在 `settings.yaml` 中关闭对应模块的 SFT 开关，让模块回退到 `model_service` 中配置的基础模型：
+情绪推断器和主诉链生成器可以使用 `model_service` 中的基础模型，也可以使用自行部署的 SFT endpoint，或由 AnnaAgent 通过 vLLM 自动部署的本地 SFT 服务。推荐优先使用 CLI 命令，而不是手动改 YAML：
+
+```bash
+anna models use-base --target all --workspace anna-workspace
+anna models use-sft --target all --workspace anna-workspace
+anna models configure --target emotion \
+  --base-url http://127.0.0.1:8000/v1 \
+  --model-name emotion \
+  --workspace anna-workspace
+anna models deploy --target emotion --backend vllm --workspace anna-workspace
+```
+
+如果需要手动配置，也可以在 `settings.yaml` 中设置 `use_sft_model`。`false` 表示回退到基础模型，`true` 表示调用对应 SFT endpoint：
 
 ```yaml
 model_service:

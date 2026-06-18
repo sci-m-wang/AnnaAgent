@@ -23,6 +23,13 @@ from .case_data import (
 from .common.registry import registry
 from .diagnostics import run_doctor
 from .memory import LanceMemoryStore
+from .model_services import (
+    configure_sft_endpoint,
+    deploy_vllm_service,
+    expand_targets,
+    service_status,
+    set_sft_mode,
+)
 from .runtime import (
     FrozenPromptSession,
     append_jsonl,
@@ -51,6 +58,7 @@ test_app = typer.Typer(help="Run connectivity and smoke tests")
 data_app = typer.Typer(help="Validate and prepare case data")
 memory_app = typer.Typer(help="Manage LanceDB long-term memory")
 initialize_app = typer.Typer(help="Create or inspect initialization states")
+models_app = typer.Typer(help="Configure or deploy SFT model services")
 run_app = typer.Typer(help="Run batch experiments")
 logs_app = typer.Typer(help="Inspect local run logs")
 cache_app = typer.Typer(help="Inspect or clean local caches")
@@ -62,6 +70,7 @@ app.add_typer(test_app, name="test")
 app.add_typer(data_app, name="data")
 app.add_typer(memory_app, name="memory")
 app.add_typer(initialize_app, name="initialize")
+app.add_typer(models_app, name="models")
 app.add_typer(run_app, name="run")
 app.add_typer(logs_app, name="logs")
 app.add_typer(cache_app, name="cache")
@@ -535,6 +544,155 @@ def initialize_from_prompt(
     console.print(json.dumps(state_summary(state), ensure_ascii=False, indent=2))
 
 
+@models_app.command("use-base")
+def models_use_base(
+    target: str = typer.Option("all", help="complaint, emotion, or all."),
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+) -> None:
+    changed = set_sft_mode(workspace, target=target, use_sft=False)
+    console.print(f"[green]Using base model for:[/green] {', '.join(changed)}")
+
+
+@models_app.command("use-sft")
+def models_use_sft(
+    target: str = typer.Option("all", help="complaint, emotion, or all."),
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+) -> None:
+    changed = set_sft_mode(workspace, target=target, use_sft=True)
+    console.print(f"[green]Using SFT model for:[/green] {', '.join(changed)}")
+
+
+@models_app.command("configure")
+def models_configure(
+    target: str = typer.Option(..., help="complaint, emotion, or all."),
+    base_url: str = typer.Option(..., help="OpenAI-compatible endpoint /v1 URL."),
+    model_name: str = typer.Option(..., help="Served model name."),
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+    api_key: str | None = typer.Option(
+        None, help="API key. Prompts hidden if omitted."
+    ),
+    use_sft: bool = typer.Option(True, "--use-sft/--no-use-sft"),
+) -> None:
+    secret = api_key
+    if secret is None:
+        secret = typer.prompt(
+            "SFT endpoint API key (leave blank to keep current)",
+            default="",
+            hide_input=True,
+            show_default=False,
+        )
+    changed = configure_sft_endpoint(
+        workspace,
+        target=target,
+        base_url=base_url,
+        model_name=model_name,
+        api_key=secret or None,
+        use_sft=use_sft,
+    )
+    console.print(f"[green]Configured SFT endpoint for:[/green] {', '.join(changed)}")
+
+
+@models_app.command("deploy")
+def models_deploy(
+    target: str = typer.Option(..., help="complaint, emotion, or all."),
+    backend: str = typer.Option("vllm", help="Deployment backend. Currently: vllm."),
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+    model_path: Path | None = typer.Option(
+        None, help="Local model path. Defaults to asset path."
+    ),
+    host: str = typer.Option("127.0.0.1", help="vLLM bind host."),
+    public_host: str = typer.Option("127.0.0.1", help="Host written to settings.yaml."),
+    port: int | None = typer.Option(None, help="Service port. Defaults by target."),
+    api_key: str | None = typer.Option(None, help="API key for vLLM service."),
+    model_name: str | None = typer.Option(None, help="Served model name."),
+    gpu: str | None = typer.Option(None, help="CUDA_VISIBLE_DEVICES value."),
+    gpu_memory_utilization: float | None = typer.Option(
+        None, help="vLLM GPU memory fraction."
+    ),
+    max_model_len: int | None = typer.Option(
+        None, help="Override vLLM max model length."
+    ),
+    pull: bool = typer.Option(
+        True, "--pull/--no-pull", help="Download default asset if missing."
+    ),
+    background: bool = typer.Option(True, "--background/--foreground"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Print command without starting vLLM."
+    ),
+    extra_arg: list[str] | None = typer.Option(
+        None, "--extra-arg", help="Extra vLLM arg. Repeatable."
+    ),
+) -> None:
+    if backend != "vllm":
+        raise typer.BadParameter("Only backend='vllm' is currently supported")
+    if target == "all" and any([model_path, port, model_name]):
+        raise typer.BadParameter(
+            "When --target all is used, omit --model-path, --port and "
+            "--model-name so each service can use its own defaults."
+        )
+    secret = api_key
+    if secret is None:
+        secret = (
+            typer.prompt(
+                "vLLM API key (leave blank for target default)",
+                default="",
+                hide_input=True,
+                show_default=False,
+            )
+            or None
+        )
+    for item_target in expand_targets(target):
+        result = deploy_vllm_service(
+            workspace,
+            target=item_target,
+            model_path=model_path,
+            host=host,
+            public_host=public_host,
+            port=port,
+            api_key=secret,
+            model_name=model_name,
+            gpu=gpu,
+            gpu_memory_utilization=gpu_memory_utilization,
+            max_model_len=max_model_len,
+            pull=pull,
+            background=background,
+            dry_run=dry_run,
+            extra_args=extra_arg,
+        )
+        console.print(_redacted_command(result["command"]))
+        if dry_run:
+            continue
+        console.print(
+            f"[green]Deployed {item_target} SFT service[/green] "
+            f"pid={result['pid']} base_url={result['base_url']}"
+        )
+    if dry_run:
+        console.print("[yellow]Dry run only. Configuration was not changed.[/yellow]")
+
+
+@models_app.command("status")
+def models_status(
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+) -> None:
+    table = Table(title="SFT Model Services")
+    table.add_column("Target")
+    table.add_column("Use SFT")
+    table.add_column("Model")
+    table.add_column("Base URL")
+    table.add_column("PID")
+    table.add_column("Log")
+    for item in service_status(workspace):
+        table.add_row(
+            item["target"],
+            str(item["use_sft"]),
+            item["model_name"],
+            item["base_url"],
+            item["pid"],
+            item["log"],
+        )
+    console.print(table)
+
+
 @app.command("chat")
 def chat(
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
@@ -707,6 +865,20 @@ def _print_hits(hits, seeker_id: str) -> None:
             hit.text[:240],
         )
     console.print(table)
+
+
+def _redacted_command(command: list[str]) -> str:
+    redacted = []
+    hide_next = False
+    for item in command:
+        if hide_next:
+            redacted.append("***")
+            hide_next = False
+            continue
+        redacted.append(item)
+        if item in {"--api-key", "--api_key"}:
+            hide_next = True
+    return " ".join(redacted)
 
 
 if __name__ == "__main__":
