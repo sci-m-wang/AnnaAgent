@@ -615,17 +615,39 @@ def _service_failure_message(detail: str, log_path: Path | None) -> str:
     message = detail
     if log_path:
         message += f"\nLog file: {log_path}"
+        context = _extract_vllm_failure_context(log_path)
+        if context:
+            message += f"\nContext before final vLLM engine error:\n{context}"
         tail = _read_log_tail(log_path)
         if tail:
             message += f"\nLast log lines:\n{tail}"
     return message
 
 
-def _read_log_tail(path: Path, lines: int = 40) -> str:
-    if not path.exists():
+def _extract_vllm_failure_context(path: Path, before: int = 160) -> str:
+    lines = _read_log_lines(path)
+    if not lines:
         return ""
+    marker_index = None
+    for index, line in enumerate(lines):
+        has_engine_failure = "Engine core initialization failed" in line
+        if has_engine_failure or "See root cause above" in line:
+            marker_index = index
+    if marker_index is None:
+        return ""
+    start = max(0, marker_index - before)
+    return "\n".join(lines[start : marker_index + 1])
+
+
+def _read_log_tail(path: Path, lines: int = 40) -> str:
+    return "\n".join(_read_log_lines(path)[-lines:])
+
+
+def _read_log_lines(path: Path) -> list[str]:
+    if not path.exists():
+        return []
     content = path.read_text(encoding="utf-8", errors="replace")
-    return "\n".join(content.splitlines()[-lines:])
+    return content.splitlines()
 
 
 def _start_background(

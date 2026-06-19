@@ -211,6 +211,35 @@ def test_wait_for_openai_service_reports_exited_process_log(tmp_path: Path):
     assert "last failure" in str(exc_info.value)
 
 
+def test_wait_for_openai_service_reports_vllm_root_context(tmp_path: Path):
+    log_path = tmp_path / "service.log"
+    log_path.write_text(
+        "startup\n"
+        "CUDA out of memory while allocating KV cache\n"
+        "wrapper traceback line\n"
+        "RuntimeError: Engine core initialization failed. See root cause above.\n",
+        encoding="utf-8",
+    )
+
+    class FakeProcess:
+        returncode = 1
+
+        def poll(self):
+            return 1
+
+    with pytest.raises(RuntimeError) as exc_info:
+        wait_for_openai_service(
+            base_url="http://127.0.0.1:9001/v1",
+            api_key="key",
+            process=FakeProcess(),
+            log_path=log_path,
+        )
+
+    message = str(exc_info.value)
+    assert "Context before final vLLM engine error" in message
+    assert "CUDA out of memory" in message
+
+
 def test_wait_for_openai_service_reports_progress(monkeypatch):
     progress = []
 
