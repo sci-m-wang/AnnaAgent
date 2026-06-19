@@ -1,0 +1,13 @@
+.sidebar-brand-text {
+  font-weight: 700;
+}
+
+.wy-nav-content,
+.content {
+  line-height: 1.65;
+}
+
+.admonition.note,
+.admonition.warning {
+  border-radius: 0.5rem;
+}

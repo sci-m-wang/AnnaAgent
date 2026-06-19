@@ -1,6 +1,6 @@
 [project]
 name = "anna-agent"
-version = "0.1.2"
+version = "0.2.0"
 description = "Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,6 +16,11 @@ dependencies = [
     "python-dotenv",
     "PyYAML",
 ]
+
+[project.urls]
+Documentation = "https://sci-m-wang.github.io/AnnaAgent/"
+Repository = "https://github.com/sci-m-wang/AnnaAgent"
+Issues = "https://github.com/sci-m-wang/AnnaAgent/issues"
 
 [project.optional-dependencies]
 deploy = [
@@ -48,6 +53,11 @@ codespell = [
 dev = [
     "jupyter>=1.0.0",
     "setuptools>=67.6.1",
+]
+docs = [
+    "furo>=2024.8.6",
+    "sphinx>=7.4,<9",
+    "sphinx-copybutton>=0.5.2",
 ]
 
 [tool.ruff]

@@ -19,15 +19,18 @@ It is important to note that since this work involves data from counselling reco
 
 ### Install as a terminal command
 
-For most readers, install AnnaAgent as a terminal command with
+For most readers, install AnnaAgent from PyPI as a terminal command with
 [uv](https://docs.astral.sh/uv/) or `pipx`:
 
 ```bash
-# Install the latest GitHub version as a standalone tool.
-uv tool install git+https://github.com/sci-m-wang/AnnaAgent.git
+# Install the latest PyPI release as a standalone tool.
+uv tool install anna-agent
 
 # Or, if you use pipx:
-pipx install git+https://github.com/sci-m-wang/AnnaAgent.git
+pipx install anna-agent
+
+# Or, if you prefer pip in an existing environment:
+pip install anna-agent
 ```
 
 After installation, the short command `anna` is available in any terminal:
@@ -74,6 +77,9 @@ cd AnnaAgent
 uv sync
 uv run anna --help
 ```
+
+The full bilingual documentation is available from the GitHub Pages site:
+`https://sci-m-wang.github.io/AnnaAgent/`.
 
 You can also expose the local checkout as the terminal command:
 

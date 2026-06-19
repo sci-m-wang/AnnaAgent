@@ -13,6 +13,7 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+docs/_build/
 
 # Local environment and workspace config
 .env

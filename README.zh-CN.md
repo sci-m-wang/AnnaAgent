@@ -14,14 +14,17 @@
 
 ### 安装为终端命令
 
-推荐读者直接用 [uv](https://docs.astral.sh/uv/) 或 `pipx` 将 AnnaAgent 安装成终端命令：
+推荐读者直接从 PyPI 用 [uv](https://docs.astral.sh/uv/) 或 `pipx` 将 AnnaAgent 安装成终端命令：
 
 ```bash
-# 安装 GitHub 最新版本为独立命令行工具。
-uv tool install git+https://github.com/sci-m-wang/AnnaAgent.git
+# 安装 PyPI 最新版本为独立命令行工具。
+uv tool install anna-agent
 
 # 如果使用 pipx：
-pipx install git+https://github.com/sci-m-wang/AnnaAgent.git
+pipx install anna-agent
+
+# 如果要安装到已有 Python 环境：
+pip install anna-agent
 ```
 
 安装完成后，任意终端中都可以使用短命令 `anna`：
@@ -61,6 +64,8 @@ cd AnnaAgent
 uv sync
 uv run anna --help
 ```
+
+完整的中英双语文档会发布到 GitHub Pages：`https://sci-m-wang.github.io/AnnaAgent/`。
 
 也可以把本地源码安装成终端命令：
 
