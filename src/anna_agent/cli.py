@@ -287,6 +287,21 @@ def _print_cuda_preflight(target: str, info: dict[str, Any]) -> None:
     console.print(table)
 
 
+def _print_build_tool_preflight(target: str, info: dict[str, Any]) -> None:
+    table = Table(title=f"Build Tool Preflight · {target}")
+    table.add_column("Field", style="bold cyan")
+    table.add_column("Value", overflow="fold")
+    table.add_row("ninja_available", str(info.get("available", False)))
+    table.add_row("ninja", str(info.get("ninja", "")))
+    table.add_row("source", str(info.get("source", "")))
+    table.add_row("installed", str(info.get("installed", False)))
+    if info.get("action"):
+        table.add_row("action", str(info.get("action", "")))
+    for warning in info.get("warnings", []):
+        table.add_row("warning", f"[yellow]{escape(str(warning))}[/yellow]")
+    console.print(table)
+
+
 def _interactive_chat(
     seeker: Any, save: Path | None = None, *, debug_ui: bool = False
 ) -> None:
@@ -1009,6 +1024,11 @@ def models_deploy(
         ) -> None:
             _print_cuda_preflight(item_target, info)
 
+        def build_tool_preflight_callback(
+            info: dict[str, Any], item_target: str = item_target
+        ) -> None:
+            _print_build_tool_preflight(item_target, info)
+
         try:
             result = deploy_vllm_service(
                 workspace,
@@ -1032,6 +1052,7 @@ def models_deploy(
                 wait_progress_callback=wait_progress_callback,
                 gpu_preflight_callback=gpu_preflight_callback,
                 cuda_preflight_callback=cuda_preflight_callback,
+                build_tool_preflight_callback=build_tool_preflight_callback,
                 extra_args=extra_arg,
             )
         except RuntimeError as err:

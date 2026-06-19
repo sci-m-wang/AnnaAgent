@@ -325,6 +325,17 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
                 "warnings": [],
             }
         )
+        build_tool_callback = kwargs["build_tool_preflight_callback"]
+        build_tool_callback(
+            {
+                "available": True,
+                "ninja": "/workspace/.anna-deploy-venv/bin/ninja",
+                "source": "auto-installed",
+                "installed": True,
+                "action": "Installed ninja into the workspace deploy environment.",
+                "warnings": [],
+            }
+        )
         callback = kwargs["wait_progress_callback"]
         callback(
             {
@@ -374,6 +385,9 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
     assert "CUDA Toolkit Preflight" in result.output
     assert "/opt/apps/software/CUDA/12.4.0/bin/nvcc" in result.output
     assert "Will auto-load this CUDA module" in result.output
+    assert "Build Tool Preflight" in result.output
+    assert "auto-installed" in result.output
+    assert "ninja" in result.output
     assert "module load CUDA/12.4.0 && CUDA_VISIBLE_DEVICES=1" in result.output
     assert "CUDA_HOME=/opt/apps/software/CUDA/12.4.0" in result.output
     assert "Waiting for complaint vLLM" in result.output

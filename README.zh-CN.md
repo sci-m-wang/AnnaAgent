@@ -204,7 +204,7 @@ anna models configure --target emotion \
 
 `models deploy` 会启动后台 vLLM OpenAI-compatible 服务。启动前会先用 `nvidia-smi` 做 GPU preflight，显示指定 GPU、剩余显存和 vLLM 显存上限，并在 GPU 编号不存在或剩余显存明显不足时直接阻止启动。启动后会等待 `/v1/models` 健康检查通过；只有服务真的可用后，才会把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。大模型加载较慢时可以加 `--wait-timeout 900`。如果启动失败或超时，CLI 会显示服务日志尾部，并且不会写入坏 endpoint。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
 
-CLI 还会做 CUDA toolkit preflight，但不会假设固定的 CUDA module 名或版本。它会依次检查 `--cuda-home`、当前 `CUDA_HOME`、`PATH` 中的 `nvcc` 和常见 CUDA root；如果找到有效 toolkit，只会给 vLLM 子进程注入 `CUDA_HOME`、`PATH` 和 `LD_LIBRARY_PATH`。如果 module 集群上当前环境看不到 toolkit，AnnaAgent 会自动检查可用 CUDA modules，并优先为 vLLM 子进程加载默认 CUDA module；如果没有默认标记，就加载最高版本。如果没有找到 toolkit 或 CUDA module，CLI 会警告但继续，因为有些 vLLM 环境不需要 `nvcc`；但 FlashInfer JIT 通常需要。读者不需要手动 `module load`。只有集群把 CUDA 放在特殊位置时，才需要显式传入 toolkit root：
+CLI 还会做 CUDA toolkit preflight，但不会假设固定的 CUDA module 名或版本。它会依次检查 `--cuda-home`、当前 `CUDA_HOME`、`PATH` 中的 `nvcc` 和常见 CUDA root；如果找到有效 toolkit，只会给 vLLM 子进程注入 `CUDA_HOME`、`PATH` 和 `LD_LIBRARY_PATH`。如果 module 集群上当前环境看不到 toolkit，AnnaAgent 会自动检查可用 CUDA modules，并优先为 vLLM 子进程加载默认 CUDA module；如果没有默认标记，就加载最高版本。如果没有找到 toolkit 或 CUDA module，CLI 会警告但继续，因为有些 vLLM 环境不需要 `nvcc`；但 FlashInfer JIT 通常需要。读者不需要手动 `module load`。deploy preflight 还会检查 FlashInfer JIT 需要的 `ninja` 构建工具；workspace 部署环境如果缺少它，`models deploy` 会在启动 vLLM 前自动补装。只有集群把 CUDA 放在特殊位置时，才需要显式传入 toolkit root：
 
 ```bash
 anna models deploy --target complaint --backend vllm --workspace anna-workspace \

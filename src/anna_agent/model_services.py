@@ -20,6 +20,7 @@ WORKSPACE_DEPLOY_ENV_DIR = ".anna-deploy-venv"
 DEPLOY_PACKAGE_SPEC = (
     "anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git"
 )
+NINJA_PACKAGE_SPEC = "ninja>=1.11"
 
 
 @dataclass(frozen=True)
@@ -261,6 +262,7 @@ def deploy_vllm_service(
     wait_progress_callback: Callable[[dict[str, Any]], None] | None = None,
     gpu_preflight_callback: Callable[[dict[str, Any]], None] | None = None,
     cuda_preflight_callback: Callable[[dict[str, Any]], None] | None = None,
+    build_tool_preflight_callback: Callable[[dict[str, Any]], None] | None = None,
     extra_args: list[str] | None = None,
 ) -> dict[str, Any]:
     load_settings(workspace)
@@ -336,6 +338,15 @@ def deploy_vllm_service(
     result["cuda_module"] = cuda_preflight.get("module", "")
     if cuda_preflight_callback:
         cuda_preflight_callback(cuda_preflight)
+    build_tool_preflight = run_build_tool_preflight(
+        workspace,
+        command=command,
+        gpu=gpu,
+        cuda_preflight=cuda_preflight,
+    )
+    result["build_tool_preflight"] = build_tool_preflight
+    if build_tool_preflight_callback:
+        build_tool_preflight_callback(build_tool_preflight)
     if background:
         process = _start_background(workspace, target, command, gpu, cuda_preflight)
         result["pid"] = process.pid
@@ -350,7 +361,7 @@ def deploy_vllm_service(
             log_path=_log_file(workspace, target),
         )
     else:
-        env = _build_service_env(gpu, cuda_preflight)
+        env = _build_service_env(gpu, cuda_preflight, command)
         subprocess.run(command, check=True, env=env)
     configure_sft_endpoint(
         workspace,
@@ -361,6 +372,49 @@ def deploy_vllm_service(
         use_sft=True,
     )
     return result
+
+
+def run_build_tool_preflight(
+    workspace: Path,
+    *,
+    command: list[str],
+    gpu: str | None,
+    cuda_preflight: dict[str, Any] | None,
+) -> dict[str, Any]:
+    env = _build_service_env(gpu, cuda_preflight, command)
+    ninja = shutil.which("ninja", path=env.get("PATH", ""))
+    result: dict[str, Any] = {
+        "available": bool(ninja),
+        "ninja": ninja or "<not found>",
+        "source": "PATH" if ninja else "none",
+        "installed": False,
+        "warnings": [],
+    }
+    if ninja:
+        return result
+    if _uses_workspace_deploy_env(workspace, command):
+        result["source"] = "workspace deploy env"
+        result["action"] = "Installing ninja into the workspace deploy environment."
+        _install_deploy_env_package(workspace, NINJA_PACKAGE_SPEC)
+        env = _build_service_env(gpu, cuda_preflight, command)
+        ninja = shutil.which("ninja", path=env.get("PATH", ""))
+        if ninja:
+            result.update(
+                {
+                    "available": True,
+                    "ninja": ninja,
+                    "installed": True,
+                    "source": "auto-installed",
+                    "action": "Installed ninja into the workspace deploy environment.",
+                }
+            )
+            return result
+    raise RuntimeError(
+        "ninja is required by FlashInfer JIT but was not found in the vLLM "
+        "process PATH. Run `anna models env setup --workspace "
+        f"{workspace} --force` to rebuild the workspace deploy environment, "
+        "or install ninja in the environment that provides --vllm-command."
+    )
 
 
 def run_cuda_preflight(cuda_home: Path | None = None) -> dict[str, Any]:
@@ -832,7 +886,7 @@ def _resolve_executable(command: str) -> str:
     resolved = shutil.which(executable)
     if not resolved:
         raise FileNotFoundError(
-            "uv is required to create the workspace deploy environment. "
+            "uv is required to manage the workspace deploy environment. "
             "Install uv or pass --uv-command /path/to/uv."
         )
     return resolved
@@ -897,7 +951,7 @@ def _start_background(
 ) -> subprocess.Popen[Any]:
     log_path = _log_file(workspace, target)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    env = _build_service_env(gpu, cuda_preflight)
+    env = _build_service_env(gpu, cuda_preflight, command)
     log_file = log_path.open("a", encoding="utf-8")
     process = subprocess.Popen(
         command, stdout=log_file, stderr=subprocess.STDOUT, env=env
@@ -909,9 +963,15 @@ def _start_background(
 
 
 def _build_service_env(
-    gpu: str | None, cuda_preflight: dict[str, Any] | None = None
+    gpu: str | None,
+    cuda_preflight: dict[str, Any] | None = None,
+    command: list[str] | None = None,
 ) -> dict[str, str]:
     env = os.environ.copy()
+    if command:
+        vllm_bin_dir = _command_bin_dir(command)
+        if vllm_bin_dir:
+            env["PATH"] = _prepend_env_path(env.get("PATH", ""), str(vllm_bin_dir))
     if cuda_preflight and cuda_preflight.get("available"):
         module_env = cuda_preflight.get("env")
         if isinstance(module_env, dict):
@@ -928,6 +988,39 @@ def _build_service_env(
     if gpu:
         env["CUDA_VISIBLE_DEVICES"] = gpu
     return env
+
+
+def _command_bin_dir(command: list[str]) -> Path | None:
+    if not command:
+        return None
+    executable = Path(command[0])
+    if executable.is_absolute():
+        return executable.parent
+    resolved = shutil.which(str(executable))
+    return Path(resolved).parent if resolved else None
+
+
+def _uses_workspace_deploy_env(workspace: Path, command: list[str]) -> bool:
+    if not command:
+        return False
+    try:
+        executable = Path(command[0]).resolve()
+        env_path = deploy_env_path(workspace).resolve()
+        executable.relative_to(env_path)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+def _install_deploy_env_package(workspace: Path, package_spec: str) -> None:
+    python_path = deploy_env_python_path(workspace)
+    if not python_path.exists():
+        raise RuntimeError(deploy_install_hint(workspace))
+    uv_executable = _resolve_executable("uv")
+    _run_checked(
+        [uv_executable, "pip", "install", "--python", str(python_path), package_spec],
+        f"install {package_spec} in workspace deploy environment",
+    )
 
 
 def _prepend_env_path(current: str, value: str) -> str:

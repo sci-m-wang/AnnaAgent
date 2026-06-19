@@ -12,11 +12,13 @@ from anna_agent.model_services import (
     _filter_cuda_module_env,
     _parse_cuda_modules,
     _select_cuda_module,
+    _uses_workspace_deploy_env,
     build_vllm_command,
     configure_sft_endpoint,
     deploy_env_status,
     deploy_vllm_service,
     resolve_vllm_command,
+    run_build_tool_preflight,
     run_cuda_preflight,
     run_gpu_preflight,
     set_sft_mode,
@@ -110,6 +112,28 @@ def test_resolve_vllm_command_prefers_workspace_env(tmp_path: Path):
     assert resolve_vllm_command(tmp_path) == str(vllm_path)
 
 
+def test_build_service_env_prepends_vllm_executable_directory(tmp_path: Path):
+    vllm = tmp_path / ".anna-deploy-venv" / "bin" / "vllm"
+    vllm.parent.mkdir(parents=True)
+    vllm.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    env = _build_service_env(None, command=[str(vllm), "serve"])
+
+    assert env["PATH"].split(":")[0] == str(vllm.parent)
+
+
+def test_uses_workspace_deploy_env_detects_workspace_vllm(tmp_path: Path):
+    vllm = tmp_path / ".anna-deploy-venv" / "bin" / "vllm"
+    vllm.parent.mkdir(parents=True)
+    vllm.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    assert _uses_workspace_deploy_env(tmp_path, [str(vllm), "serve"]) is True
+    assert (
+        _uses_workspace_deploy_env(tmp_path, ["/opt/vllm/bin/vllm", "serve"])
+        is False
+    )
+
+
 def test_setup_deploy_env_runs_uv_commands(tmp_path: Path, monkeypatch):
     calls = []
 
@@ -131,6 +155,61 @@ def test_setup_deploy_env_runs_uv_commands(tmp_path: Path, monkeypatch):
     assert status["available"] is True
     assert calls[0][:4] == ["/usr/bin/uv", "venv", "--python", "3.12"]
     assert calls[1][:4] == ["/usr/bin/uv", "pip", "install", "--python"]
+
+
+def test_run_build_tool_preflight_auto_installs_missing_ninja(
+    tmp_path: Path, monkeypatch
+):
+    initialize_workspace(tmp_path)
+    vllm = tmp_path / ".anna-deploy-venv" / "bin" / "vllm"
+    python = tmp_path / ".anna-deploy-venv" / "bin" / "python"
+    ninja = tmp_path / ".anna-deploy-venv" / "bin" / "ninja"
+    vllm.parent.mkdir(parents=True, exist_ok=True)
+    vllm.write_text("#!/bin/sh\n", encoding="utf-8")
+    python.write_text("#!/bin/sh\n", encoding="utf-8")
+    calls = []
+
+    def fake_which(name, path=None):
+        if name == "uv":
+            return "/usr/bin/uv"
+        if name == "ninja" and ninja.exists():
+            return str(ninja)
+        return None
+
+    def fake_run(command, check):
+        calls.append(command)
+        ninja.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    monkeypatch.setattr("anna_agent.model_services.shutil.which", fake_which)
+    monkeypatch.setattr("anna_agent.model_services.subprocess.run", fake_run)
+
+    result = run_build_tool_preflight(
+        tmp_path,
+        command=[str(vllm), "serve"],
+        gpu=None,
+        cuda_preflight=None,
+    )
+
+    assert result["available"] is True
+    assert result["installed"] is True
+    assert result["source"] == "auto-installed"
+    assert calls[0][:4] == ["/usr/bin/uv", "pip", "install", "--python"]
+
+
+def test_run_build_tool_preflight_blocks_external_env_without_ninja(
+    tmp_path: Path, monkeypatch
+):
+    monkeypatch.setattr(
+        "anna_agent.model_services.shutil.which", lambda *args, **kwargs: None
+    )
+
+    with pytest.raises(RuntimeError, match="ninja is required"):
+        run_build_tool_preflight(
+            tmp_path,
+            command=["/opt/vllm/bin/vllm", "serve"],
+            gpu=None,
+            cuda_preflight=None,
+        )
 
 
 def test_deploy_env_status_reports_workspace_paths(tmp_path: Path):
@@ -507,6 +586,10 @@ def test_deploy_vllm_waits_before_writing_config(tmp_path: Path, monkeypatch):
         lambda **kwargs: {"available": False, "warnings": []},
     )
     monkeypatch.setattr(
+        "anna_agent.model_services.run_build_tool_preflight",
+        lambda *args, **kwargs: {"available": True, "ninja": "/usr/bin/ninja"},
+    )
+    monkeypatch.setattr(
         "anna_agent.model_services._start_background",
         lambda workspace, target, command, gpu, cuda_preflight=None: FakeProcess(),
     )
@@ -554,6 +637,10 @@ def test_deploy_vllm_does_not_write_config_when_wait_fails(tmp_path: Path, monke
     monkeypatch.setattr(
         "anna_agent.model_services.run_cuda_preflight",
         lambda **kwargs: {"available": False, "warnings": []},
+    )
+    monkeypatch.setattr(
+        "anna_agent.model_services.run_build_tool_preflight",
+        lambda *args, **kwargs: {"available": True, "ninja": "/usr/bin/ninja"},
     )
     monkeypatch.setattr(
         "anna_agent.model_services._start_background",

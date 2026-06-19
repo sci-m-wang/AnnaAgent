@@ -228,7 +228,10 @@ the default CUDA module for the vLLM process; if no default is marked, it uses
 the highest available version. If no toolkit or CUDA module can be found, the
 CLI warns and continues because some vLLM environments do not require `nvcc`;
 FlashInfer JIT environments usually do. No manual `module load` is required.
-Use `--cuda-home` only when the cluster stores CUDA in a custom location:
+The deploy preflight also checks for the `ninja` build tool required by
+FlashInfer JIT. If the workspace deploy environment is missing it,
+`models deploy` installs it into that workspace before starting vLLM. Use
+`--cuda-home` only when the cluster stores CUDA in a custom location:
 
 ```bash
 anna models deploy --target complaint --backend vllm --workspace anna-workspace \
