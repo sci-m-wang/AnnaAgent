@@ -162,6 +162,7 @@ def test_models_commands_configure_sft_modes(tmp_path: Path):
         ["models", "use-base", "--workspace", str(workspace), "--target", "all"],
     )
     assert result.exit_code == 0, result.output
+    assert "anna test model" in result.output
 
     result = runner.invoke(
         app,
@@ -219,3 +220,34 @@ def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
     assert "deploy-secret" not in result.output
     assert "--api-key ***" in result.output
     assert "Dry run only" in result.output
+
+
+def test_models_deploy_missing_vllm_reports_concise_error(tmp_path: Path):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    (model_dir / "config.json").write_text("{}", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "models",
+            "deploy",
+            "--workspace",
+            str(workspace),
+            "--target",
+            "complaint",
+            "--model-path",
+            str(model_dir),
+            "--vllm-command",
+            str(tmp_path / "missing-vllm"),
+            "--no-pull",
+        ],
+        input="\n",
+    )
+
+    assert result.exit_code == 1
+    assert "vLLM is not available" in result.output
+    assert "Traceback" not in result.output

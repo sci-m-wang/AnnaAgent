@@ -581,6 +581,9 @@ def models_use_base(
 ) -> None:
     changed = set_sft_mode(workspace, target=target, use_sft=False)
     console.print(f"[green]Using base model for:[/green] {', '.join(changed)}")
+    console.print(
+        f"Run [bold]anna test model --workspace {workspace}[/bold] before chat."
+    )
 
 
 @models_app.command("use-sft")
@@ -683,25 +686,29 @@ def models_deploy(
             or None
         )
     for item_target in expand_targets(target):
-        result = deploy_vllm_service(
-            workspace,
-            target=item_target,
-            model_path=model_path,
-            manifest_file=manifest,
-            vllm_command=vllm_command,
-            host=host,
-            public_host=public_host,
-            port=port,
-            api_key=secret,
-            model_name=model_name,
-            gpu=gpu,
-            gpu_memory_utilization=gpu_memory_utilization,
-            max_model_len=max_model_len,
-            pull=pull,
-            background=background,
-            dry_run=dry_run,
-            extra_args=extra_arg,
-        )
+        try:
+            result = deploy_vllm_service(
+                workspace,
+                target=item_target,
+                model_path=model_path,
+                manifest_file=manifest,
+                vllm_command=vllm_command,
+                host=host,
+                public_host=public_host,
+                port=port,
+                api_key=secret,
+                model_name=model_name,
+                gpu=gpu,
+                gpu_memory_utilization=gpu_memory_utilization,
+                max_model_len=max_model_len,
+                pull=pull,
+                background=background,
+                dry_run=dry_run,
+                extra_args=extra_arg,
+            )
+        except RuntimeError as err:
+            console.print(f"[red]Error:[/red] {escape(str(err))}")
+            raise typer.Exit(code=1) from None
         console.print(_redacted_command(result["command"]))
         if dry_run:
             continue

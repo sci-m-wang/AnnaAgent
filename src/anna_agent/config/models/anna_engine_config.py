@@ -209,6 +209,17 @@ class AnnaEngineConfig(BaseModel):
             and mimo_base_url
         ):
             values["counselor_base_url"] = mimo_base_url
+        counselor_defaults = {
+            "counselor_api_key": anna_engine_defaults.counselor_api_key,
+            "counselor_base_url": anna_engine_defaults.counselor_base_url,
+            "counselor_model_name": anna_engine_defaults.counselor_model_name,
+        }
+        if all(
+            values[field] == default for field, default in counselor_defaults.items()
+        ):
+            values["counselor_api_key"] = values["api_key"]
+            values["counselor_base_url"] = values["base_url"]
+            values["counselor_model_name"] = values["model_name"]
         if (
             values["embedding_model_name"]
             == anna_engine_defaults.embedding_model_name

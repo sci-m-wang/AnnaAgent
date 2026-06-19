@@ -121,3 +121,68 @@ ANNA_ENGINE_EMBEDDING_BASE_URL=https://embed.example.com/v1
     assert config.api_key == "base-secret"
     assert config.embedding_api_key == "embed-secret"
     assert config.embedding_base_url == "https://embed.example.com/v1"
+
+
+def test_load_config_default_counselor_inherits_base_env_aliases(
+    tmp_path: Path, monkeypatch
+):
+    cfg = tmp_path / "settings.yaml"
+    cfg.write_text(
+        """
+model_service:
+  model_name: counselor
+  api_key: counselor
+  base_url: http://localhost:8002/v1
+servers:
+  counselor:
+    model_name: counselor
+    api_key: counselor
+    base_url: http://localhost:8002/v1
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("ANNA_ENGINE_MODEL_NAME", raising=False)
+    monkeypatch.delenv("ANNA_ENGINE_API_KEY", raising=False)
+    monkeypatch.delenv("ANNA_ENGINE_BASE_URL", raising=False)
+    monkeypatch.setenv("MIMO_MODEL", "base-chat")
+    monkeypatch.setenv("MIMO_API_KEY", "base-secret")
+    monkeypatch.setenv("MIMO_BASE_URL", "https://base.example.com/v1")
+
+    config = load_config(tmp_path)
+
+    assert config.model_name == "base-chat"
+    assert config.api_key == "base-secret"
+    assert config.base_url == "https://base.example.com/v1"
+    assert config.counselor_model_name == "base-chat"
+    assert config.counselor_api_key == "base-secret"
+    assert config.counselor_base_url == "https://base.example.com/v1"
+
+
+def test_load_config_preserves_explicit_counselor_endpoint(
+    tmp_path: Path, monkeypatch
+):
+    cfg = tmp_path / "settings.yaml"
+    cfg.write_text(
+        """
+model_service:
+  model_name: counselor
+  api_key: counselor
+  base_url: http://localhost:8002/v1
+servers:
+  counselor:
+    model_name: counselor-custom
+    api_key: counselor-secret
+    base_url: https://counselor.example.com/v1
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("ANNA_ENGINE_MODEL_NAME", "base-chat")
+    monkeypatch.setenv("ANNA_ENGINE_API_KEY", "base-secret")
+    monkeypatch.setenv("ANNA_ENGINE_BASE_URL", "https://base.example.com/v1")
+
+    config = load_config(tmp_path)
+
+    assert config.model_name == "base-chat"
+    assert config.counselor_model_name == "counselor-custom"
+    assert config.counselor_api_key == "counselor-secret"
+    assert config.counselor_base_url == "https://counselor.example.com/v1"

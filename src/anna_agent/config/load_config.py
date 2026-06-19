@@ -207,17 +207,41 @@ def _apply_model_env_aliases(values: dict[str, Any]) -> None:
     env_mappings = {
         "complaint_api_key": "ANNA_ENGINE_COMPLAINT_API_KEY",
         "counselor_api_key": "ANNA_ENGINE_COUNSELOR_API_KEY",
+        "counselor_base_url": "ANNA_ENGINE_COUNSELOR_BASE_URL",
+        "counselor_model_name": "ANNA_ENGINE_COUNSELOR_MODEL_NAME",
         "emotion_api_key": "ANNA_ENGINE_EMOTION_API_KEY",
     }
     defaults = {
         "complaint_api_key": anna_engine_defaults.complaint_api_key,
         "counselor_api_key": anna_engine_defaults.counselor_api_key,
+        "counselor_base_url": anna_engine_defaults.counselor_base_url,
+        "counselor_model_name": anna_engine_defaults.counselor_model_name,
         "emotion_api_key": anna_engine_defaults.emotion_api_key,
     }
     for field, env_key in env_mappings.items():
         env_value = _first_env(env_key)
         if env_value and values.get(field) in {None, defaults[field]}:
             values[field] = env_value
+
+
+def _inherit_default_counselor_from_base(values: dict[str, Any]) -> None:
+    counselor_defaults = {
+        "counselor_api_key": anna_engine_defaults.counselor_api_key,
+        "counselor_base_url": anna_engine_defaults.counselor_base_url,
+        "counselor_model_name": anna_engine_defaults.counselor_model_name,
+    }
+    if not all(
+        values.get(field) in {None, default}
+        for field, default in counselor_defaults.items()
+    ):
+        return
+    values["counselor_api_key"] = values.get("api_key") or anna_engine_defaults.api_key
+    values["counselor_base_url"] = (
+        values.get("base_url") or anna_engine_defaults.base_url
+    )
+    values["counselor_model_name"] = (
+        values.get("model_name") or anna_engine_defaults.model_name
+    )
 
 
 def load_config(
@@ -235,5 +259,6 @@ def load_config(
         _apply_overrides(config_data, cli_overrides)
     values = _flatten_config(config_data)
     _apply_model_env_aliases(values)
+    _inherit_default_counselor_from_base(values)
     _apply_embedding_env_aliases(values)
     return AnnaEngineConfig(**values)
