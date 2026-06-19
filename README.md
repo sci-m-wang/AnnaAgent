@@ -219,6 +219,24 @@ it waits for the service to answer `/v1/models`; use `--wait-timeout 900` for
 slow model loads. If startup fails or times out, the CLI prints the service log
 tail and does not write a bad endpoint. Use `--dry-run` to print the vLLM command
 without starting anything.
+It also checks for a CUDA toolkit (`nvcc`) without assuming a fixed CUDA module
+name or version. If a valid toolkit is found through `--cuda-home`, `CUDA_HOME`,
+`PATH`, or common CUDA roots, AnnaAgent injects `CUDA_HOME`, `PATH`, and
+`LD_LIBRARY_PATH` only into the vLLM child process. If no toolkit is found, the
+CLI warns and continues because some vLLM environments do not require `nvcc`;
+FlashInfer JIT environments usually do. On module-based clusters, load an
+available CUDA module first or pass the toolkit root explicitly:
+
+```bash
+module avail cuda
+module load CUDA/<version>
+
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
+
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --cuda-home /path/to/cuda --gpu-memory-utilization 0.85
+```
 When `--model-path` is omitted, deploy reads the corresponding SFT asset target
 from `assets/anna-assets.json`, including absolute paths. Pass the same
 `--workspace` or `--manifest` that you used during `assets pull`.

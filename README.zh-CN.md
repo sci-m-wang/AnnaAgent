@@ -204,6 +204,19 @@ anna models configure --target emotion \
 
 `models deploy` 会启动后台 vLLM OpenAI-compatible 服务。启动前会先用 `nvidia-smi` 做 GPU preflight，显示指定 GPU、剩余显存和 vLLM 显存上限，并在 GPU 编号不存在或剩余显存明显不足时直接阻止启动。启动后会等待 `/v1/models` 健康检查通过；只有服务真的可用后，才会把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。大模型加载较慢时可以加 `--wait-timeout 900`。如果启动失败或超时，CLI 会显示服务日志尾部，并且不会写入坏 endpoint。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
 
+CLI 还会做 CUDA toolkit preflight，但不会假设固定的 CUDA module 名或版本。它会依次检查 `--cuda-home`、当前 `CUDA_HOME`、`PATH` 中的 `nvcc` 和常见 CUDA root；如果找到有效 toolkit，只会给 vLLM 子进程注入 `CUDA_HOME`、`PATH` 和 `LD_LIBRARY_PATH`。如果没有找到 toolkit，CLI 会警告但继续，因为有些 vLLM 环境不需要 `nvcc`；但 FlashInfer JIT 通常需要。module 集群上可以先加载当前节点可用的 CUDA，或显式传入 toolkit root：
+
+```bash
+module avail cuda
+module load CUDA/<version>
+
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
+
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --cuda-home /path/to/cuda --gpu-memory-utilization 0.85
+```
+
 如果没有传 `--model-path`，`models deploy` 会从 `assets/anna-assets.json` 中读取对应 SFT 资源的 target 路径，包括你在 JSON 中写的绝对路径。请确保 deploy 时使用和 pull 时相同的 `--workspace` 或 `--manifest`。
 
 如果 `models deploy` 提示找不到 vLLM，请先运行 `anna models env setup --workspace anna-workspace` 创建 workspace 级部署环境，或用 `--vllm-command` 指向集群/conda 环境中已有的 vLLM 可执行文件。

@@ -247,6 +247,7 @@ def deploy_vllm_service(
     api_key: str | None = None,
     model_name: str | None = None,
     gpu: str | None = None,
+    cuda_home: Path | None = None,
     gpu_memory_utilization: float | None = None,
     max_model_len: int | None = None,
     pull: bool = True,
@@ -256,6 +257,7 @@ def deploy_vllm_service(
     wait_progress_interval: int = 15,
     wait_progress_callback: Callable[[dict[str, Any]], None] | None = None,
     gpu_preflight_callback: Callable[[dict[str, Any]], None] | None = None,
+    cuda_preflight_callback: Callable[[dict[str, Any]], None] | None = None,
     extra_args: list[str] | None = None,
 ) -> dict[str, Any]:
     load_settings(workspace)
@@ -305,6 +307,7 @@ def deploy_vllm_service(
         "target": target,
         "command": command,
         "cuda_visible_devices": gpu or os.environ.get("CUDA_VISIBLE_DEVICES", ""),
+        "cuda_home": str(cuda_home) if cuda_home else os.environ.get("CUDA_HOME", ""),
         "base_url": base_url,
         "model_name": resolved_model_name,
         "api_key": resolved_api_key,
@@ -324,8 +327,13 @@ def deploy_vllm_service(
     result["gpu_preflight"] = preflight
     if gpu_preflight_callback:
         gpu_preflight_callback(preflight)
+    cuda_preflight = run_cuda_preflight(cuda_home=cuda_home)
+    result["cuda_preflight"] = cuda_preflight
+    result["cuda_home"] = cuda_preflight.get("cuda_home", "")
+    if cuda_preflight_callback:
+        cuda_preflight_callback(cuda_preflight)
     if background:
-        process = _start_background(workspace, target, command, gpu)
+        process = _start_background(workspace, target, command, gpu, cuda_preflight)
         result["pid"] = process.pid
         result["log"] = str(_log_file(workspace, target))
         wait_for_openai_service(
@@ -338,9 +346,7 @@ def deploy_vllm_service(
             log_path=_log_file(workspace, target),
         )
     else:
-        env = os.environ.copy()
-        if gpu:
-            env["CUDA_VISIBLE_DEVICES"] = gpu
+        env = _build_service_env(gpu, cuda_preflight)
         subprocess.run(command, check=True, env=env)
     configure_sft_endpoint(
         workspace,
@@ -351,6 +357,96 @@ def deploy_vllm_service(
         use_sft=True,
     )
     return result
+
+
+def run_cuda_preflight(cuda_home: Path | None = None) -> dict[str, Any]:
+    explicit = cuda_home is not None
+    requested = str(cuda_home) if cuda_home else ""
+    env_cuda_home = os.environ.get("CUDA_HOME", "")
+    warnings = []
+    candidates = []
+    if cuda_home is not None:
+        candidates.append((cuda_home, "--cuda-home"))
+    elif env_cuda_home:
+        candidates.append((Path(env_cuda_home), "CUDA_HOME"))
+    nvcc_from_path = shutil.which("nvcc")
+    if nvcc_from_path:
+        nvcc_path = Path(nvcc_from_path).resolve()
+        candidates.append((nvcc_path.parent.parent, "PATH"))
+    candidates.extend((path, "auto-discovered") for path in _discover_cuda_roots())
+    seen = set()
+    for root, source in candidates:
+        root = root.expanduser()
+        key = str(root)
+        if key in seen:
+            continue
+        seen.add(key)
+        nvcc = root / "bin" / "nvcc"
+        if nvcc.exists():
+            return {
+                "available": True,
+                "requested_cuda_home": requested or "<not set>",
+                "cuda_home": str(root),
+                "nvcc": str(nvcc),
+                "source": source,
+                "version": _nvcc_version(nvcc),
+                "warnings": warnings,
+            }
+    if explicit:
+        raise RuntimeError(
+            f"CUDA toolkit not found under --cuda-home {cuda_home}. "
+            "Expected bin/nvcc to exist."
+        )
+    warnings.append(
+        "CUDA toolkit was not found in CUDA_HOME or PATH. vLLM may still work, "
+        "but FlashInfer JIT can fail without nvcc. Load a CUDA module such as "
+        "`module avail cuda` then `module load CUDA/<version>`, or pass "
+        "--cuda-home /path/to/cuda."
+    )
+    return {
+        "available": False,
+        "requested_cuda_home": requested or "<not set>",
+        "cuda_home": env_cuda_home or "<not set>",
+        "nvcc": "<not found>",
+        "source": "none",
+        "version": "",
+        "warnings": warnings,
+    }
+
+
+def _discover_cuda_roots() -> list[Path]:
+    candidates = []
+    for base, pattern in [
+        (Path("/usr/local"), "cuda*"),
+        (Path("/opt"), "cuda*"),
+        (Path("/opt/apps/software/CUDA"), "*"),
+    ]:
+        if base.exists():
+            candidates.extend(path for path in base.glob(pattern) if path.is_dir())
+    return sorted(candidates, key=_cuda_sort_key, reverse=True)
+
+
+def _cuda_sort_key(path: Path) -> tuple[int, ...]:
+    parts = []
+    for chunk in path.name.replace("-", ".").split("."):
+        if chunk.isdigit():
+            parts.append(int(chunk))
+    return tuple(parts)
+
+
+def _nvcc_version(nvcc: Path) -> str:
+    try:
+        result = subprocess.run(
+            [str(nvcc), "--version"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        return ""
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    return lines[-1] if lines else ""
 
 
 def run_gpu_preflight(
@@ -651,13 +747,15 @@ def _read_log_lines(path: Path) -> list[str]:
 
 
 def _start_background(
-    workspace: Path, target: str, command: list[str], gpu: str | None
+    workspace: Path,
+    target: str,
+    command: list[str],
+    gpu: str | None,
+    cuda_preflight: dict[str, Any] | None = None,
 ) -> subprocess.Popen[Any]:
     log_path = _log_file(workspace, target)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    env = os.environ.copy()
-    if gpu:
-        env["CUDA_VISIBLE_DEVICES"] = gpu
+    env = _build_service_env(gpu, cuda_preflight)
     log_file = log_path.open("a", encoding="utf-8")
     process = subprocess.Popen(
         command, stdout=log_file, stderr=subprocess.STDOUT, env=env
@@ -666,6 +764,32 @@ def _start_background(
     pid_path.parent.mkdir(parents=True, exist_ok=True)
     pid_path.write_text(str(process.pid), encoding="utf-8")
     return process
+
+
+def _build_service_env(
+    gpu: str | None, cuda_preflight: dict[str, Any] | None = None
+) -> dict[str, str]:
+    env = os.environ.copy()
+    if gpu:
+        env["CUDA_VISIBLE_DEVICES"] = gpu
+    if cuda_preflight and cuda_preflight.get("available"):
+        cuda_home = str(cuda_preflight.get("cuda_home", ""))
+        if cuda_home:
+            env["CUDA_HOME"] = cuda_home
+            env["PATH"] = _prepend_env_path(env.get("PATH", ""), f"{cuda_home}/bin")
+            lib64 = Path(cuda_home) / "lib64"
+            if lib64.exists():
+                env["LD_LIBRARY_PATH"] = _prepend_env_path(
+                    env.get("LD_LIBRARY_PATH", ""), str(lib64)
+                )
+    return env
+
+
+def _prepend_env_path(current: str, value: str) -> str:
+    parts = [part for part in current.split(os.pathsep) if part]
+    if value in parts:
+        parts.remove(value)
+    return os.pathsep.join([value, *parts])
 
 
 def _pid_file(workspace: Path, target: str) -> Path:

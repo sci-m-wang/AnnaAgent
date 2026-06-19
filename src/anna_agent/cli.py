@@ -260,6 +260,27 @@ def _print_gpu_preflight(target: str, info: dict[str, Any]) -> None:
     console.print(table)
 
 
+def _print_cuda_preflight(target: str, info: dict[str, Any]) -> None:
+    table = Table(title=f"CUDA Toolkit Preflight · {target}")
+    table.add_column("Field", style="bold cyan")
+    table.add_column("Value", overflow="fold")
+    table.add_row("available", str(info.get("available", False)))
+    table.add_row("requested_cuda_home", str(info.get("requested_cuda_home", "")))
+    table.add_row("CUDA_HOME", str(info.get("cuda_home", "")))
+    table.add_row("nvcc", str(info.get("nvcc", "")))
+    table.add_row("source", str(info.get("source", "")))
+    if info.get("version"):
+        table.add_row("version", str(info.get("version", "")))
+    if info.get("available"):
+        table.add_row(
+            "action",
+            "Will inject CUDA_HOME/PATH/LD_LIBRARY_PATH into the vLLM process.",
+        )
+    for warning in info.get("warnings", []):
+        table.add_row("warning", f"[yellow]{escape(str(warning))}[/yellow]")
+    console.print(table)
+
+
 def _interactive_chat(
     seeker: Any, save: Path | None = None, *, debug_ui: bool = False
 ) -> None:
@@ -912,6 +933,12 @@ def models_deploy(
     gpu: str | None = typer.Option(
         None, help="CUDA_VISIBLE_DEVICES value, e.g. 0, 1, or 0,1."
     ),
+    cuda_home: Path | None = typer.Option(
+        None,
+        "--cuda-home",
+        help="CUDA toolkit root containing bin/nvcc. Auto-detected when omitted.",
+        resolve_path=True,
+    ),
     gpu_memory_utilization: float | None = typer.Option(
         None, help="vLLM GPU memory fraction."
     ),
@@ -971,6 +998,11 @@ def models_deploy(
         ) -> None:
             _print_gpu_preflight(item_target, info)
 
+        def cuda_preflight_callback(
+            info: dict[str, Any], item_target: str = item_target
+        ) -> None:
+            _print_cuda_preflight(item_target, info)
+
         try:
             result = deploy_vllm_service(
                 workspace,
@@ -984,6 +1016,7 @@ def models_deploy(
                 api_key=secret,
                 model_name=model_name,
                 gpu=gpu,
+                cuda_home=cuda_home,
                 gpu_memory_utilization=gpu_memory_utilization,
                 max_model_len=max_model_len,
                 pull=pull,
@@ -992,6 +1025,7 @@ def models_deploy(
                 wait_timeout=wait_timeout,
                 wait_progress_callback=wait_progress_callback,
                 gpu_preflight_callback=gpu_preflight_callback,
+                cuda_preflight_callback=cuda_preflight_callback,
                 extra_args=extra_arg,
             )
         except RuntimeError as err:
@@ -1001,6 +1035,7 @@ def models_deploy(
             _redacted_command(
                 result["command"],
                 cuda_visible_devices=result.get("cuda_visible_devices", ""),
+                cuda_home=result.get("cuda_home", ""),
             )
         )
         if dry_run:
@@ -1270,7 +1305,9 @@ def _print_hits(hits, seeker_id: str) -> None:
     console.print(table)
 
 
-def _redacted_command(command: list[str], cuda_visible_devices: str = "") -> str:
+def _redacted_command(
+    command: list[str], cuda_visible_devices: str = "", cuda_home: str = ""
+) -> str:
     redacted = []
     hide_next = False
     for item in command:
@@ -1281,10 +1318,13 @@ def _redacted_command(command: list[str], cuda_visible_devices: str = "") -> str
         redacted.append(item)
         if item in {"--api-key", "--api_key"}:
             hide_next = True
-    prefix = (
-        f"CUDA_VISIBLE_DEVICES={cuda_visible_devices} " if cuda_visible_devices else ""
-    )
-    return prefix + " ".join(redacted)
+    prefixes = []
+    if cuda_visible_devices:
+        prefixes.append(f"CUDA_VISIBLE_DEVICES={cuda_visible_devices}")
+    if cuda_home:
+        prefixes.append(f"CUDA_HOME={cuda_home}")
+    prefix = " ".join(prefixes)
+    return f"{prefix} {' '.join(redacted)}" if prefix else " ".join(redacted)
 
 
 def _redact_text(text: str, secrets: list[str]) -> str:

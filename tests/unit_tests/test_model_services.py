@@ -13,6 +13,7 @@ from anna_agent.model_services import (
     deploy_env_status,
     deploy_vllm_service,
     resolve_vllm_command,
+    run_cuda_preflight,
     run_gpu_preflight,
     set_sft_mode,
     setup_deploy_env,
@@ -265,6 +266,61 @@ def test_wait_for_openai_service_reports_progress(monkeypatch):
     assert "connection refused" in progress[0]["last_error"]
 
 
+def test_run_cuda_preflight_detects_nvcc_from_path(tmp_path: Path, monkeypatch):
+    cuda_root = tmp_path / "cuda-12.4"
+    nvcc = cuda_root / "bin" / "nvcc"
+    nvcc.parent.mkdir(parents=True)
+    nvcc.write_text("#!/bin/sh\n", encoding="utf-8")
+    monkeypatch.setattr("anna_agent.model_services.shutil.which", lambda _: str(nvcc))
+    monkeypatch.setattr("anna_agent.model_services._discover_cuda_roots", lambda: [])
+    monkeypatch.setattr(
+        "anna_agent.model_services._nvcc_version", lambda _: "nvcc 12.4"
+    )
+
+    result = run_cuda_preflight()
+
+    assert result["available"] is True
+    assert result["cuda_home"] == str(cuda_root)
+    assert result["nvcc"] == str(nvcc)
+    assert result["source"] == "PATH"
+
+
+def test_run_cuda_preflight_auto_discovers_cuda_root(tmp_path: Path, monkeypatch):
+    cuda_root = tmp_path / "CUDA" / "12.8.0"
+    nvcc = cuda_root / "bin" / "nvcc"
+    nvcc.parent.mkdir(parents=True)
+    nvcc.write_text("#!/bin/sh\n", encoding="utf-8")
+    monkeypatch.setattr("anna_agent.model_services.shutil.which", lambda _: None)
+    monkeypatch.setattr(
+        "anna_agent.model_services._discover_cuda_roots", lambda: [cuda_root]
+    )
+    monkeypatch.setattr(
+        "anna_agent.model_services._nvcc_version", lambda _: "nvcc 12.8"
+    )
+
+    result = run_cuda_preflight()
+
+    assert result["available"] is True
+    assert result["cuda_home"] == str(cuda_root)
+    assert result["source"] == "auto-discovered"
+
+
+def test_run_cuda_preflight_warns_when_missing(monkeypatch):
+    monkeypatch.delenv("CUDA_HOME", raising=False)
+    monkeypatch.setattr("anna_agent.model_services.shutil.which", lambda _: None)
+    monkeypatch.setattr("anna_agent.model_services._discover_cuda_roots", lambda: [])
+
+    result = run_cuda_preflight()
+
+    assert result["available"] is False
+    assert "FlashInfer JIT" in result["warnings"][0]
+
+
+def test_run_cuda_preflight_blocks_invalid_explicit_home(tmp_path: Path):
+    with pytest.raises(RuntimeError, match="CUDA toolkit not found"):
+        run_cuda_preflight(cuda_home=tmp_path / "missing-cuda")
+
+
 def test_run_gpu_preflight_reports_selected_gpu(monkeypatch):
     monkeypatch.setattr(
         "anna_agent.model_services._query_nvidia_smi",
@@ -349,8 +405,12 @@ def test_deploy_vllm_waits_before_writing_config(tmp_path: Path, monkeypatch):
         lambda **kwargs: {"devices": [], "warnings": []},
     )
     monkeypatch.setattr(
+        "anna_agent.model_services.run_cuda_preflight",
+        lambda **kwargs: {"available": False, "warnings": []},
+    )
+    monkeypatch.setattr(
         "anna_agent.model_services._start_background",
-        lambda workspace, target, command, gpu: FakeProcess(),
+        lambda workspace, target, command, gpu, cuda_preflight=None: FakeProcess(),
     )
 
     def fake_wait(**kwargs):
@@ -394,8 +454,12 @@ def test_deploy_vllm_does_not_write_config_when_wait_fails(tmp_path: Path, monke
         lambda **kwargs: {"devices": [], "warnings": []},
     )
     monkeypatch.setattr(
+        "anna_agent.model_services.run_cuda_preflight",
+        lambda **kwargs: {"available": False, "warnings": []},
+    )
+    monkeypatch.setattr(
         "anna_agent.model_services._start_background",
-        lambda workspace, target, command, gpu: FakeProcess(),
+        lambda workspace, target, command, gpu, cuda_preflight=None: FakeProcess(),
     )
     monkeypatch.setattr(
         "anna_agent.model_services.wait_for_openai_service",
