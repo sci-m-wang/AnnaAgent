@@ -204,6 +204,8 @@ def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
             "complaint",
             "--model-path",
             str(tmp_path / "missing-model"),
+            "--vllm-command",
+            "/opt/vllm/bin/vllm",
             "--port",
             "9001",
             "--dry-run",
@@ -212,7 +214,7 @@ def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
         input="deploy-secret\n",
     )
     assert result.exit_code == 0, result.output
-    assert "vllm serve" in result.output
+    assert "/opt/vllm/bin/vllm serve" in result.output
     assert "--port 9001" in result.output
     assert "deploy-secret" not in result.output
     assert "--api-key ***" in result.output

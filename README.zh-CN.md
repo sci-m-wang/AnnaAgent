@@ -34,6 +34,20 @@ anna doctor --workspace anna-workspace
 
 较长的命令名 `anna-agent` 仍然保留为兼容别名。
 
+如果你希望 AnnaAgent 自动用 vLLM 启动本地 SFT 模型，请安装 GPU 部署版。vLLM 面向 Linux/GPU 环境，建议使用受支持的 Python 版本，例如 3.12：
+
+```bash
+uv tool install --python 3.12 --force \
+  "anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git"
+```
+
+如果集群中已经有其他 conda/module 环境提供 vLLM，可以继续使用普通 AnnaAgent 安装，并在部署时显式指定 vLLM 可执行文件：
+
+```bash
+anna models deploy --target complaint --workspace anna-workspace \
+  --vllm-command /path/to/vllm
+```
+
 ### 从源码开发
 
 如果你要修改代码，可以在项目本地 `.venv` 中安装依赖：
@@ -181,6 +195,8 @@ anna models configure --target emotion \
 `models deploy` 会启动后台 vLLM OpenAI-compatible 服务，把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
 
 如果没有传 `--model-path`，`models deploy` 会从 `assets/anna-assets.json` 中读取对应 SFT 资源的 target 路径，包括你在 JSON 中写的绝对路径。请确保 deploy 时使用和 pull 时相同的 `--workspace` 或 `--manifest`。
+
+如果 `models deploy` 提示找不到 vLLM，请按照上面的命令安装 `anna-agent[deploy]`，或用 `--vllm-command` 指向集群/conda 环境中已有的 vLLM 可执行文件。
 
 ### 4. 数据准备与校验
 

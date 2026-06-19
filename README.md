@@ -40,6 +40,23 @@ anna doctor --workspace anna-workspace
 
 The longer command name `anna-agent` is kept as a compatibility alias.
 
+If you want AnnaAgent to automatically start local SFT models with vLLM, install
+the GPU deployment edition. vLLM is Linux/GPU-oriented and currently should be
+installed with a supported Python such as 3.12:
+
+```bash
+uv tool install --python 3.12 --force \
+  "anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git"
+```
+
+If your cluster already provides vLLM in another environment, keep the normal
+AnnaAgent install and pass that executable explicitly when deploying:
+
+```bash
+anna models deploy --target complaint --workspace anna-workspace \
+  --vllm-command /path/to/vllm
+```
+
 ### Develop from source
 
 If you are modifying the code, install the project dependencies into a
@@ -182,6 +199,10 @@ Use `--dry-run` to print the vLLM command without starting anything.
 When `--model-path` is omitted, deploy reads the corresponding SFT asset target
 from `assets/anna-assets.json`, including absolute paths. Pass the same
 `--workspace` or `--manifest` that you used during `assets pull`.
+
+If `models deploy` reports that vLLM is unavailable, reinstall AnnaAgent with
+the `deploy` extra shown above, or pass `--vllm-command` to a vLLM executable
+provided by your cluster/conda environment.
 
 Validate and prepare case data before running experiments:
 

@@ -6,6 +6,7 @@ from typing import Any
 import typer
 import yaml
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 from . import __version__, backbone
@@ -157,7 +158,11 @@ def doctor(
         color = {"ok": "green", "warn": "yellow", "fail": "red", "skip": "cyan"}.get(
             check.status, "white"
         )
-        table.add_row(check.name, f"[{color}]{check.status}[/{color}]", check.detail)
+        table.add_row(
+            escape(check.name),
+            f"[{color}]{escape(check.status)}[/{color}]",
+            escape(check.detail),
+        )
     console.print(table)
 
 
@@ -631,6 +636,11 @@ def models_deploy(
     model_path: Path | None = typer.Option(
         None, help="Local model path. Defaults to asset path."
     ),
+    vllm_command: str = typer.Option(
+        "vllm",
+        "--vllm-command",
+        help="vLLM executable or command prefix, e.g. /path/to/vllm.",
+    ),
     host: str = typer.Option("127.0.0.1", help="vLLM bind host."),
     public_host: str = typer.Option("127.0.0.1", help="Host written to settings.yaml."),
     port: int | None = typer.Option(None, help="Service port. Defaults by target."),
@@ -678,6 +688,7 @@ def models_deploy(
             target=item_target,
             model_path=model_path,
             manifest_file=manifest,
+            vllm_command=vllm_command,
             host=host,
             public_host=public_host,
             port=port,

@@ -1,4 +1,5 @@
 import os
+import shlex
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -7,6 +8,15 @@ from typing import Any
 
 from .assets import find_asset, pull_assets, resolve_asset_target
 from .workspace import load_settings, update_env_values, write_settings
+
+DEPLOY_EXTRA_INSTALL_HINT = (
+    "vLLM is not available in this AnnaAgent environment. For automatic local "
+    "SFT deployment, reinstall the GPU deployment edition with: "
+    "uv tool install --python 3.12 --force "
+    "'anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git'. "
+    "Alternatively, pass --vllm-command /path/to/vllm, or use "
+    "`anna models configure` with an existing OpenAI-compatible endpoint."
+)
 
 
 @dataclass(frozen=True)
@@ -97,12 +107,19 @@ def configure_sft_endpoint(
     return changed
 
 
-def vllm_available() -> bool:
-    return shutil.which("vllm") is not None
+def vllm_available(vllm_command: str = "vllm") -> bool:
+    command = shlex.split(vllm_command)
+    if not command:
+        return False
+    executable = command[0]
+    if Path(executable).is_absolute():
+        return Path(executable).exists()
+    return shutil.which(executable) is not None
 
 
 def build_vllm_command(
     *,
+    vllm_command: str = "vllm",
     model_path: Path,
     host: str,
     port: int,
@@ -112,8 +129,7 @@ def build_vllm_command(
     max_model_len: int | None,
     extra_args: list[str] | None = None,
 ) -> list[str]:
-    command = [
-        "vllm",
+    command = shlex.split(vllm_command) + [
         "serve",
         str(model_path),
         "--host",
@@ -145,6 +161,7 @@ def deploy_vllm_service(
     target: str,
     model_path: Path | None = None,
     manifest_file: Path | None = None,
+    vllm_command: str = "vllm",
     host: str = "127.0.0.1",
     public_host: str = "127.0.0.1",
     port: int | None = None,
@@ -187,6 +204,7 @@ def deploy_vllm_service(
         max_model_len if max_model_len is not None else spec.default_max_model_len
     )
     command = build_vllm_command(
+        vllm_command=vllm_command,
         model_path=resolved_model_path,
         host=host,
         port=resolved_port,
@@ -210,11 +228,8 @@ def deploy_vllm_service(
     }
     if dry_run:
         return result
-    if not vllm_available():
-        raise RuntimeError(
-            "vLLM is not available. Install it first, or use "
-            "`anna models configure` with an existing endpoint."
-        )
+    if not vllm_available(vllm_command):
+        raise RuntimeError(DEPLOY_EXTRA_INSTALL_HINT)
     if background:
         pid = _start_background(workspace, target, command, gpu)
         result["pid"] = pid

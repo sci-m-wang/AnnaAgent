@@ -11,6 +11,7 @@ from anna_agent.model_services import (
     configure_sft_endpoint,
     deploy_vllm_service,
     set_sft_mode,
+    vllm_available,
 )
 from anna_agent.workspace import initialize_workspace
 
@@ -65,6 +66,28 @@ def test_build_vllm_command_uses_openai_compatible_args(tmp_path: Path):
     assert "--enable-auto-tool-choice" in command
     assert "--max-model-len" in command
     assert "--max-num-seqs" in command
+
+
+def test_build_vllm_command_accepts_custom_executable(tmp_path: Path):
+    command = build_vllm_command(
+        vllm_command="/opt/vllm/bin/vllm",
+        model_path=tmp_path / "model",
+        host="127.0.0.1",
+        port=8001,
+        api_key="key",
+        model_name="complaint",
+        gpu_memory_utilization=0.3,
+        max_model_len=None,
+    )
+
+    assert command[:3] == ["/opt/vllm/bin/vllm", "serve", str(tmp_path / "model")]
+
+
+def test_vllm_available_supports_absolute_executable(tmp_path: Path):
+    executable = tmp_path / "vllm"
+    executable.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    assert vllm_available(str(executable)) is True
 
 
 def test_deploy_vllm_dry_run_does_not_require_files(tmp_path: Path):
