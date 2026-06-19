@@ -36,6 +36,8 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Build Sphinx HTML
         run: uv run --group docs sphinx-build -b html docs docs/_build/html
