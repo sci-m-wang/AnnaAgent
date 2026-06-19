@@ -239,13 +239,15 @@ def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
             "/opt/vllm/bin/vllm",
             "--port",
             "9001",
+            "--gpu",
+            "0",
             "--dry-run",
             "--no-pull",
         ],
         input="deploy-secret\n",
     )
     assert result.exit_code == 0, result.output
-    assert "/opt/vllm/bin/vllm serve" in result.output
+    assert "CUDA_VISIBLE_DEVICES=0 /opt/vllm/bin/vllm serve" in result.output
     assert "--port 9001" in result.output
     assert "deploy-secret" not in result.output
     assert "--api-key ***" in result.output
@@ -291,6 +293,24 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
     assert result.exit_code == 0, result.output
 
     def fake_deploy(workspace_path, **kwargs):
+        gpu_callback = kwargs["gpu_preflight_callback"]
+        gpu_callback(
+            {
+                "requested_gpu": kwargs["gpu"],
+                "cuda_visible_devices": kwargs["gpu"],
+                "gpu_memory_utilization": kwargs["gpu_memory_utilization"],
+                "devices": [
+                    {
+                        "index": 1,
+                        "name": "NVIDIA A100",
+                        "memory_total_mib": 81920,
+                        "memory_free_mib": 79872,
+                        "vllm_cap_mib": 69632,
+                    }
+                ],
+                "warnings": [],
+            }
+        )
         callback = kwargs["wait_progress_callback"]
         callback(
             {
@@ -304,6 +324,7 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
         )
         return {
             "command": ["vllm", "serve", "model", "--api-key", "deploy-secret"],
+            "cuda_visible_devices": kwargs["gpu"],
             "pid": 123,
             "base_url": "http://127.0.0.1:8001/v1",
         }
@@ -321,11 +342,20 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
             "complaint",
             "--wait-timeout",
             "30",
+            "--gpu",
+            "1",
+            "--gpu-memory-utilization",
+            "0.85",
         ],
         input="deploy-secret\n",
     )
 
     assert result.exit_code == 0, result.output
+    assert "GPU Preflight" in result.output
+    assert "CUDA_VISIBLE_DEVICES" in result.output
+    assert "NVIDIA A100" in result.output
+    assert "cap=69632MiB" in result.output
+    assert "CUDA_VISIBLE_DEVICES=1 vllm serve" in result.output
     assert "Waiting for complaint vLLM" in result.output
     assert "elapsed=15s/30s" in result.output
     assert "loading with ***" in result.output

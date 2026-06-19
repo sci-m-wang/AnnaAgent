@@ -255,6 +255,7 @@ def deploy_vllm_service(
     wait_timeout: int = 600,
     wait_progress_interval: int = 15,
     wait_progress_callback: Callable[[dict[str, Any]], None] | None = None,
+    gpu_preflight_callback: Callable[[dict[str, Any]], None] | None = None,
     extra_args: list[str] | None = None,
 ) -> dict[str, Any]:
     load_settings(workspace)
@@ -303,6 +304,7 @@ def deploy_vllm_service(
     result: dict[str, Any] = {
         "target": target,
         "command": command,
+        "cuda_visible_devices": gpu or os.environ.get("CUDA_VISIBLE_DEVICES", ""),
         "base_url": base_url,
         "model_name": resolved_model_name,
         "api_key": resolved_api_key,
@@ -313,6 +315,15 @@ def deploy_vllm_service(
         return result
     if not vllm_available(resolved_vllm_command):
         raise RuntimeError(deploy_install_hint(workspace))
+    preflight = run_gpu_preflight(
+        gpu=gpu,
+        gpu_memory_utilization=(
+            gpu_memory_utilization or spec.default_gpu_memory_utilization
+        ),
+    )
+    result["gpu_preflight"] = preflight
+    if gpu_preflight_callback:
+        gpu_preflight_callback(preflight)
     if background:
         process = _start_background(workspace, target, command, gpu)
         result["pid"] = process.pid
@@ -340,6 +351,135 @@ def deploy_vllm_service(
         use_sft=True,
     )
     return result
+
+
+def run_gpu_preflight(
+    *, gpu: str | None, gpu_memory_utilization: float
+) -> dict[str, Any]:
+    if not 0 < gpu_memory_utilization <= 1:
+        raise RuntimeError(
+            "--gpu-memory-utilization must be greater than 0 and at most 1."
+        )
+    visible_env = os.environ.get("CUDA_VISIBLE_DEVICES", "")
+    requested_ids = _parse_gpu_ids(gpu) if gpu else None
+    gpus = _query_nvidia_smi()
+    if not gpus:
+        raise RuntimeError("No NVIDIA GPUs were reported by nvidia-smi.")
+    available_ids = {item["index"] for item in gpus}
+    warnings = []
+    if requested_ids is None:
+        env_ids = (
+            _parse_gpu_ids(visible_env) if _is_numeric_gpu_list(visible_env) else None
+        )
+        if env_ids:
+            requested_ids = [env_ids[0]]
+            warnings.append(
+                "No --gpu value was provided; checked the first GPU from "
+                f"CUDA_VISIBLE_DEVICES={visible_env}. Pass --gpu to make the "
+                "deployment target explicit."
+            )
+        else:
+            first_gpu = min(available_ids)
+            requested_ids = [first_gpu]
+            warnings.append(
+                f"No --gpu value was provided; checked GPU {first_gpu}. "
+                "Pass --gpu 0 or --gpu 1 to make the deployment target explicit."
+            )
+    selected = (
+        [item for item in gpus if item["index"] in requested_ids]
+        if requested_ids is not None
+        else gpus
+    )
+    if requested_ids is not None:
+        missing = [item for item in requested_ids if item not in available_ids]
+        if missing:
+            raise RuntimeError(
+                "Requested GPU id(s) not found by nvidia-smi: "
+                f"{', '.join(str(item) for item in missing)}. "
+                "Available GPU id(s): "
+                f"{', '.join(str(item) for item in sorted(available_ids))}."
+            )
+    for item in selected:
+        cap_mib = int(item["memory_total_mib"] * gpu_memory_utilization)
+        item["vllm_cap_mib"] = cap_mib
+        if item["memory_free_mib"] < cap_mib:
+            raise RuntimeError(
+                f"GPU {item['index']} free memory is below the configured vLLM cap: "
+                f"free={item['memory_free_mib']}MiB, cap={cap_mib}MiB. "
+                "Choose a less busy GPU or lower --gpu-memory-utilization."
+            )
+        if cap_mib < 16000:
+            warnings.append(
+                f"GPU {item['index']} vLLM cap is {cap_mib}MiB, which may be "
+                "too low for a 7B model. Consider --gpu-memory-utilization 0.85."
+            )
+    return {
+        "requested_gpu": gpu or "<not set>",
+        "cuda_visible_devices": gpu or visible_env or "<not set>",
+        "gpu_memory_utilization": gpu_memory_utilization,
+        "devices": selected,
+        "warnings": warnings,
+    }
+
+
+def _parse_gpu_ids(gpu: str | None) -> list[int] | None:
+    if not gpu:
+        return None
+    ids = []
+    for item in gpu.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if not item.isdigit():
+            raise RuntimeError(f"Invalid --gpu value: {gpu}. Use comma-separated IDs.")
+        ids.append(int(item))
+    return ids or None
+
+
+def _is_numeric_gpu_list(gpu: str) -> bool:
+    if not gpu:
+        return False
+    parts = [item.strip() for item in gpu.split(",") if item.strip()]
+    return bool(parts) and all(item.isdigit() for item in parts)
+
+
+def _query_nvidia_smi() -> list[dict[str, Any]]:
+    command = [
+        "nvidia-smi",
+        "--query-gpu=index,name,memory.total,memory.used,memory.free",
+        "--format=csv,noheader,nounits",
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except FileNotFoundError as err:
+        raise RuntimeError(
+            "nvidia-smi is required for GPU preflight checks but was not found."
+        ) from err
+    except subprocess.CalledProcessError as err:
+        detail = err.stderr.strip() or err.stdout.strip() or str(err)
+        raise RuntimeError(f"nvidia-smi failed: {detail}") from err
+    gpus = []
+    for line in result.stdout.splitlines():
+        parts = [part.strip() for part in line.split(",")]
+        if len(parts) != 5:
+            continue
+        index, name, total, used, free = parts
+        gpus.append(
+            {
+                "index": int(index),
+                "name": name,
+                "memory_total_mib": int(total),
+                "memory_used_mib": int(used),
+                "memory_free_mib": int(free),
+            }
+        )
+    return gpus
 
 
 def wait_for_openai_service(

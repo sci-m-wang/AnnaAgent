@@ -13,6 +13,7 @@ from anna_agent.model_services import (
     deploy_env_status,
     deploy_vllm_service,
     resolve_vllm_command,
+    run_gpu_preflight,
     set_sft_mode,
     setup_deploy_env,
     vllm_available,
@@ -235,6 +236,71 @@ def test_wait_for_openai_service_reports_progress(monkeypatch):
     assert "connection refused" in progress[0]["last_error"]
 
 
+def test_run_gpu_preflight_reports_selected_gpu(monkeypatch):
+    monkeypatch.setattr(
+        "anna_agent.model_services._query_nvidia_smi",
+        lambda: [
+            {
+                "index": 0,
+                "name": "NVIDIA A100",
+                "memory_total_mib": 81920,
+                "memory_used_mib": 1024,
+                "memory_free_mib": 80896,
+            },
+            {
+                "index": 1,
+                "name": "NVIDIA A100",
+                "memory_total_mib": 81920,
+                "memory_used_mib": 2048,
+                "memory_free_mib": 79872,
+            },
+        ],
+    )
+
+    result = run_gpu_preflight(gpu="1", gpu_memory_utilization=0.85)
+
+    assert result["requested_gpu"] == "1"
+    assert result["cuda_visible_devices"] == "1"
+    assert result["devices"][0]["index"] == 1
+    assert result["devices"][0]["vllm_cap_mib"] == 69632
+
+
+def test_run_gpu_preflight_blocks_missing_gpu(monkeypatch):
+    monkeypatch.setattr(
+        "anna_agent.model_services._query_nvidia_smi",
+        lambda: [
+            {
+                "index": 0,
+                "name": "NVIDIA A100",
+                "memory_total_mib": 81920,
+                "memory_used_mib": 1024,
+                "memory_free_mib": 80896,
+            }
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="Requested GPU id"):
+        run_gpu_preflight(gpu="1", gpu_memory_utilization=0.85)
+
+
+def test_run_gpu_preflight_blocks_low_free_memory(monkeypatch):
+    monkeypatch.setattr(
+        "anna_agent.model_services._query_nvidia_smi",
+        lambda: [
+            {
+                "index": 0,
+                "name": "NVIDIA A100",
+                "memory_total_mib": 81920,
+                "memory_used_mib": 70000,
+                "memory_free_mib": 11920,
+            }
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="free memory"):
+        run_gpu_preflight(gpu="0", gpu_memory_utilization=0.85)
+
+
 def test_deploy_vllm_waits_before_writing_config(tmp_path: Path, monkeypatch):
     initialize_workspace(tmp_path)
     model_dir = tmp_path / "model"
@@ -249,6 +315,10 @@ def test_deploy_vllm_waits_before_writing_config(tmp_path: Path, monkeypatch):
 
     wait_calls = []
     monkeypatch.setattr("anna_agent.model_services.vllm_available", lambda _: True)
+    monkeypatch.setattr(
+        "anna_agent.model_services.run_gpu_preflight",
+        lambda **kwargs: {"devices": [], "warnings": []},
+    )
     monkeypatch.setattr(
         "anna_agent.model_services._start_background",
         lambda workspace, target, command, gpu: FakeProcess(),
@@ -290,6 +360,10 @@ def test_deploy_vllm_does_not_write_config_when_wait_fails(tmp_path: Path, monke
             return None
 
     monkeypatch.setattr("anna_agent.model_services.vllm_available", lambda _: True)
+    monkeypatch.setattr(
+        "anna_agent.model_services.run_gpu_preflight",
+        lambda **kwargs: {"devices": [], "warnings": []},
+    )
     monkeypatch.setattr(
         "anna_agent.model_services._start_background",
         lambda workspace, target, command, gpu: FakeProcess(),

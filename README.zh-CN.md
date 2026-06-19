@@ -181,8 +181,10 @@ anna models use-base --target all --workspace anna-workspace
 anna assets pull paper --workspace anna-workspace
 anna models env setup --workspace anna-workspace  # 如果 init 时已用 --deploy-env，可跳过
 anna models env status --workspace anna-workspace
-anna models deploy --target complaint --backend vllm --workspace anna-workspace
-anna models deploy --target emotion --backend vllm --workspace anna-workspace
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
+anna models deploy --target emotion --backend vllm --workspace anna-workspace \
+  --gpu 1 --gpu-memory-utilization 0.85 --wait-timeout 900
 anna models status --workspace anna-workspace
 ```
 
@@ -200,7 +202,7 @@ anna models configure --target emotion \
   --workspace anna-workspace
 ```
 
-`models deploy` 会启动后台 vLLM OpenAI-compatible 服务，并先等待 `/v1/models` 健康检查通过；只有服务真的可用后，才会把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。大模型加载较慢时可以加 `--wait-timeout 900`。如果启动失败或超时，CLI 会显示服务日志尾部，并且不会写入坏 endpoint。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
+`models deploy` 会启动后台 vLLM OpenAI-compatible 服务。启动前会先用 `nvidia-smi` 做 GPU preflight，显示指定 GPU、剩余显存和 vLLM 显存上限，并在 GPU 编号不存在或剩余显存明显不足时直接阻止启动。启动后会等待 `/v1/models` 健康检查通过；只有服务真的可用后，才会把服务地址、模型名和 `use_sft_model` 写回 `settings.yaml`，把 API key 写入 `.env`，并在 `logs/services/` 与 `runs/services/` 下记录日志和 PID。大模型加载较慢时可以加 `--wait-timeout 900`。如果启动失败或超时，CLI 会显示服务日志尾部，并且不会写入坏 endpoint。可以加 `--dry-run` 只查看将要执行的 vLLM 命令。
 
 如果没有传 `--model-path`，`models deploy` 会从 `assets/anna-assets.json` 中读取对应 SFT 资源的 target 路径，包括你在 JSON 中写的绝对路径。请确保 deploy 时使用和 pull 时相同的 `--workspace` 或 `--manifest`。
 
@@ -371,7 +373,8 @@ anna models configure --target emotion \
   --model-name emotion \
   --workspace anna-workspace
 anna models env setup --workspace anna-workspace
-anna models deploy --target emotion --backend vllm --workspace anna-workspace
+anna models deploy --target emotion --backend vllm --workspace anna-workspace \
+  --gpu 1 --gpu-memory-utilization 0.85 --wait-timeout 900
 ```
 
 如果需要手动配置，也可以在 `settings.yaml` 中设置 `use_sft_model`。`false` 表示回退到基础模型，`true` 表示调用对应 SFT endpoint：

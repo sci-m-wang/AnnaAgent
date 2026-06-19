@@ -238,6 +238,28 @@ def _print_deploy_wait_progress(
         )
 
 
+def _print_gpu_preflight(target: str, info: dict[str, Any]) -> None:
+    table = Table(title=f"GPU Preflight · {target}")
+    table.add_column("Field", style="bold cyan")
+    table.add_column("Value", overflow="fold")
+    table.add_row("requested_gpu", str(info.get("requested_gpu", "")))
+    table.add_row("CUDA_VISIBLE_DEVICES", str(info.get("cuda_visible_devices", "")))
+    table.add_row("gpu_memory_utilization", str(info.get("gpu_memory_utilization", "")))
+    for device in info.get("devices", []):
+        table.add_row(
+            f"GPU {device.get('index')}",
+            (
+                f"{device.get('name')} | "
+                f"total={device.get('memory_total_mib')}MiB "
+                f"free={device.get('memory_free_mib')}MiB "
+                f"vLLM cap={device.get('vllm_cap_mib')}MiB"
+            ),
+        )
+    for warning in info.get("warnings", []):
+        table.add_row("warning", f"[yellow]{escape(str(warning))}[/yellow]")
+    console.print(table)
+
+
 def _interactive_chat(
     seeker: Any, save: Path | None = None, *, debug_ui: bool = False
 ) -> None:
@@ -887,7 +909,9 @@ def models_deploy(
     port: int | None = typer.Option(None, help="Service port. Defaults by target."),
     api_key: str | None = typer.Option(None, help="API key for vLLM service."),
     model_name: str | None = typer.Option(None, help="Served model name."),
-    gpu: str | None = typer.Option(None, help="CUDA_VISIBLE_DEVICES value."),
+    gpu: str | None = typer.Option(
+        None, help="CUDA_VISIBLE_DEVICES value, e.g. 0, 1, or 0,1."
+    ),
     gpu_memory_utilization: float | None = typer.Option(
         None, help="vLLM GPU memory fraction."
     ),
@@ -942,6 +966,11 @@ def models_deploy(
                     progress_secrets,
                 )
 
+        def gpu_preflight_callback(
+            info: dict[str, Any], item_target: str = item_target
+        ) -> None:
+            _print_gpu_preflight(item_target, info)
+
         try:
             result = deploy_vllm_service(
                 workspace,
@@ -962,12 +991,18 @@ def models_deploy(
                 dry_run=dry_run,
                 wait_timeout=wait_timeout,
                 wait_progress_callback=wait_progress_callback,
+                gpu_preflight_callback=gpu_preflight_callback,
                 extra_args=extra_arg,
             )
         except RuntimeError as err:
             console.print(f"[red]Error:[/red] {escape(str(err))}")
             raise typer.Exit(code=1) from None
-        console.print(_redacted_command(result["command"]))
+        console.print(
+            _redacted_command(
+                result["command"],
+                cuda_visible_devices=result.get("cuda_visible_devices", ""),
+            )
+        )
         if dry_run:
             continue
         console.print(
@@ -1235,7 +1270,7 @@ def _print_hits(hits, seeker_id: str) -> None:
     console.print(table)
 
 
-def _redacted_command(command: list[str]) -> str:
+def _redacted_command(command: list[str], cuda_visible_devices: str = "") -> str:
     redacted = []
     hide_next = False
     for item in command:
@@ -1246,7 +1281,10 @@ def _redacted_command(command: list[str]) -> str:
         redacted.append(item)
         if item in {"--api-key", "--api_key"}:
             hide_next = True
-    return " ".join(redacted)
+    prefix = (
+        f"CUDA_VISIBLE_DEVICES={cuda_visible_devices} " if cuda_visible_devices else ""
+    )
+    return prefix + " ".join(redacted)
 
 
 def _redact_text(text: str, secrets: list[str]) -> str:

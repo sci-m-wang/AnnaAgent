@@ -98,7 +98,10 @@ anna models use-base --target all --workspace anna-workspace
 # SFT path: deploy local vLLM services from downloaded HuggingFace assets.
 anna assets pull paper --workspace anna-workspace
 anna models env setup --workspace anna-workspace  # optional if init used --deploy-env
-anna models deploy --target all --backend vllm --workspace anna-workspace
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
+anna models deploy --target emotion --backend vllm --workspace anna-workspace \
+  --gpu 1 --gpu-memory-utilization 0.85 --wait-timeout 900
 ```
 
 You can also connect self-hosted OpenAI-compatible SFT endpoints instead of
@@ -200,17 +203,22 @@ anna models configure --target complaint \
 
 anna models env setup --workspace anna-workspace
 anna models env status --workspace anna-workspace
-anna models deploy --target complaint --backend vllm --workspace anna-workspace
-anna models deploy --target emotion --backend vllm --workspace anna-workspace
+anna models deploy --target complaint --backend vllm --workspace anna-workspace \
+  --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
+anna models deploy --target emotion --backend vllm --workspace anna-workspace \
+  --gpu 1 --gpu-memory-utilization 0.85 --wait-timeout 900
 ```
 
 `models deploy` starts a vLLM OpenAI-compatible server in the background, writes
 the service URL/model name/use-SFT flag back to `settings.yaml`, writes API keys
 to `.env`, and records logs/PIDs under `logs/services/` and `runs/services/`.
-Before writing configuration, it waits for the service to answer `/v1/models`;
-use `--wait-timeout 900` for slow model loads. If startup fails or times out,
-the CLI prints the service log tail and does not write a bad endpoint. Use
-`--dry-run` to print the vLLM command without starting anything.
+Before starting vLLM, it runs a GPU preflight check with `nvidia-smi`, prints the
+selected GPU, free memory, and vLLM memory cap, and blocks obvious failures such
+as a missing GPU ID or insufficient free memory. Before writing configuration,
+it waits for the service to answer `/v1/models`; use `--wait-timeout 900` for
+slow model loads. If startup fails or times out, the CLI prints the service log
+tail and does not write a bad endpoint. Use `--dry-run` to print the vLLM command
+without starting anything.
 When `--model-path` is omitted, deploy reads the corresponding SFT asset target
 from `assets/anna-assets.json`, including absolute paths. Pass the same
 `--workspace` or `--manifest` that you used during `assets pull`.
@@ -390,7 +398,8 @@ anna models configure --target emotion \
   --model-name emotion \
   --workspace anna-workspace
 anna models env setup --workspace anna-workspace
-anna models deploy --target emotion --backend vllm --workspace anna-workspace
+anna models deploy --target emotion --backend vllm --workspace anna-workspace \
+  --gpu 1 --gpu-memory-utilization 0.85 --wait-timeout 900
 ```
 
 Manual configuration is still supported. Set `use_sft_model` to `false` to use
