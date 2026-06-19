@@ -67,4 +67,4 @@ vLLM 启动失败
 PyPI 发布失败
 -------------
 
-发布 workflow 使用 Trusted Publishing。请在 PyPI 中确认项目已信任 ``sci-m-wang/AnnaAgent`` 和 workflow 文件 ``publish.yml``。如果 workflow 配置了 environment，PyPI 的 trusted publisher 配置也必须一致。
+发布 workflow 使用 Trusted Publishing。请在 PyPI 中确认项目已信任 ``sci-m-wang/AnnaAgent`` 和 workflow 文件 ``python-publish.yml``。如果 workflow 配置了 environment，PyPI 的 trusted publisher 配置也必须一致。

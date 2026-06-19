@@ -75,6 +75,6 @@ PyPI Publish Fails
 ------------------
 
 The publish workflow uses Trusted Publishing. In PyPI, verify that the project
-trusts ``sci-m-wang/AnnaAgent`` and the workflow file ``publish.yml``. If an
+trusts ``sci-m-wang/AnnaAgent`` and the workflow file ``python-publish.yml``. If an
 environment is configured in the workflow, it must match the PyPI trusted
 publisher configuration.
