@@ -952,7 +952,7 @@ def _start_background(
     log_path = _log_file(workspace, target)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     env = _build_service_env(gpu, cuda_preflight, command)
-    log_file = log_path.open("a", encoding="utf-8")
+    log_file = log_path.open("w", encoding="utf-8")
     process = subprocess.Popen(
         command, stdout=log_file, stderr=subprocess.STDOUT, env=env
     )

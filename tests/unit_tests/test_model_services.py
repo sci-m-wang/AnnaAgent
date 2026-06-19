@@ -12,6 +12,7 @@ from anna_agent.model_services import (
     _filter_cuda_module_env,
     _parse_cuda_modules,
     _select_cuda_module,
+    _start_background,
     _uses_workspace_deploy_env,
     build_vllm_command,
     configure_sft_endpoint,
@@ -210,6 +211,34 @@ def test_run_build_tool_preflight_blocks_external_env_without_ninja(
             gpu=None,
             cuda_preflight=None,
         )
+
+
+def test_start_background_replaces_stale_service_log(tmp_path: Path, monkeypatch):
+    stale_log = tmp_path / "logs" / "services" / "complaint.log"
+    stale_log.parent.mkdir(parents=True)
+    stale_log.write_text("old Engine core initialization failed\n", encoding="utf-8")
+
+    class FakeProcess:
+        pid = 123
+
+    def fake_popen(command, stdout, stderr, env):
+        stdout.write("fresh vLLM startup\n")
+        stdout.flush()
+        return FakeProcess()
+
+    monkeypatch.setattr("anna_agent.model_services.subprocess.Popen", fake_popen)
+
+    process = _start_background(
+        tmp_path,
+        "complaint",
+        ["/workspace/.anna-deploy-venv/bin/vllm", "serve"],
+        gpu="0",
+    )
+
+    assert process.pid == 123
+    content = stale_log.read_text(encoding="utf-8")
+    assert "fresh vLLM startup" in content
+    assert "old Engine core initialization failed" not in content
 
 
 def test_deploy_env_status_reports_workspace_paths(tmp_path: Path):
