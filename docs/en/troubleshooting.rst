@@ -74,7 +74,6 @@ current workspace, not an older workspace or previous run directory.
 PyPI Publish Fails
 ------------------
 
-The publish workflow uses Trusted Publishing. In PyPI, verify that the project
-trusts ``sci-m-wang/AnnaAgent`` and the workflow file ``python-publish.yml``. If an
-environment is configured in the workflow, it must match the PyPI trusted
-publisher configuration.
+The publish workflow uses the GitHub Secret ``PYPI_API_TOKEN``. If publishing
+fails, verify that the secret exists, has not expired, and has permission to
+upload releases for the ``anna-agent`` PyPI project.

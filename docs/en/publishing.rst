@@ -26,8 +26,9 @@ PyPI Publishing
 ---------------
 
 The repository includes a PyPI workflow that builds source and wheel artifacts
-and publishes them with PyPI Trusted Publishing. The workflow is triggered by a
-published GitHub Release or by manual ``workflow_dispatch``.
+and publishes them with the ``PYPI_API_TOKEN`` GitHub Secret. The token is kept
+in GitHub Actions secrets and is not stored in the repository. The workflow is
+triggered by a published GitHub Release or by manual ``workflow_dispatch``.
 
 Recommended release flow:
 
@@ -37,9 +38,9 @@ Recommended release flow:
    git push origin v0.2.0
    gh release create v0.2.0 --title "v0.2.0" --notes "Release v0.2.0"
 
-The PyPI project must trust this GitHub repository, workflow file, and optional
-environment name in the PyPI publishing settings. No PyPI token is stored in the
-repository.
+If the project later migrates to PyPI Trusted Publishing, remove the token input
+from ``.github/workflows/python-publish.yml`` and configure the matching trusted
+publisher in PyPI.
 
 GitHub Pages
 ------------

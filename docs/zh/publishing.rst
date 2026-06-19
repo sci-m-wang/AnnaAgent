@@ -25,7 +25,7 @@
 PyPI 发布
 ---------
 
-仓库包含 PyPI workflow，会构建 sdist/wheel，并通过 PyPI Trusted Publishing 发布。触发方式是发布 GitHub Release，或手动运行 workflow。
+仓库包含 PyPI workflow，会构建 sdist/wheel，并通过 GitHub Secret ``PYPI_API_TOKEN`` 发布到 PyPI。token 保存在 GitHub Actions secrets 中，不写入仓库。触发方式是发布 GitHub Release，或手动运行 workflow。
 
 推荐 release 流程：
 
@@ -35,7 +35,7 @@ PyPI 发布
    git push origin v0.2.0
    gh release create v0.2.0 --title "v0.2.0" --notes "Release v0.2.0"
 
-PyPI 项目需要在 Trusted Publisher 设置中信任本 GitHub 仓库、workflow 文件和可选 environment 名称。仓库中不保存 PyPI token。
+如果后续迁移到 PyPI Trusted Publishing，可以移除 ``.github/workflows/python-publish.yml`` 中的 token input，并在 PyPI 中配置匹配的 trusted publisher。
 
 GitHub Pages
 ------------
