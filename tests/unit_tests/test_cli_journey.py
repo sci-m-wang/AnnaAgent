@@ -283,6 +283,55 @@ def test_models_deploy_missing_vllm_reports_concise_error(tmp_path: Path):
     assert "Traceback" not in result.output
 
 
+def test_models_deploy_wait_progress_redacts_log_secrets(
+    tmp_path: Path, monkeypatch
+):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    def fake_deploy(workspace_path, **kwargs):
+        callback = kwargs["wait_progress_callback"]
+        callback(
+            {
+                "elapsed": 15,
+                "timeout": kwargs["wait_timeout"],
+                "pid": 123,
+                "base_url": "http://127.0.0.1:8001/v1",
+                "last_error": "connection refused",
+                "log_tail": "loading with deploy-secret",
+            }
+        )
+        return {
+            "command": ["vllm", "serve", "model", "--api-key", "deploy-secret"],
+            "pid": 123,
+            "base_url": "http://127.0.0.1:8001/v1",
+        }
+
+    monkeypatch.setattr("anna_agent.cli.deploy_vllm_service", fake_deploy)
+
+    result = runner.invoke(
+        app,
+        [
+            "models",
+            "deploy",
+            "--workspace",
+            str(workspace),
+            "--target",
+            "complaint",
+            "--wait-timeout",
+            "30",
+        ],
+        input="deploy-secret\n",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Waiting for complaint vLLM" in result.output
+    assert "elapsed=15s/30s" in result.output
+    assert "loading with ***" in result.output
+    assert "deploy-secret" not in result.output
+
+
 def test_models_env_setup_and_status(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
     result = runner.invoke(app, ["init", str(workspace)])

@@ -214,6 +214,30 @@ def _print_model_connection_help(workspace: Path, err: BaseException) -> None:
     )
 
 
+def _print_deploy_wait_progress(
+    target: str, info: dict[str, Any], secrets: list[str]
+) -> None:
+    elapsed = info.get("elapsed", 0)
+    timeout = info.get("timeout", 0)
+    pid = info.get("pid") or "?"
+    last_error = _redact_text(str(info.get("last_error", "")), secrets)
+    console.print(
+        f"[yellow]Waiting for {target} vLLM[/yellow] "
+        f"elapsed={elapsed}s/{timeout}s pid={pid} "
+        f"endpoint={escape(str(info.get('base_url', '')))} "
+        f"last_error={escape(last_error)}"
+    )
+    log_tail = _redact_text(str(info.get("log_tail", "")), secrets).strip()
+    if log_tail:
+        console.print(
+            Panel(
+                escape(log_tail),
+                title=f"{target} logs/services tail",
+                border_style="yellow",
+            )
+        )
+
+
 def _interactive_chat(
     seeker: Any, save: Path | None = None, *, debug_ui: bool = False
 ) -> None:
@@ -905,6 +929,19 @@ def models_deploy(
             or None
         )
     for item_target in expand_targets(target):
+        progress_secrets = [secret] if secret else []
+        wait_progress_callback = None
+        if not dry_run and background:
+
+            def wait_progress_callback(
+                info: dict[str, Any], item_target: str = item_target
+            ) -> None:
+                _print_deploy_wait_progress(
+                    item_target,
+                    info,
+                    progress_secrets,
+                )
+
         try:
             result = deploy_vllm_service(
                 workspace,
@@ -924,6 +961,7 @@ def models_deploy(
                 background=background,
                 dry_run=dry_run,
                 wait_timeout=wait_timeout,
+                wait_progress_callback=wait_progress_callback,
                 extra_args=extra_arg,
             )
         except RuntimeError as err:
@@ -1209,6 +1247,14 @@ def _redacted_command(command: list[str]) -> str:
         if item in {"--api-key", "--api_key"}:
             hide_next = True
     return " ".join(redacted)
+
+
+def _redact_text(text: str, secrets: list[str]) -> str:
+    redacted = text
+    for secret in secrets:
+        if secret:
+            redacted = redacted.replace(secret, "***")
+    return redacted
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ import subprocess
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -252,6 +253,8 @@ def deploy_vllm_service(
     background: bool = True,
     dry_run: bool = False,
     wait_timeout: int = 600,
+    wait_progress_interval: int = 15,
+    wait_progress_callback: Callable[[dict[str, Any]], None] | None = None,
     extra_args: list[str] | None = None,
 ) -> dict[str, Any]:
     load_settings(workspace)
@@ -319,6 +322,8 @@ def deploy_vllm_service(
             api_key=resolved_api_key,
             process=process,
             timeout=wait_timeout,
+            progress_interval=wait_progress_interval,
+            progress_callback=wait_progress_callback,
             log_path=_log_file(workspace, target),
         )
     else:
@@ -344,9 +349,13 @@ def wait_for_openai_service(
     process: subprocess.Popen[Any] | None = None,
     timeout: int = 600,
     interval: float = 2.0,
+    progress_interval: int = 15,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
     log_path: Path | None = None,
 ) -> None:
-    deadline = time.monotonic() + timeout
+    start = time.monotonic()
+    deadline = start + timeout
+    next_progress = start
     last_error = "service did not respond"
     models_url = f"{base_url.rstrip('/')}/models"
     while time.monotonic() < deadline:
@@ -371,6 +380,21 @@ def wait_for_openai_service(
                 last_error = f"HTTP {err.code} from {models_url}"
             else:
                 last_error = str(err)
+        now = time.monotonic()
+        if progress_callback and now >= next_progress:
+            progress_callback(
+                {
+                    "elapsed": int(now - start),
+                    "timeout": timeout,
+                    "base_url": base_url,
+                    "models_url": models_url,
+                    "last_error": last_error,
+                    "log_path": str(log_path) if log_path else "",
+                    "log_tail": _read_log_tail(log_path) if log_path else "",
+                    "pid": process.pid if process is not None else None,
+                }
+            )
+            next_progress = now + progress_interval
         time.sleep(interval)
     detail = (
         f"vLLM service was not ready after {timeout}s at {models_url}. "

@@ -210,6 +210,31 @@ def test_wait_for_openai_service_reports_exited_process_log(tmp_path: Path):
     assert "last failure" in str(exc_info.value)
 
 
+def test_wait_for_openai_service_reports_progress(monkeypatch):
+    progress = []
+
+    def fake_urlopen(request, timeout):
+        raise OSError("connection refused")
+
+    def fake_sleep(interval):
+        raise RuntimeError("stop")
+
+    monkeypatch.setattr(
+        "anna_agent.model_services.urllib.request.urlopen", fake_urlopen
+    )
+    monkeypatch.setattr("anna_agent.model_services.time.sleep", fake_sleep)
+
+    with pytest.raises(RuntimeError, match="stop"):
+        wait_for_openai_service(
+            base_url="http://127.0.0.1:9001/v1",
+            api_key="key",
+            progress_callback=progress.append,
+        )
+
+    assert progress[0]["base_url"] == "http://127.0.0.1:9001/v1"
+    assert "connection refused" in progress[0]["last_error"]
+
+
 def test_deploy_vllm_waits_before_writing_config(tmp_path: Path, monkeypatch):
     initialize_workspace(tmp_path)
     model_dir = tmp_path / "model"
