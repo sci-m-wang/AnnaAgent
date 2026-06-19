@@ -1,6 +1,10 @@
+import logging
+
 from .backbone import get_counselor_client
 from .common.registry import registry
 from .common.tool_calls import extract_tool_call_arguments
+
+logger = logging.getLogger(__name__)
 
 
 def _extract_answers(response, expected_length, default="B"):
@@ -125,7 +129,7 @@ def fill_scales_previous(profile, report):
 
     # 获取优化后的提示词内容（更结构化、语义清晰）
     optimized_prompt = rewritten_response.choices[0].message.content
-    print(f"optimized_prompt:{optimized_prompt}")
+    logger.debug("optimized_prompt: %s", optimized_prompt)
     # Step 2：使用目标模型调用工具，填写BDI量表
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,  # 此为你目标小模型
@@ -135,7 +139,7 @@ def fill_scales_previous(profile, report):
         tool_choice={"type": "function", "function": {"name": "fill_bdi"}},
     )
 
-    print(response)
+    logger.debug("BDI response: %s", response)
     bdi = _extract_answers(response, 21)
 
     # 用户原始输入
@@ -183,11 +187,11 @@ def fill_scales_previous(profile, report):
     # 获取优化后的提示词内容
     optimized_prompt = rewritten_response.choices[0].message.content
 
-    print(f"optimized_prompt:{optimized_prompt}")
+    logger.debug("optimized_prompt: %s", optimized_prompt)
     # 第二步：将优化后的提示词传入目标模型，执行 GHQ 量表工具调用
     messages = [{"role": "user", "content": optimized_prompt}]
 
-    print(messages)
+    logger.debug("GHQ messages: %s", messages)
     # 填写GHQ-28量表
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,
@@ -241,7 +245,7 @@ def fill_scales_previous(profile, report):
     # 获取优化后的提示词内容
     optimized_prompt = optimized_prompt_response.choices[0].message.content
 
-    print(f"optimized_prompt:{optimized_prompt}")
+    logger.debug("optimized_prompt: %s", optimized_prompt)
     # Step 2：将优化后的提示词交给小模型执行工具调用（填写 SASS 量表）
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,  # 小模型
@@ -260,7 +264,7 @@ def fill_scales_previous(profile, report):
 # 根据prompt填写量表
 def fill_scales(prompt):
     client = get_counselor_client()
-    print(prompt)
+    logger.debug("scale prompt: %s", prompt)
     # 填写BDI量表
     task_prompt1 = (
         "你是一位极其严谨、结构化、格式敏感的心理评估助手，任务是根据用户在咨询对话中表达的心理状态，"
@@ -297,7 +301,7 @@ def fill_scales(prompt):
         temperature=0.1,
         tool_choice={"type": "function", "function": {"name": "fill_bdi"}},
     )
-    print(response)
+    logger.debug("BDI response: %s", response)
     bdi = _extract_answers(response, 21)
     # 填写GHQ-28量表
     task_prompt2 = (
@@ -334,7 +338,7 @@ def fill_scales(prompt):
         tool_choice={"type": "function", "function": {"name": "fill_ghq"}},
     )
 
-    print(response)
+    logger.debug("GHQ response: %s", response)
     ghq = _extract_answers(response, 28)
     # 填写SASS量表
     task_prompt3 = (
@@ -376,6 +380,6 @@ def fill_scales(prompt):
         tool_choice={"type": "function", "function": {"name": "fill_sass"}},
     )
 
-    print(response)
+    logger.debug("SASS response: %s", response)
     sass = _extract_answers(response, 21)
     return bdi, ghq, sass

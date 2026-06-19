@@ -1,6 +1,10 @@
+import logging
+
 from .backbone import get_counselor_client
 from .common.registry import registry
 from .common.tool_calls import extract_tool_call_arguments
+
+logger = logging.getLogger(__name__)
 
 tools = [
     {
@@ -45,7 +49,7 @@ def analyze_style(profile, conversations):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "analyze_style"}},
     )
-    print(response)
+    logger.debug("style response: %s", response)
     args = extract_tool_call_arguments(response)
     style = args.get("style") if args else None
     if not isinstance(style, list):

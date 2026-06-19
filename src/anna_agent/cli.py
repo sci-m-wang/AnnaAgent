@@ -1,5 +1,8 @@
 import json
+import logging
 import shutil
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from io import StringIO
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +10,8 @@ import typer
 import yaml
 from rich.console import Console
 from rich.markup import escape
+from rich.panel import Panel
+from rich.rule import Rule
 from rich.table import Table
 
 from . import __version__, backbone
@@ -102,13 +107,102 @@ def _resolve_seeker_id(workspace: Path, seeker_id: str | None) -> str:
     return portrait.get("_seeker_id", "default-case")
 
 
-def _interactive_chat(seeker: Any, save: Path | None = None) -> None:
+@contextmanager
+def _suppress_stdio(enabled: bool):
+    if not enabled:
+        yield
+        return
+    with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
+        yield
+
+
+def _configure_chat_logging(debug_ui: bool) -> None:
+    level = logging.DEBUG if debug_ui else logging.WARNING
+    logging.getLogger("anna_agent").setLevel(level)
+
+
+def _render_chat_header(debug_ui: bool) -> None:
+    mode = "调试双模式" if debug_ui else "默认清爽模式"
+    console.print(
+        Panel.fit(
+            "[bold cyan]AnnaAgent Chat[/bold cyan]\n"
+            f"[dim]模式：{mode}。输入 exit / quit / q 结束会话。[/dim]",
+            border_style="cyan",
+        )
+    )
+
+
+def _render_config_summary(
+    *, workspace: Path, source: Path | None, source_kind: str, debug_ui: bool
+) -> None:
+    cfg = registry.get("anna_engine_config")
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column("Key", style="bold cyan")
+    table.add_column("Value")
+    table.add_row("Workspace", str(workspace))
+    if source:
+        table.add_row(source_kind, str(source))
+    table.add_row("Base model", cfg.model_name)
+    table.add_row("Base endpoint", cfg.base_url)
+    table.add_row("Memory", "on" if cfg.memory_enabled else "off")
+    table.add_row("Debug UI", "on" if debug_ui else "off")
+    console.print(Panel(table, title="配置摘要", border_style="blue"))
+
+
+def _render_initialization_events(events: list[tuple[str, str]]) -> None:
+    if not events:
+        return
+    table = Table(title="初始化流程", show_lines=False)
+    table.add_column("Step", style="bold magenta")
+    table.add_column("Status")
+    for stage, detail in events:
+        table.add_row(stage, detail)
+    console.print(table)
+
+
+def _render_debug_context(seeker: Any) -> None:
+    context = getattr(seeker, "last_turn_context", None)
+    if not context:
+        return
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column("Key", style="bold magenta")
+    table.add_column("Value")
+    for key in ["emotion", "complaint_stage", "complaint", "memory_used"]:
+        if key in context:
+            table.add_row(key, str(context[key]))
+    console.print(Panel(table, title="本轮内部状态", border_style="magenta"))
+
+
+def _interactive_chat(
+    seeker: Any, save: Path | None = None, *, debug_ui: bool = False
+) -> None:
+    console.print(Rule("[bold green]Stage 2/2 · Chat[/bold green]"))
+    console.print(
+        Panel(
+            "[bold]Counselor[/bold] 输入咨询师发言；[bold green]Seeker[/bold green] "
+            "面板显示来访者回复。",
+            border_style="green",
+        )
+    )
+    turn = 1
     while True:
-        message = typer.prompt("请输入您的消息")
+        message = console.input("[bold cyan]Counselor[/bold cyan] [dim]›[/dim] ")
         if message.lower() in {"exit", "quit", "q"}:
             break
+        console.print(
+            Panel(
+                escape(message),
+                title=f"Counselor · Turn {turn}",
+                border_style="cyan",
+            )
+        )
         try:
-            response = seeker.chat(message)
+            if debug_ui:
+                response = seeker.chat(message)
+            else:
+                with console.status("[green]Seeker 正在生成回复...[/green]"):
+                    with _suppress_stdio(True):
+                        response = seeker.chat(message)
         except Exception as err:
             console.print(f"[red]Error:[/red] {err}")
             continue
@@ -116,11 +210,19 @@ def _interactive_chat(seeker: Any, save: Path | None = None) -> None:
             response_text = response[0]
         else:
             response_text = response
-        console.print(f"[bold]Counselor:[/bold] {message}")
-        console.print(f"[bold green]Seeker:[/bold green] {response_text}")
+        if debug_ui:
+            _render_debug_context(seeker)
+        console.print(
+            Panel(
+                escape(response_text or "<empty response>"),
+                title="Seeker",
+                border_style="green",
+            )
+        )
         if save:
             append_jsonl(save, {"role": "Counselor", "content": message})
             append_jsonl(save, {"role": "Seeker", "content": response_text})
+        turn += 1
 
 
 @app.callback(invoke_without_command=True)
@@ -143,7 +245,7 @@ def main(
         raise typer.Exit()
     if ctx.invoked_subcommand is not None:
         return
-    chat(workspace=workspace, case=None, state=None, save=None)
+    chat(workspace=workspace, case=None, state=None, save=None, debug_ui=False)
 
 
 @app.command("doctor")
@@ -753,17 +855,65 @@ def chat(
         None, "--state", help="Frozen prompt state JSON."
     ),
     save: Path | None = typer.Option(None, "--save", help="Save transcript JSONL."),
+    debug_ui: bool = typer.Option(
+        False,
+        "--debug-ui",
+        "--verbose",
+        help="Show initialization steps and per-turn internal state.",
+    ),
 ) -> None:
+    _configure_chat_logging(debug_ui)
+    _render_chat_header(debug_ui)
+    console.print(Rule("[bold blue]Stage 1/2 · Initialize[/bold blue]"))
     _configure(workspace)
+    init_events: list[tuple[str, str]] = []
+
+    def progress(stage: str, detail: str) -> None:
+        init_events.append((stage, detail))
+        if debug_ui:
+            console.print(f"[dim]• {escape(stage)}[/dim] {escape(detail)}")
+
     if state:
-        seeker = FrozenPromptSession(load_state(state))
+        _render_config_summary(
+            workspace=workspace, source=state, source_kind="State", debug_ui=debug_ui
+        )
+        with console.status("[blue]加载冻结状态...[/blue]"):
+            seeker = FrozenPromptSession(load_state(state))
+        progress("state", "Frozen prompt session loaded")
     else:
         from .ms_patient import MsPatient
 
         case_path = case or _get_config_path(workspace)
+        _render_config_summary(
+            workspace=workspace, source=case_path, source_kind="Case", debug_ui=debug_ui
+        )
         portrait, report, conversations = _load_seeker_data(case_path)
-        seeker = MsPatient(portrait, report, conversations)
-    _interactive_chat(seeker, save=save)
+        if debug_ui:
+            seeker = MsPatient(
+                portrait,
+                report,
+                conversations,
+                progress_callback=progress,
+            )
+        else:
+            with console.status("[blue]初始化来访者状态...[/blue]"):
+                with _suppress_stdio(True):
+                    seeker = MsPatient(
+                        portrait,
+                        report,
+                        conversations,
+                        progress_callback=progress,
+                    )
+    if debug_ui:
+        _render_initialization_events(init_events)
+    console.print(
+        Panel(
+            "[bold green]初始化完成[/bold green]\n"
+            "来访者画像、历史记忆和对话状态已准备好。",
+            border_style="green",
+        )
+    )
+    _interactive_chat(seeker, save=save, debug_ui=debug_ui)
 
 
 @app.command("demo")
@@ -773,7 +923,7 @@ def demo(
     case_file = workspace / "cases" / "family_stress_case.json"
     if not case_file.exists():
         write_case_json(sample_case(), case_file)
-    chat(workspace=workspace, case=case_file, state=None, save=None)
+    chat(workspace=workspace, case=case_file, state=None, save=None, debug_ui=False)
 
 
 @run_app.command("batch")

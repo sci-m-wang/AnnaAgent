@@ -1,8 +1,12 @@
-import json
 import importlib.resources
+import json
+import logging
+
 from .backbone import get_counselor_client
 from .common.registry import registry
 from .common.tool_calls import extract_tool_call_arguments
+
+logger = logging.getLogger(__name__)
 
 
 def _fallback_scale_changes(scale_name, previous_answers, current_answers):
@@ -112,7 +116,7 @@ def analyzing_changes(scales):
         },
     ]
 
-    print(messages)
+    logger.debug("BDI change messages: %s", messages)
     # 总结bdi的变化
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,
@@ -172,7 +176,7 @@ def analyzing_changes(scales):
         },
     ]
 
-    print(messages)
+    logger.debug("GHQ change messages: %s", messages)
     # 总结ghq的变化
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,
@@ -264,7 +268,7 @@ def summarize_scale_changes(scales):
         }
     ]
 
-    print(messages)
+    logger.debug("scale summary messages: %s", messages)
     # 总结量表变化
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,
@@ -272,7 +276,7 @@ def summarize_scale_changes(scales):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "summarizing_changes"}},
     )
-    print(response)
+    logger.debug("scale summary response: %s", response)
     args = extract_tool_call_arguments(response)
     status = (
         args.get("status")

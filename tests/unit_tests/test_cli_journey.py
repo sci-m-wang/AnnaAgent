@@ -251,3 +251,111 @@ def test_models_deploy_missing_vllm_reports_concise_error(tmp_path: Path):
     assert result.exit_code == 1
     assert "vLLM is not available" in result.output
     assert "Traceback" not in result.output
+
+
+def test_chat_state_uses_stage_based_rich_ui(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+    state_file = workspace / "prompts" / "state.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "mode": "prompt_only",
+                "case_id": "case-1",
+                "seeker_id": "seeker-1",
+                "portrait": {},
+                "report": {},
+                "previous_conversations": [],
+                "prompt": "Act as a seeker.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    class FakeFrozenPromptSession:
+        def __init__(self, state):
+            self.state = state
+            self.last_turn_context = {
+                "emotion": "sadness",
+                "complaint_stage": 1,
+                "complaint": "family pressure",
+                "memory_used": False,
+            }
+
+        def chat(self, message: str) -> str:
+            assert message == "你好"
+            return "我最近有点累。"
+
+    monkeypatch.setattr("anna_agent.cli.FrozenPromptSession", FakeFrozenPromptSession)
+
+    result = runner.invoke(
+        app,
+        ["chat", "--workspace", str(workspace), "--state", str(state_file)],
+        input="你好\nq\n",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "AnnaAgent Chat" in result.output
+    assert "Stage 1/2" in result.output
+    assert "Stage 2/2" in result.output
+    assert "Counselor" in result.output
+    assert "Seeker" in result.output
+    assert "我最近有点累" in result.output
+    assert "ChatCompletion" not in result.output
+
+
+def test_chat_debug_ui_shows_internal_state(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+    state_file = workspace / "prompts" / "state.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "mode": "prompt_only",
+                "case_id": "case-1",
+                "seeker_id": "seeker-1",
+                "portrait": {},
+                "report": {},
+                "previous_conversations": [],
+                "prompt": "Act as a seeker.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    class FakeFrozenPromptSession:
+        def __init__(self, state):
+            self.state = state
+            self.last_turn_context = {
+                "emotion": "sadness",
+                "complaint_stage": 1,
+                "complaint": "family pressure",
+                "memory_used": False,
+            }
+
+        def chat(self, message: str) -> str:
+            return "我最近有点累。"
+
+    monkeypatch.setattr("anna_agent.cli.FrozenPromptSession", FakeFrozenPromptSession)
+
+    result = runner.invoke(
+        app,
+        [
+            "chat",
+            "--workspace",
+            str(workspace),
+            "--state",
+            str(state_file),
+            "--debug-ui",
+        ],
+        input="你好\nq\n",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "调试双模式" in result.output
+    assert "本轮内部状态" in result.output
+    assert "sadness" in result.output

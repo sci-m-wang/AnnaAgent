@@ -1,6 +1,10 @@
-from .backbone import get_counselor_client, get_openai_client
+import logging
+
+from .backbone import get_openai_client
 from .common.registry import registry
 from .common.tool_calls import extract_tool_call_arguments
+
+logger = logging.getLogger(__name__)
 
 tools = [
     {
@@ -33,7 +37,7 @@ def switch_complaint(chain, index, conversation):
 
     try:
         transformed_chain = transform_chain(chain)
-        print("Transformed chain:", transformed_chain)
+        logger.debug("transformed chain: %s", transformed_chain)
 
         # 提取对话记录
         dialogue_history = "\n".join(
@@ -80,5 +84,5 @@ def switch_complaint(chain, index, conversation):
         if args and args.get("is_recognized"):
             return index + 1
     except Exception as err:
-        print("switch_complaint error:", err)
+        logger.debug("switch_complaint error: %s", err)
     return index

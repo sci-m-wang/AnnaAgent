@@ -1,6 +1,10 @@
+import logging
+
 from .backbone import get_counselor_client
 from .common.registry import registry
 from .common.tool_calls import extract_tool_call_arguments
+
+logger = logging.getLogger(__name__)
 
 tools = [
     {
@@ -50,7 +54,7 @@ def is_need(utterance):
         }
     ]
 
-    print(messages)
+    logger.debug("memory need messages: %s", messages)
     response = client.chat.completions.create(
         model=registry.get("anna_engine_config").counselor_model_name,
         messages=messages,
@@ -129,7 +133,7 @@ def query(utterance, conversations, scales):
         tools=tools,
         tool_choice={"type": "function", "function": {"name": "search_knowledge"}}
     )
-    print(response)
+    logger.debug("knowledge response: %s", response)
     # 提取结构化知识字段
     args = extract_tool_call_arguments(response)
     knowledge = args.get("knowledge") if args else ""
