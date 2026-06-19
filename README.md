@@ -40,17 +40,23 @@ anna doctor --workspace anna-workspace
 
 The longer command name `anna-agent` is kept as a compatibility alias.
 
-If you want AnnaAgent to automatically start local SFT models with vLLM, install
-the GPU deployment edition. vLLM is Linux/GPU-oriented and currently should be
-installed with a supported Python such as 3.12:
+If you want AnnaAgent to automatically start local SFT models with vLLM, create
+a workspace deployment environment on the Linux/GPU machine. This keeps the
+lightweight `anna` CLI install separate from heavy vLLM dependencies:
 
 ```bash
-uv tool install --python 3.12 --force \
-  "anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git"
+anna init anna-workspace --deploy-env
+
+# Or add it later to an existing workspace.
+anna models env setup --workspace anna-workspace
+anna models env status --workspace anna-workspace
 ```
 
-If your cluster already provides vLLM in another environment, keep the normal
-AnnaAgent install and pass that executable explicitly when deploying:
+The deploy environment is created under `anna-workspace/.anna-deploy-venv` with
+Python 3.12 by default. `anna models deploy` automatically uses
+`anna-workspace/.anna-deploy-venv/bin/vllm` when it exists. If your cluster
+already provides vLLM in another environment, keep the normal AnnaAgent install
+and pass that executable explicitly when deploying:
 
 ```bash
 anna models deploy --target complaint --workspace anna-workspace \
@@ -83,11 +89,15 @@ write the resulting configuration:
 ```bash
 anna init anna-workspace
 
+# Optional on GPU machines: create anna-workspace/.anna-deploy-venv for vLLM.
+anna init anna-workspace --deploy-env
+
 # Fast path: use the base chat model for complaint-chain and emotion modules.
 anna models use-base --target all --workspace anna-workspace
 
 # SFT path: deploy local vLLM services from downloaded HuggingFace assets.
 anna assets pull paper --workspace anna-workspace
+anna models env setup --workspace anna-workspace  # optional if init used --deploy-env
 anna models deploy --target all --backend vllm --workspace anna-workspace
 ```
 
@@ -188,6 +198,8 @@ anna models configure --target complaint \
   --model-name complaint \
   --workspace anna-workspace
 
+anna models env setup --workspace anna-workspace
+anna models env status --workspace anna-workspace
 anna models deploy --target complaint --backend vllm --workspace anna-workspace
 anna models deploy --target emotion --backend vllm --workspace anna-workspace
 ```
@@ -200,9 +212,10 @@ When `--model-path` is omitted, deploy reads the corresponding SFT asset target
 from `assets/anna-assets.json`, including absolute paths. Pass the same
 `--workspace` or `--manifest` that you used during `assets pull`.
 
-If `models deploy` reports that vLLM is unavailable, reinstall AnnaAgent with
-the `deploy` extra shown above, or pass `--vllm-command` to a vLLM executable
-provided by your cluster/conda environment.
+If `models deploy` reports that vLLM is unavailable, run
+`anna models env setup --workspace anna-workspace` to create the workspace deploy
+environment, or pass `--vllm-command` to a vLLM executable provided by your
+cluster/conda environment.
 
 Validate and prepare case data before running experiments:
 
@@ -373,6 +386,7 @@ anna models configure --target emotion \
   --base-url http://127.0.0.1:8000/v1 \
   --model-name emotion \
   --workspace anna-workspace
+anna models env setup --workspace anna-workspace
 anna models deploy --target emotion --backend vllm --workspace anna-workspace
 ```
 

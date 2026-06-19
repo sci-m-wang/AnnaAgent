@@ -17,6 +17,7 @@ dist/
 # Local environment and workspace config
 .env
 .venv/
+.anna-deploy-venv/
 venv/
 settings.yaml
 interactive.yaml

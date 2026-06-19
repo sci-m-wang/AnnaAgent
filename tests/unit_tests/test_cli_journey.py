@@ -57,6 +57,36 @@ def test_workspace_to_batch_prompt_only_journey(tmp_path: Path):
     assert (out_dir / "summary.jsonl").exists()
 
 
+def test_init_can_create_deploy_env(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+
+    def fake_setup(workspace_path, python="3.12", force=False):
+        assert workspace_path == workspace
+        assert python == "3.11"
+        assert force is True
+        return {
+            "path": str(workspace / ".anna-deploy-venv"),
+            "vllm": str(workspace / ".anna-deploy-venv" / "bin" / "vllm"),
+        }
+
+    monkeypatch.setattr("anna_agent.cli.setup_deploy_env", fake_setup)
+
+    result = runner.invoke(
+        app,
+        [
+            "init",
+            str(workspace),
+            "--deploy-env",
+            "--deploy-python",
+            "3.11",
+            "--deploy-force",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Deploy environment ready" in result.output
+
+
 def test_assets_pull_reports_unconfigured_assets(tmp_path: Path):
     workspace = tmp_path / "workspace"
     result = runner.invoke(app, ["init", str(workspace)])
@@ -251,6 +281,57 @@ def test_models_deploy_missing_vllm_reports_concise_error(tmp_path: Path):
     assert result.exit_code == 1
     assert "vLLM is not available" in result.output
     assert "Traceback" not in result.output
+
+
+def test_models_env_setup_and_status(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    def fake_setup(workspace_path, python="3.12", force=False, uv_command="uv"):
+        assert workspace_path == workspace
+        assert python == "3.11"
+        assert force is True
+        assert uv_command == "/opt/uv"
+        return {
+            "path": str(workspace / ".anna-deploy-venv"),
+            "exists": True,
+            "python": str(workspace / ".anna-deploy-venv" / "bin" / "python"),
+            "python_exists": True,
+            "vllm": str(workspace / ".anna-deploy-venv" / "bin" / "vllm"),
+            "vllm_exists": True,
+            "available": True,
+        }
+
+    monkeypatch.setattr("anna_agent.cli.setup_deploy_env", fake_setup)
+
+    result = runner.invoke(
+        app,
+        [
+            "models",
+            "env",
+            "setup",
+            "--workspace",
+            str(workspace),
+            "--python",
+            "3.11",
+            "--force",
+            "--uv-command",
+            "/opt/uv",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "Deploy environment ready" in result.output
+    assert "available" in result.output
+
+    result = runner.invoke(
+        app,
+        ["models", "env", "status", "--workspace", str(workspace)],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert ".anna-deploy-venv" in result.output
 
 
 def test_chat_state_uses_stage_based_rich_ui(tmp_path: Path, monkeypatch):

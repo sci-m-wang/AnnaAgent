@@ -31,10 +31,12 @@ from .diagnostics import run_doctor
 from .memory import LanceMemoryStore
 from .model_services import (
     configure_sft_endpoint,
+    deploy_env_status,
     deploy_vllm_service,
     expand_targets,
     service_status,
     set_sft_mode,
+    setup_deploy_env,
 )
 from .runtime import (
     FrozenPromptSession,
@@ -65,6 +67,7 @@ data_app = typer.Typer(help="Validate and prepare case data")
 memory_app = typer.Typer(help="Manage LanceDB long-term memory")
 initialize_app = typer.Typer(help="Create or inspect initialization states")
 models_app = typer.Typer(help="Configure or deploy SFT model services")
+models_env_app = typer.Typer(help="Manage workspace deploy environments")
 run_app = typer.Typer(help="Run batch experiments")
 logs_app = typer.Typer(help="Inspect local run logs")
 cache_app = typer.Typer(help="Inspect or clean local caches")
@@ -77,6 +80,7 @@ app.add_typer(data_app, name="data")
 app.add_typer(memory_app, name="memory")
 app.add_typer(initialize_app, name="initialize")
 app.add_typer(models_app, name="models")
+models_app.add_typer(models_env_app, name="env")
 app.add_typer(run_app, name="run")
 app.add_typer(logs_app, name="logs")
 app.add_typer(cache_app, name="cache")
@@ -171,6 +175,23 @@ def _render_debug_context(seeker: Any) -> None:
         if key in context:
             table.add_row(key, str(context[key]))
     console.print(Panel(table, title="本轮内部状态", border_style="magenta"))
+
+
+def _print_deploy_env_status(status: dict[str, Any]) -> None:
+    table = Table(title="Workspace Deploy Environment")
+    table.add_column("Field")
+    table.add_column("Value", overflow="fold")
+    for key in [
+        "path",
+        "exists",
+        "python",
+        "python_exists",
+        "vllm",
+        "vllm_exists",
+        "available",
+    ]:
+        table.add_row(key, str(status.get(key, "")))
+    console.print(table)
 
 
 def _interactive_chat(
@@ -272,9 +293,38 @@ def doctor(
 def init_workspace(
     target: Path = typer.Argument(Path("anna-workspace"), help="Workspace directory."),
     force: bool = typer.Option(False, "--force", help="Overwrite generated files."),
+    deploy_env: bool = typer.Option(
+        False,
+        "--deploy-env",
+        help="Also create a workspace vLLM deployment environment.",
+    ),
+    deploy_python: str = typer.Option(
+        "3.12",
+        "--deploy-python",
+        help="Python version used for the workspace deployment environment.",
+    ),
+    deploy_force: bool = typer.Option(
+        False,
+        "--deploy-force",
+        help="Recreate the workspace deployment environment if it exists.",
+    ),
 ) -> None:
     initialize_workspace(target, force=force)
     console.print(f"[green]Workspace initialized:[/green] {target}")
+    if deploy_env:
+        try:
+            status = setup_deploy_env(
+                target,
+                python=deploy_python,
+                force=deploy_force,
+            )
+        except Exception as err:
+            console.print(f"[red]Deploy environment setup failed:[/red] {err}")
+            raise typer.Exit(code=1) from None
+        console.print(
+            f"[green]Deploy environment ready:[/green] {status['path']}"
+        )
+        console.print(f"vLLM command: {status['vllm']}")
 
 
 @assets_app.command("list")
@@ -725,6 +775,42 @@ def models_configure(
         use_sft=use_sft,
     )
     console.print(f"[green]Configured SFT endpoint for:[/green] {', '.join(changed)}")
+
+
+@models_env_app.command("setup")
+def models_env_setup(
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+    python: str = typer.Option(
+        "3.12",
+        "--python",
+        help="Python version used for the workspace deployment environment.",
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Recreate the workspace deployment environment."
+    ),
+    uv_command: str = typer.Option(
+        "uv", "--uv-command", help="uv executable path or name."
+    ),
+) -> None:
+    try:
+        status = setup_deploy_env(
+            workspace,
+            python=python,
+            force=force,
+            uv_command=uv_command,
+        )
+    except Exception as err:
+        console.print(f"[red]Deploy environment setup failed:[/red] {err}")
+        raise typer.Exit(code=1) from None
+    console.print(f"[green]Deploy environment ready:[/green] {status['path']}")
+    _print_deploy_env_status(status)
+
+
+@models_env_app.command("status")
+def models_env_status(
+    workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
+) -> None:
+    _print_deploy_env_status(deploy_env_status(workspace))
 
 
 @models_app.command("deploy")

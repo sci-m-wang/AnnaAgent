@@ -9,8 +9,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from anna_agent.model_services import (
     build_vllm_command,
     configure_sft_endpoint,
+    deploy_env_status,
     deploy_vllm_service,
+    resolve_vllm_command,
     set_sft_mode,
+    setup_deploy_env,
     vllm_available,
 )
 from anna_agent.workspace import initialize_workspace
@@ -90,6 +93,45 @@ def test_vllm_available_supports_absolute_executable(tmp_path: Path):
     assert vllm_available(str(executable)) is True
 
 
+def test_resolve_vllm_command_prefers_workspace_env(tmp_path: Path):
+    initialize_workspace(tmp_path)
+    vllm_path = tmp_path / ".anna-deploy-venv" / "bin" / "vllm"
+    vllm_path.parent.mkdir(parents=True)
+    vllm_path.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    assert resolve_vllm_command(tmp_path) == str(vllm_path)
+
+
+def test_setup_deploy_env_runs_uv_commands(tmp_path: Path, monkeypatch):
+    calls = []
+
+    def fake_run(command, check):
+        calls.append(command)
+        if command[1] == "venv":
+            bin_dir = tmp_path / ".anna-deploy-venv" / "bin"
+            bin_dir.mkdir(parents=True)
+            (bin_dir / "python").write_text("#!/bin/sh\n", encoding="utf-8")
+            (bin_dir / "vllm").write_text("#!/bin/sh\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "anna_agent.model_services.shutil.which", lambda _: "/usr/bin/uv"
+    )
+    monkeypatch.setattr("anna_agent.model_services.subprocess.run", fake_run)
+
+    status = setup_deploy_env(tmp_path, python="3.12")
+
+    assert status["available"] is True
+    assert calls[0][:4] == ["/usr/bin/uv", "venv", "--python", "3.12"]
+    assert calls[1][:4] == ["/usr/bin/uv", "pip", "install", "--python"]
+
+
+def test_deploy_env_status_reports_workspace_paths(tmp_path: Path):
+    status = deploy_env_status(tmp_path)
+
+    assert status["path"] == str(tmp_path / ".anna-deploy-venv")
+    assert status["vllm"].endswith(".anna-deploy-venv/bin/vllm")
+
+
 def test_deploy_vllm_dry_run_does_not_require_files(tmp_path: Path):
     initialize_workspace(tmp_path)
 
@@ -107,6 +149,23 @@ def test_deploy_vllm_dry_run_does_not_require_files(tmp_path: Path):
     assert result["model_name"] == "emotion"
     assert result["api_key"] == "emotion-key"
     assert result["pid"] is None
+
+
+def test_deploy_vllm_dry_run_uses_workspace_vllm(tmp_path: Path):
+    initialize_workspace(tmp_path)
+    vllm_path = tmp_path / ".anna-deploy-venv" / "bin" / "vllm"
+    vllm_path.parent.mkdir(parents=True)
+    vllm_path.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    result = deploy_vllm_service(
+        tmp_path,
+        target="complaint",
+        model_path=tmp_path / "missing-model",
+        dry_run=True,
+        pull=False,
+    )
+
+    assert result["command"][0] == str(vllm_path)
 
 
 def test_deploy_vllm_uses_manifest_absolute_target(tmp_path: Path):

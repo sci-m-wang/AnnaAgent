@@ -5,7 +5,7 @@ from pathlib import Path
 
 from . import __version__
 from .config import AnnaEngineConfig, load_config
-from .model_services import DEPLOY_EXTRA_INSTALL_HINT, vllm_available
+from .model_services import deploy_install_hint, resolve_vllm_command, vllm_available
 
 
 @dataclass
@@ -33,13 +33,15 @@ def run_doctor(workspace: Path) -> list[DiagnosticCheck]:
     checks.append(_import_check("lancedb", "LanceDB vector store"))
     checks.append(_import_check("rich", "Rich console rendering"))
     checks.append(_import_check("typer", "Typer CLI"))
+    vllm_command = resolve_vllm_command(workspace)
+    has_vllm = vllm_available(vllm_command)
     checks.append(
         DiagnosticCheck(
             "vllm",
-            "ok" if vllm_available() else "warn",
-            "available for local SFT deployment"
-            if vllm_available()
-            else DEPLOY_EXTRA_INSTALL_HINT,
+            "ok" if has_vllm else "warn",
+            f"available for local SFT deployment: {vllm_command}"
+            if has_vllm
+            else deploy_install_hint(workspace),
         )
     )
     if cfg:

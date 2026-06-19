@@ -9,13 +9,9 @@ from typing import Any
 from .assets import find_asset, pull_assets, resolve_asset_target
 from .workspace import load_settings, update_env_values, write_settings
 
-DEPLOY_EXTRA_INSTALL_HINT = (
-    "vLLM is not available in this AnnaAgent environment. For automatic local "
-    "SFT deployment, reinstall the GPU deployment edition with: "
-    "uv tool install --python 3.12 --force "
-    "'anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git'. "
-    "Alternatively, pass --vllm-command /path/to/vllm, or use "
-    "`anna models configure` with an existing OpenAI-compatible endpoint."
+WORKSPACE_DEPLOY_ENV_DIR = ".anna-deploy-venv"
+DEPLOY_PACKAGE_SPEC = (
+    "anna-agent[deploy] @ git+https://github.com/sci-m-wang/AnnaAgent.git"
 )
 
 
@@ -117,6 +113,85 @@ def vllm_available(vllm_command: str = "vllm") -> bool:
     return shutil.which(executable) is not None
 
 
+def deploy_install_hint(workspace: Path) -> str:
+    return (
+        "vLLM is not available for this workspace. Run "
+        f"`anna models env setup --workspace {workspace}` to create "
+        f"{WORKSPACE_DEPLOY_ENV_DIR}, or run "
+        f"`anna init {workspace} --deploy-env` when initializing a new "
+        "workspace. Alternatively, pass --vllm-command /path/to/vllm, or use "
+        "`anna models configure` with an existing OpenAI-compatible endpoint."
+    )
+
+
+def deploy_env_path(workspace: Path) -> Path:
+    return workspace / WORKSPACE_DEPLOY_ENV_DIR
+
+
+def deploy_env_python_path(workspace: Path) -> Path:
+    if os.name == "nt":
+        return deploy_env_path(workspace) / "Scripts" / "python.exe"
+    return deploy_env_path(workspace) / "bin" / "python"
+
+
+def deploy_env_vllm_path(workspace: Path) -> Path:
+    if os.name == "nt":
+        return deploy_env_path(workspace) / "Scripts" / "vllm.exe"
+    return deploy_env_path(workspace) / "bin" / "vllm"
+
+
+def deploy_env_status(workspace: Path) -> dict[str, Any]:
+    env_path = deploy_env_path(workspace)
+    python_path = deploy_env_python_path(workspace)
+    vllm_path = deploy_env_vllm_path(workspace)
+    return {
+        "path": str(env_path),
+        "exists": env_path.exists(),
+        "python": str(python_path),
+        "python_exists": python_path.exists(),
+        "vllm": str(vllm_path),
+        "vllm_exists": vllm_path.exists(),
+        "available": vllm_available(str(vllm_path)),
+    }
+
+
+def resolve_vllm_command(workspace: Path, vllm_command: str = "vllm") -> str:
+    if vllm_command != "vllm":
+        return vllm_command
+    workspace_vllm = deploy_env_vllm_path(workspace)
+    if vllm_available(str(workspace_vllm)):
+        return str(workspace_vllm)
+    return vllm_command
+
+
+def setup_deploy_env(
+    workspace: Path,
+    *,
+    python: str = "3.12",
+    force: bool = False,
+    uv_command: str = "uv",
+    package_spec: str = DEPLOY_PACKAGE_SPEC,
+) -> dict[str, Any]:
+    workspace.mkdir(parents=True, exist_ok=True)
+    env_path = deploy_env_path(workspace)
+    python_path = deploy_env_python_path(workspace)
+    uv_executable = _resolve_executable(uv_command)
+    if force and env_path.exists():
+        shutil.rmtree(env_path)
+    if not python_path.exists():
+        _run_checked(
+            [uv_executable, "venv", "--python", python, str(env_path)],
+            "create workspace deploy environment",
+        )
+    _run_checked(
+        [uv_executable, "pip", "install", "--python", str(python_path), package_spec],
+        "install AnnaAgent deploy dependencies",
+    )
+    status = deploy_env_status(workspace)
+    status["package_spec"] = package_spec
+    return status
+
+
 def build_vllm_command(
     *,
     vllm_command: str = "vllm",
@@ -203,8 +278,9 @@ def deploy_vllm_service(
     resolved_max_model_len = (
         max_model_len if max_model_len is not None else spec.default_max_model_len
     )
+    resolved_vllm_command = resolve_vllm_command(workspace, vllm_command)
     command = build_vllm_command(
-        vllm_command=vllm_command,
+        vllm_command=resolved_vllm_command,
         model_path=resolved_model_path,
         host=host,
         port=resolved_port,
@@ -228,8 +304,8 @@ def deploy_vllm_service(
     }
     if dry_run:
         return result
-    if not vllm_available(vllm_command):
-        raise RuntimeError(DEPLOY_EXTRA_INSTALL_HINT)
+    if not vllm_available(resolved_vllm_command):
+        raise RuntimeError(deploy_install_hint(workspace))
     if background:
         pid = _start_background(workspace, target, command, gpu)
         result["pid"] = pid
@@ -286,6 +362,31 @@ def _resolve_model_path(
 
 def _has_files(path: Path) -> bool:
     return path.exists() and any(path.iterdir())
+
+
+def _resolve_executable(command: str) -> str:
+    parts = shlex.split(command)
+    if len(parts) != 1:
+        raise ValueError("uv command must be a single executable path or name")
+    executable = parts[0]
+    if Path(executable).is_absolute():
+        if Path(executable).exists():
+            return executable
+        raise FileNotFoundError(f"Executable not found: {executable}")
+    resolved = shutil.which(executable)
+    if not resolved:
+        raise FileNotFoundError(
+            "uv is required to create the workspace deploy environment. "
+            "Install uv or pass --uv-command /path/to/uv."
+        )
+    return resolved
+
+
+def _run_checked(command: list[str], action: str) -> None:
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as err:
+        raise RuntimeError(f"Failed to {action}: {err}") from err
 
 
 def _api_key_env_name(target: str) -> str:
