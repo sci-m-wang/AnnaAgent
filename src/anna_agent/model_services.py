@@ -2,6 +2,9 @@ import os
 import shlex
 import shutil
 import subprocess
+import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -248,6 +251,7 @@ def deploy_vllm_service(
     pull: bool = True,
     background: bool = True,
     dry_run: bool = False,
+    wait_timeout: int = 600,
     extra_args: list[str] | None = None,
 ) -> dict[str, Any]:
     load_settings(workspace)
@@ -307,8 +311,16 @@ def deploy_vllm_service(
     if not vllm_available(resolved_vllm_command):
         raise RuntimeError(deploy_install_hint(workspace))
     if background:
-        pid = _start_background(workspace, target, command, gpu)
-        result["pid"] = pid
+        process = _start_background(workspace, target, command, gpu)
+        result["pid"] = process.pid
+        result["log"] = str(_log_file(workspace, target))
+        wait_for_openai_service(
+            base_url=base_url,
+            api_key=resolved_api_key,
+            process=process,
+            timeout=wait_timeout,
+            log_path=_log_file(workspace, target),
+        )
     else:
         env = os.environ.copy()
         if gpu:
@@ -323,6 +335,48 @@ def deploy_vllm_service(
         use_sft=True,
     )
     return result
+
+
+def wait_for_openai_service(
+    *,
+    base_url: str,
+    api_key: str,
+    process: subprocess.Popen[Any] | None = None,
+    timeout: int = 600,
+    interval: float = 2.0,
+    log_path: Path | None = None,
+) -> None:
+    deadline = time.monotonic() + timeout
+    last_error = "service did not respond"
+    models_url = f"{base_url.rstrip('/')}/models"
+    while time.monotonic() < deadline:
+        if process is not None and process.poll() is not None:
+            raise RuntimeError(
+                _service_failure_message(
+                    f"vLLM process exited with code {process.returncode}",
+                    log_path,
+                )
+            )
+        try:
+            request = urllib.request.Request(
+                models_url,
+                headers={"Authorization": f"Bearer {api_key}"},
+            )
+            with urllib.request.urlopen(request, timeout=5) as response:
+                if 200 <= response.status < 300:
+                    return
+                last_error = f"HTTP {response.status} from {models_url}"
+        except Exception as err:
+            if isinstance(err, urllib.error.HTTPError):
+                last_error = f"HTTP {err.code} from {models_url}"
+            else:
+                last_error = str(err)
+        time.sleep(interval)
+    detail = (
+        f"vLLM service was not ready after {timeout}s at {models_url}. "
+        f"Last error: {last_error}"
+    )
+    raise RuntimeError(_service_failure_message(detail, log_path))
 
 
 def service_status(workspace: Path) -> list[dict[str, Any]]:
@@ -393,9 +447,26 @@ def _api_key_env_name(target: str) -> str:
     return f"ANNA_ENGINE_{target.upper()}_API_KEY"
 
 
+def _service_failure_message(detail: str, log_path: Path | None) -> str:
+    message = detail
+    if log_path:
+        message += f"\nLog file: {log_path}"
+        tail = _read_log_tail(log_path)
+        if tail:
+            message += f"\nLast log lines:\n{tail}"
+    return message
+
+
+def _read_log_tail(path: Path, lines: int = 40) -> str:
+    if not path.exists():
+        return ""
+    content = path.read_text(encoding="utf-8", errors="replace")
+    return "\n".join(content.splitlines()[-lines:])
+
+
 def _start_background(
     workspace: Path, target: str, command: list[str], gpu: str | None
-) -> int:
+) -> subprocess.Popen[Any]:
     log_path = _log_file(workspace, target)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
@@ -408,7 +479,7 @@ def _start_background(
     pid_path = _pid_file(workspace, target)
     pid_path.parent.mkdir(parents=True, exist_ok=True)
     pid_path.write_text(str(process.pid), encoding="utf-8")
-    return process.pid
+    return process
 
 
 def _pid_file(workspace: Path, target: str) -> Path:

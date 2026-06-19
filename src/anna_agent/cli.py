@@ -194,6 +194,26 @@ def _print_deploy_env_status(status: dict[str, Any]) -> None:
     console.print(table)
 
 
+def _looks_like_connection_error(err: BaseException) -> bool:
+    current: BaseException | None = err
+    while current is not None:
+        if current.__class__.__name__ in {"APIConnectionError", "ConnectError"}:
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
+def _print_model_connection_help(workspace: Path, err: BaseException) -> None:
+    console.print(f"[red]Model service connection failed:[/red] {escape(str(err))}")
+    console.print(
+        "Run [bold]anna doctor --workspace {workspace}[/bold] and "
+        "[bold]anna models status --workspace {workspace}[/bold]. If you use "
+        "local SFT models, rerun [bold]anna models deploy --wait-timeout 900 "
+        "--workspace {workspace}[/bold] and inspect logs/services/*.log."
+        .format(workspace=workspace)
+    )
+
+
 def _interactive_chat(
     seeker: Any, save: Path | None = None, *, debug_ui: bool = False
 ) -> None:
@@ -700,7 +720,13 @@ def initialize_full(
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
 ) -> None:
     _configure(workspace)
-    state = build_full_state(case_file)
+    try:
+        state = build_full_state(case_file)
+    except Exception as err:
+        if _looks_like_connection_error(err):
+            _print_model_connection_help(workspace, err)
+            raise typer.Exit(code=1) from None
+        raise
     save_state(state, output)
     console.print(f"[green]Wrote full state[/green] {output}")
 
@@ -851,6 +877,11 @@ def models_deploy(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Print command without starting vLLM."
     ),
+    wait_timeout: int = typer.Option(
+        600,
+        "--wait-timeout",
+        help="Seconds to wait for local vLLM /v1/models readiness.",
+    ),
     extra_arg: list[str] | None = typer.Option(
         None, "--extra-arg", help="Extra vLLM arg. Repeatable."
     ),
@@ -892,6 +923,7 @@ def models_deploy(
                 pull=pull,
                 background=background,
                 dry_run=dry_run,
+                wait_timeout=wait_timeout,
                 extra_args=extra_arg,
             )
         except RuntimeError as err:
@@ -975,21 +1007,33 @@ def chat(
         )
         portrait, report, conversations = _load_seeker_data(case_path)
         if debug_ui:
-            seeker = MsPatient(
-                portrait,
-                report,
-                conversations,
-                progress_callback=progress,
-            )
+            try:
+                seeker = MsPatient(
+                    portrait,
+                    report,
+                    conversations,
+                    progress_callback=progress,
+                )
+            except Exception as err:
+                if _looks_like_connection_error(err):
+                    _print_model_connection_help(workspace, err)
+                    raise typer.Exit(code=1) from None
+                raise
         else:
-            with console.status("[blue]初始化来访者状态...[/blue]"):
-                with _suppress_stdio(True):
-                    seeker = MsPatient(
-                        portrait,
-                        report,
-                        conversations,
-                        progress_callback=progress,
-                    )
+            try:
+                with console.status("[blue]初始化来访者状态...[/blue]"):
+                    with _suppress_stdio(True):
+                        seeker = MsPatient(
+                            portrait,
+                            report,
+                            conversations,
+                            progress_callback=progress,
+                        )
+            except Exception as err:
+                if _looks_like_connection_error(err):
+                    _print_model_connection_help(workspace, err)
+                    raise typer.Exit(code=1) from None
+                raise
     if debug_ui:
         _render_initialization_events(init_events)
     console.print(

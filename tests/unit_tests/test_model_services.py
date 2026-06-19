@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
@@ -15,6 +16,7 @@ from anna_agent.model_services import (
     set_sft_mode,
     setup_deploy_env,
     vllm_available,
+    wait_for_openai_service,
 )
 from anna_agent.workspace import initialize_workspace
 
@@ -166,6 +168,124 @@ def test_deploy_vllm_dry_run_uses_workspace_vllm(tmp_path: Path):
     )
 
     assert result["command"][0] == str(vllm_path)
+
+
+def test_wait_for_openai_service_accepts_models_response(monkeypatch):
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+    monkeypatch.setattr(
+        "anna_agent.model_services.urllib.request.urlopen",
+        lambda request, timeout: FakeResponse(),
+    )
+
+    wait_for_openai_service(base_url="http://127.0.0.1:9001/v1", api_key="key")
+
+
+def test_wait_for_openai_service_reports_exited_process_log(tmp_path: Path):
+    log_path = tmp_path / "service.log"
+    log_path.write_text("first\nlast failure\n", encoding="utf-8")
+
+    class FakeProcess:
+        returncode = 1
+
+        def poll(self):
+            return 1
+
+    with pytest.raises(RuntimeError) as exc_info:
+        wait_for_openai_service(
+            base_url="http://127.0.0.1:9001/v1",
+            api_key="key",
+            process=FakeProcess(),
+            log_path=log_path,
+        )
+
+    assert "process exited" in str(exc_info.value)
+    assert "last failure" in str(exc_info.value)
+
+
+def test_deploy_vllm_waits_before_writing_config(tmp_path: Path, monkeypatch):
+    initialize_workspace(tmp_path)
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    (model_dir / "config.json").write_text("{}", encoding="utf-8")
+
+    class FakeProcess:
+        pid = 123
+
+        def poll(self):
+            return None
+
+    wait_calls = []
+    monkeypatch.setattr("anna_agent.model_services.vllm_available", lambda _: True)
+    monkeypatch.setattr(
+        "anna_agent.model_services._start_background",
+        lambda workspace, target, command, gpu: FakeProcess(),
+    )
+
+    def fake_wait(**kwargs):
+        wait_calls.append(kwargs)
+
+    monkeypatch.setattr("anna_agent.model_services.wait_for_openai_service", fake_wait)
+
+    result = deploy_vllm_service(
+        tmp_path,
+        target="complaint",
+        model_path=model_dir,
+        port=9001,
+        model_name="complaint-local",
+        wait_timeout=7,
+        pull=False,
+    )
+
+    settings = yaml.safe_load((tmp_path / "settings.yaml").read_text())
+    assert result["pid"] == 123
+    assert wait_calls[0]["base_url"] == "http://127.0.0.1:9001/v1"
+    assert wait_calls[0]["timeout"] == 7
+    assert settings["servers"]["complaint"]["base_url"] == "http://127.0.0.1:9001/v1"
+    assert settings["servers"]["complaint"]["model_name"] == "complaint-local"
+
+
+def test_deploy_vllm_does_not_write_config_when_wait_fails(tmp_path: Path, monkeypatch):
+    initialize_workspace(tmp_path)
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    (model_dir / "config.json").write_text("{}", encoding="utf-8")
+
+    class FakeProcess:
+        pid = 123
+
+        def poll(self):
+            return None
+
+    monkeypatch.setattr("anna_agent.model_services.vllm_available", lambda _: True)
+    monkeypatch.setattr(
+        "anna_agent.model_services._start_background",
+        lambda workspace, target, command, gpu: FakeProcess(),
+    )
+    monkeypatch.setattr(
+        "anna_agent.model_services.wait_for_openai_service",
+        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("not ready")),
+    )
+
+    with pytest.raises(RuntimeError):
+        deploy_vllm_service(
+            tmp_path,
+            target="complaint",
+            model_path=model_dir,
+            port=9001,
+            model_name="bad-model",
+            pull=False,
+        )
+
+    settings = yaml.safe_load((tmp_path / "settings.yaml").read_text())
+    assert settings["servers"]["complaint"]["model_name"] == "complaint"
 
 
 def test_deploy_vllm_uses_manifest_absolute_target(tmp_path: Path):

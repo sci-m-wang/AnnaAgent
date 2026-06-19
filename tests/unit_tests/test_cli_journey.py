@@ -440,3 +440,34 @@ def test_chat_debug_ui_shows_internal_state(tmp_path: Path, monkeypatch):
     assert "调试双模式" in result.output
     assert "本轮内部状态" in result.output
     assert "sadness" in result.output
+
+
+def test_initialize_full_connection_error_is_concise(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["init", str(workspace)])
+    assert result.exit_code == 0, result.output
+    case_file = workspace / "cases" / "family_stress_case.json"
+
+    class APIConnectionError(Exception):
+        pass
+
+    def fake_build_full_state(case_file):
+        raise APIConnectionError("Connection error.")
+
+    monkeypatch.setattr("anna_agent.cli.build_full_state", fake_build_full_state)
+
+    result = runner.invoke(
+        app,
+        [
+            "initialize",
+            "full",
+            str(case_file),
+            "--workspace",
+            str(workspace),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Model service connection failed" in result.output
+    assert "anna models status" in result.output
+    assert "Traceback" not in result.output

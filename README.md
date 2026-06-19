@@ -207,7 +207,10 @@ anna models deploy --target emotion --backend vllm --workspace anna-workspace
 `models deploy` starts a vLLM OpenAI-compatible server in the background, writes
 the service URL/model name/use-SFT flag back to `settings.yaml`, writes API keys
 to `.env`, and records logs/PIDs under `logs/services/` and `runs/services/`.
-Use `--dry-run` to print the vLLM command without starting anything.
+Before writing configuration, it waits for the service to answer `/v1/models`;
+use `--wait-timeout 900` for slow model loads. If startup fails or times out,
+the CLI prints the service log tail and does not write a bad endpoint. Use
+`--dry-run` to print the vLLM command without starting anything.
 When `--model-path` is omitted, deploy reads the corresponding SFT asset target
 from `assets/anna-assets.json`, including absolute paths. Pass the same
 `--workspace` or `--manifest` that you used during `assets pull`.
