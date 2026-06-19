@@ -8,6 +8,10 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from anna_agent.model_services import (
+    _build_service_env,
+    _filter_cuda_module_env,
+    _parse_cuda_modules,
+    _select_cuda_module,
     build_vllm_command,
     configure_sft_endpoint,
     deploy_env_status,
@@ -305,10 +309,104 @@ def test_run_cuda_preflight_auto_discovers_cuda_root(tmp_path: Path, monkeypatch
     assert result["source"] == "auto-discovered"
 
 
+def test_run_cuda_preflight_auto_loads_default_cuda_module(
+    tmp_path: Path, monkeypatch
+):
+    cuda_root = tmp_path / "CUDA" / "12.8.0"
+    nvcc = cuda_root / "bin" / "nvcc"
+    nvcc.parent.mkdir(parents=True)
+    nvcc.write_text("#!/bin/sh\n", encoding="utf-8")
+    monkeypatch.delenv("CUDA_HOME", raising=False)
+    monkeypatch.setattr("anna_agent.model_services.shutil.which", lambda _: None)
+    monkeypatch.setattr("anna_agent.model_services._discover_cuda_roots", lambda: [])
+    monkeypatch.setattr(
+        "anna_agent.model_services._available_cuda_modules",
+        lambda: [
+            {"name": "CUDA/12.4.0", "default": False},
+            {"name": "CUDA/12.8.0", "default": True},
+            {"name": "CUDA/12.9.1", "default": False},
+        ],
+    )
+    monkeypatch.setattr(
+        "anna_agent.model_services._load_cuda_module_env",
+        lambda name: {
+            "nvcc": str(nvcc),
+            "env": {"CUDA_HOME": str(cuda_root), "PATH": "module-path"},
+        }
+        if name == "CUDA/12.8.0"
+        else None,
+    )
+    monkeypatch.setattr(
+        "anna_agent.model_services._nvcc_version", lambda _: "nvcc 12.8"
+    )
+
+    result = run_cuda_preflight()
+
+    assert result["available"] is True
+    assert result["source"] == "module"
+    assert result["module"] == "CUDA/12.8.0"
+    assert result["module_default"] is True
+    assert result["cuda_home"] == str(cuda_root)
+    assert result["env"]["PATH"] == "module-path"
+
+
+def test_parse_cuda_modules_prefers_default_then_highest():
+    modules = _parse_cuda_modules(
+        "CUDA/12.4.0 CUDA/12.6.0\nCUDA/12.8.0 (D) CUDA/12.9.1"
+    )
+
+    assert _select_cuda_module(modules) == {"name": "CUDA/12.8.0", "default": True}
+    assert _select_cuda_module([module for module in modules if not module["default"]])[
+        "name"
+    ] == "CUDA/12.9.1"
+
+
+def test_build_service_env_uses_module_env_without_overriding_gpu(tmp_path: Path):
+    cuda_root = tmp_path / "cuda"
+    (cuda_root / "bin").mkdir(parents=True)
+    (cuda_root / "lib64").mkdir()
+
+    env = _build_service_env(
+        "1",
+        {
+            "available": True,
+            "cuda_home": str(cuda_root),
+            "env": {
+                "PATH": "module-path",
+                "LD_LIBRARY_PATH": "module-lib",
+                "CUDA_VISIBLE_DEVICES": "0",
+            },
+        },
+    )
+
+    assert env["CUDA_VISIBLE_DEVICES"] == "1"
+    assert env["CUDA_HOME"] == str(cuda_root)
+    assert env["PATH"].startswith(str(cuda_root / "bin"))
+    assert env["LD_LIBRARY_PATH"].startswith(str(cuda_root / "lib64"))
+
+
+def test_filter_cuda_module_env_keeps_cuda_vars_and_drops_secrets():
+    env = _filter_cuda_module_env(
+        {
+            "PATH": "/cuda/bin:/usr/bin",
+            "CUDA_HOME": "/cuda",
+            "LD_LIBRARY_PATH": "/cuda/lib64",
+            "OPENAI_API_KEY": "secret",
+            "HF_TOKEN": "secret",
+        }
+    )
+
+    assert env["CUDA_HOME"] == "/cuda"
+    assert env["PATH"] == "/cuda/bin:/usr/bin"
+    assert "OPENAI_API_KEY" not in env
+    assert "HF_TOKEN" not in env
+
+
 def test_run_cuda_preflight_warns_when_missing(monkeypatch):
     monkeypatch.delenv("CUDA_HOME", raising=False)
     monkeypatch.setattr("anna_agent.model_services.shutil.which", lambda _: None)
     monkeypatch.setattr("anna_agent.model_services._discover_cuda_roots", lambda: [])
+    monkeypatch.setattr("anna_agent.model_services._available_cuda_modules", lambda: [])
 
     result = run_cuda_preflight()
 

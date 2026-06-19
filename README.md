@@ -222,15 +222,15 @@ without starting anything.
 It also checks for a CUDA toolkit (`nvcc`) without assuming a fixed CUDA module
 name or version. If a valid toolkit is found through `--cuda-home`, `CUDA_HOME`,
 `PATH`, or common CUDA roots, AnnaAgent injects `CUDA_HOME`, `PATH`, and
-`LD_LIBRARY_PATH` only into the vLLM child process. If no toolkit is found, the
+`LD_LIBRARY_PATH` only into the vLLM child process. If no toolkit is visible on a
+module-based cluster, AnnaAgent inspects available CUDA modules and auto-loads
+the default CUDA module for the vLLM process; if no default is marked, it uses
+the highest available version. If no toolkit or CUDA module can be found, the
 CLI warns and continues because some vLLM environments do not require `nvcc`;
-FlashInfer JIT environments usually do. On module-based clusters, load an
-available CUDA module first or pass the toolkit root explicitly:
+FlashInfer JIT environments usually do. No manual `module load` is required.
+Use `--cuda-home` only when the cluster stores CUDA in a custom location:
 
 ```bash
-module avail cuda
-module load CUDA/<version>
-
 anna models deploy --target complaint --backend vllm --workspace anna-workspace \
   --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
 

@@ -1,5 +1,6 @@
 import json
 import logging
+import shlex
 import shutil
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
@@ -269,12 +270,17 @@ def _print_cuda_preflight(target: str, info: dict[str, Any]) -> None:
     table.add_row("CUDA_HOME", str(info.get("cuda_home", "")))
     table.add_row("nvcc", str(info.get("nvcc", "")))
     table.add_row("source", str(info.get("source", "")))
+    if info.get("module"):
+        table.add_row("module", str(info.get("module", "")))
     if info.get("version"):
         table.add_row("version", str(info.get("version", "")))
     if info.get("available"):
+        action = "Will inject CUDA_HOME/PATH/LD_LIBRARY_PATH into the vLLM process."
+        if info.get("source") == "module":
+            action = "Will auto-load this CUDA module for the vLLM process."
         table.add_row(
             "action",
-            "Will inject CUDA_HOME/PATH/LD_LIBRARY_PATH into the vLLM process.",
+            action,
         )
     for warning in info.get("warnings", []):
         table.add_row("warning", f"[yellow]{escape(str(warning))}[/yellow]")
@@ -1036,6 +1042,7 @@ def models_deploy(
                 result["command"],
                 cuda_visible_devices=result.get("cuda_visible_devices", ""),
                 cuda_home=result.get("cuda_home", ""),
+                cuda_module=result.get("cuda_module", ""),
             )
         )
         if dry_run:
@@ -1306,7 +1313,10 @@ def _print_hits(hits, seeker_id: str) -> None:
 
 
 def _redacted_command(
-    command: list[str], cuda_visible_devices: str = "", cuda_home: str = ""
+    command: list[str],
+    cuda_visible_devices: str = "",
+    cuda_home: str = "",
+    cuda_module: str = "",
 ) -> str:
     redacted = []
     hide_next = False
@@ -1324,7 +1334,10 @@ def _redacted_command(
     if cuda_home:
         prefixes.append(f"CUDA_HOME={cuda_home}")
     prefix = " ".join(prefixes)
-    return f"{prefix} {' '.join(redacted)}" if prefix else " ".join(redacted)
+    command_text = f"{prefix} {' '.join(redacted)}" if prefix else " ".join(redacted)
+    if cuda_module:
+        return f"module load {shlex.quote(cuda_module)} && {command_text}"
+    return command_text
 
 
 def _redact_text(text: str, secrets: list[str]) -> str:

@@ -1,7 +1,10 @@
+import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -330,6 +333,7 @@ def deploy_vllm_service(
     cuda_preflight = run_cuda_preflight(cuda_home=cuda_home)
     result["cuda_preflight"] = cuda_preflight
     result["cuda_home"] = cuda_preflight.get("cuda_home", "")
+    result["cuda_module"] = cuda_preflight.get("module", "")
     if cuda_preflight_callback:
         cuda_preflight_callback(cuda_preflight)
     if background:
@@ -392,16 +396,21 @@ def run_cuda_preflight(cuda_home: Path | None = None) -> dict[str, Any]:
                 "version": _nvcc_version(nvcc),
                 "warnings": warnings,
             }
+    module_info = _cuda_module_preflight()
+    if module_info:
+        module_info["requested_cuda_home"] = requested or "<not set>"
+        module_info["warnings"] = warnings
+        return module_info
     if explicit:
         raise RuntimeError(
             f"CUDA toolkit not found under --cuda-home {cuda_home}. "
             "Expected bin/nvcc to exist."
         )
     warnings.append(
-        "CUDA toolkit was not found in CUDA_HOME or PATH. vLLM may still work, "
-        "but FlashInfer JIT can fail without nvcc. Load a CUDA module such as "
-        "`module avail cuda` then `module load CUDA/<version>`, or pass "
-        "--cuda-home /path/to/cuda."
+        "CUDA toolkit was not found in CUDA_HOME, PATH, common CUDA roots, or "
+        "the cluster module system. vLLM may still work, but FlashInfer JIT "
+        "can fail without nvcc. Pass --cuda-home /path/to/cuda if this cluster "
+        "stores CUDA in a custom location."
     )
     return {
         "available": False,
@@ -412,6 +421,139 @@ def run_cuda_preflight(cuda_home: Path | None = None) -> dict[str, Any]:
         "version": "",
         "warnings": warnings,
     }
+
+
+def _cuda_module_preflight() -> dict[str, Any] | None:
+    selected = _select_cuda_module(_available_cuda_modules())
+    if not selected:
+        return None
+    loaded = _load_cuda_module_env(selected["name"])
+    if not loaded:
+        return None
+    env = loaded["env"]
+    nvcc = Path(loaded["nvcc"])
+    cuda_home = env.get("CUDA_HOME") or str(nvcc.parent.parent)
+    return {
+        "available": True,
+        "requested_cuda_home": "<not set>",
+        "cuda_home": cuda_home,
+        "nvcc": str(nvcc),
+        "source": "module",
+        "module": selected["name"],
+        "module_default": selected["default"],
+        "version": _nvcc_version(nvcc),
+        "env": env,
+        "warnings": [],
+    }
+
+
+def _available_cuda_modules() -> list[dict[str, Any]]:
+    try:
+        result = subprocess.run(
+            ["bash", "-lc", "module avail cuda 2>&1"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except Exception:
+        return []
+    return _parse_cuda_modules(result.stdout + "\n" + result.stderr)
+
+
+def _parse_cuda_modules(output: str) -> list[dict[str, Any]]:
+    clean = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", output)
+    pattern = re.compile(
+        r"(?P<name>\b(?:cuda(?:[-_a-zA-Z]*)?|cudatoolkit|cudacore)/"
+        r"[A-Za-z0-9][A-Za-z0-9._+-]*)"
+        r"(?P<marker>\s*(?:\((?:D|default)\)|\[(?:D|default)\]))?",
+        re.IGNORECASE,
+    )
+    modules = []
+    seen = set()
+    for match in pattern.finditer(clean):
+        name = match.group("name")
+        if name in seen:
+            continue
+        seen.add(name)
+        marker = (match.group("marker") or "").lower()
+        modules.append(
+            {
+                "name": name,
+                "default": "d" in marker or "default" in marker,
+            }
+        )
+    return modules
+
+
+def _select_cuda_module(modules: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not modules:
+        return None
+    defaults = [module for module in modules if module.get("default")]
+    pool = defaults or modules
+    return max(pool, key=lambda module: _cuda_module_sort_key(str(module["name"])))
+
+
+def _cuda_module_sort_key(name: str) -> tuple[tuple[int, ...], str]:
+    return (tuple(int(part) for part in re.findall(r"\d+", name)), name.lower())
+
+
+def _load_cuda_module_env(module_name: str) -> dict[str, Any] | None:
+    dump_env = "import json, os; print(json.dumps(dict(os.environ)))"
+    command = (
+        f"module load {shlex.quote(module_name)} >/dev/null 2>&1 && "
+        f"command -v nvcc && {shlex.quote(sys.executable)} -c "
+        f"{shlex.quote(dump_env)}"
+    )
+    try:
+        result = subprocess.run(
+            ["bash", "-lc", command],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+    except Exception:
+        return None
+    if result.returncode != 0:
+        return None
+    lines = [line for line in result.stdout.splitlines() if line.strip()]
+    if len(lines) < 2:
+        return None
+    try:
+        env = json.loads("\n".join(lines[1:]))
+    except json.JSONDecodeError:
+        return None
+    env = _filter_cuda_module_env(env)
+    return {"nvcc": lines[0].strip(), "env": env}
+
+
+def _filter_cuda_module_env(env: dict[str, str]) -> dict[str, str]:
+    allowed = {
+        "PATH",
+        "LD_LIBRARY_PATH",
+        "DYLD_LIBRARY_PATH",
+        "LIBRARY_PATH",
+        "CPATH",
+        "C_INCLUDE_PATH",
+        "CPLUS_INCLUDE_PATH",
+        "CUDA_HOME",
+        "CUDA_PATH",
+        "CUDATOOLKIT_HOME",
+        "CUDNN_HOME",
+        "CMAKE_PREFIX_PATH",
+        "PKG_CONFIG_PATH",
+        "MANPATH",
+        "MODULEPATH",
+        "LOADEDMODULES",
+        "_LMFILES_",
+    }
+    filtered = {}
+    for key, value in env.items():
+        upper = key.upper()
+        if key in allowed or "CUDA" in upper or upper.startswith(("CUDNN", "NV")):
+            filtered[str(key)] = str(value)
+    return filtered
 
 
 def _discover_cuda_roots() -> list[Path]:
@@ -770,9 +912,10 @@ def _build_service_env(
     gpu: str | None, cuda_preflight: dict[str, Any] | None = None
 ) -> dict[str, str]:
     env = os.environ.copy()
-    if gpu:
-        env["CUDA_VISIBLE_DEVICES"] = gpu
     if cuda_preflight and cuda_preflight.get("available"):
+        module_env = cuda_preflight.get("env")
+        if isinstance(module_env, dict):
+            env.update({str(key): str(value) for key, value in module_env.items()})
         cuda_home = str(cuda_preflight.get("cuda_home", ""))
         if cuda_home:
             env["CUDA_HOME"] = cuda_home
@@ -782,6 +925,8 @@ def _build_service_env(
                 env["LD_LIBRARY_PATH"] = _prepend_env_path(
                     env.get("LD_LIBRARY_PATH", ""), str(lib64)
                 )
+    if gpu:
+        env["CUDA_VISIBLE_DEVICES"] = gpu
     return env
 
 

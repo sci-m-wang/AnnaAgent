@@ -318,7 +318,9 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
                 "requested_cuda_home": str(kwargs["cuda_home"] or "<not set>"),
                 "cuda_home": "/opt/apps/software/CUDA/12.4.0",
                 "nvcc": "/opt/apps/software/CUDA/12.4.0/bin/nvcc",
-                "source": "auto-discovered",
+                "source": "module",
+                "module": "CUDA/12.4.0",
+                "module_default": True,
                 "version": "nvcc 12.4",
                 "warnings": [],
             }
@@ -338,6 +340,7 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
             "command": ["vllm", "serve", "model", "--api-key", "deploy-secret"],
             "cuda_visible_devices": kwargs["gpu"],
             "cuda_home": "/opt/apps/software/CUDA/12.4.0",
+            "cuda_module": "CUDA/12.4.0",
             "pid": 123,
             "base_url": "http://127.0.0.1:8001/v1",
         }
@@ -370,10 +373,9 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
     assert "cap=69632MiB" in result.output
     assert "CUDA Toolkit Preflight" in result.output
     assert "/opt/apps/software/CUDA/12.4.0/bin/nvcc" in result.output
-    assert (
-        "CUDA_VISIBLE_DEVICES=1 CUDA_HOME=/opt/apps/software/CUDA/12.4.0"
-        in result.output
-    )
+    assert "Will auto-load this CUDA module" in result.output
+    assert "module load CUDA/12.4.0 && CUDA_VISIBLE_DEVICES=1" in result.output
+    assert "CUDA_HOME=/opt/apps/software/CUDA/12.4.0" in result.output
     assert "Waiting for complaint vLLM" in result.output
     assert "elapsed=15s/30s" in result.output
     assert "loading with ***" in result.output
