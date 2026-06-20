@@ -29,10 +29,21 @@ Build Locally
 PyPI Publishing
 ---------------
 
-PyPI publishing is not automated by GitHub Actions. The GitHub workflows only
-build and deploy the documentation site. When a maintainer needs to publish a
-new package version, build the source and wheel artifacts locally and upload them
-using the maintainer's PyPI account and local release tooling.
+PyPI publishing is automated by ``.github/workflows/python-publish.yml``. The
+workflow runs when a GitHub Release is published and can also be started manually
+from GitHub Actions. It builds the source distribution and wheel with
+``uv build``, then uploads them with PyPI Trusted Publishing, so the workflow
+does not use a ``PYPI_API_TOKEN`` secret.
+
+For Trusted Publishing to work, configure the PyPI project publisher to trust
+this repository and workflow path:
+
+.. code-block:: text
+
+   owner: sci-m-wang
+   repository: AnnaAgent
+   workflow: python-publish.yml
+   environment: (leave empty unless the workflow is changed to use one)
 
 Recommended tag and release flow:
 
@@ -42,8 +53,9 @@ Recommended tag and release flow:
    git push origin v0.2.1
    gh release create v0.2.1 --title "v0.2.1" --notes "Release v0.2.1"
 
-Before uploading to PyPI, verify the package locally with ``uv build`` and check
-that the version is not already present on PyPI.
+After the release is created, GitHub Actions publishes the package automatically.
+Before creating the release, verify the package locally with ``uv build`` and
+check that the version is not already present on PyPI.
 
 GitHub Pages
 ------------

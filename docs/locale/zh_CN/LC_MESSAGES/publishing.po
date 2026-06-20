@@ -51,29 +51,33 @@ msgid "PyPI Publishing"
 msgstr "PyPI 发布"
 
 #: ../../en/publishing.rst:28
-msgid "PyPI publishing is not automated by GitHub Actions. The GitHub workflows only build and deploy the documentation site. When a maintainer needs to publish a new package version, build the source and wheel artifacts locally and upload them using the maintainer's PyPI account and local release tooling."
-msgstr "PyPI 发布不再由 GitHub Actions 自动执行。当前 GitHub workflows 只负责构建和部署文档站点。维护者需要发布新包版本时，请在本地构建 sdist/wheel，并使用维护者自己的 PyPI 发布流程上传。"
+msgid "PyPI publishing is automated by ``.github/workflows/python-publish.yml``. The workflow runs when a GitHub Release is published and can also be started manually from GitHub Actions. It builds the source distribution and wheel with ``uv build``, then uploads them with PyPI Trusted Publishing, so the workflow does not use a ``PYPI_API_TOKEN`` secret."
+msgstr "PyPI 发布由 ``.github/workflows/python-publish.yml`` 自动执行。该 workflow 会在 GitHub Release 发布时运行，也可以从 GitHub Actions 手动启动。它使用 ``uv build`` 构建 sdist 和 wheel，然后通过 PyPI Trusted Publishing 上传，因此不使用 ``PYPI_API_TOKEN`` secret。"
 
-#: ../../en/publishing.rst:33
+#: ../../en/publishing.rst:35
+msgid "For Trusted Publishing to work, configure the PyPI project publisher to trust this repository and workflow path:"
+msgstr "要让 Trusted Publishing 生效，需要在 PyPI 项目中配置 publisher，使其信任本仓库和 workflow 路径："
+
+#: ../../en/publishing.rst:45
 msgid "Recommended tag and release flow:"
 msgstr "推荐 tag 与 release 流程："
 
-#: ../../en/publishing.rst:41
-msgid "Before uploading to PyPI, verify the package locally with ``uv build`` and check that the version is not already present on PyPI."
-msgstr "上传 PyPI 前，请先用 ``uv build`` 在本地验证包，并确认该版本尚未在 PyPI 上存在。"
+#: ../../en/publishing.rst:53
+msgid "After the release is created, GitHub Actions publishes the package automatically. Before creating the release, verify the package locally with ``uv build`` and check that the version is not already present on PyPI."
+msgstr "Release 创建后，GitHub Actions 会自动发布包。创建 release 前，请先用 ``uv build`` 在本地验证包，并确认该版本尚未在 PyPI 上存在。"
 
-#: ../../en/publishing.rst:45
+#: ../../en/publishing.rst:57
 msgid "GitHub Pages"
 msgstr "GitHub Pages"
 
-#: ../../en/publishing.rst:47
+#: ../../en/publishing.rst:59
 msgid "The documentation workflow uses the Sphinx i18n/gettext pipeline. English source files live under ``docs/en``. Chinese translations live under ``docs/locale/zh_CN/LC_MESSAGES``. The workflow first rebuilds gettext catalogs, checks that the Chinese catalogs are synchronized, then deploys English pages at the site root and Chinese pages under ``/zh/``. In the repository settings, Pages should use ``GitHub Actions`` as the source."
 msgstr "文档 workflow 使用 Sphinx i18n/gettext 流程。英文源文件位于 ``docs/en``，中文翻译位于 ``docs/locale/zh_CN/LC_MESSAGES``。workflow 会先重新生成 gettext catalog，检查中文 catalog 是否同步，然后把英文页面部署到站点根路径，把中文页面部署到 ``/zh/``。仓库设置中 Pages source 应选择 ``GitHub Actions``。"
 
-#: ../../en/publishing.rst:53
+#: ../../en/publishing.rst:65
 msgid "Local Documentation Preview"
 msgstr "本地预览文档"
 
-#: ../../en/publishing.rst:62
+#: ../../en/publishing.rst:74
 msgid "Then open ``docs/_build/html/index.html`` or ``docs/_build/html/zh/index.html`` in a browser."
 msgstr "然后在浏览器中打开 ``docs/_build/html/index.html`` 或 ``docs/_build/html/zh/index.html``。"
