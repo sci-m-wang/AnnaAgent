@@ -25,7 +25,7 @@ vLLM runtime environment.
 
 .. code-block:: bash
 
-   anna init anna-workspace --deploy-env
+   anna create anna-workspace --deploy-env
 
    # Or add it later:
    anna models env setup --workspace anna-workspace
@@ -41,7 +41,7 @@ Download Released Assets
 .. code-block:: bash
 
    anna assets list --workspace anna-workspace
-   anna assets pull paper --workspace anna-workspace
+   anna assets download paper --workspace anna-workspace
 
 The default paper preset includes the emotion inference SFT model, the chief
 complaint chain SFT model, and released synthetic data resources.

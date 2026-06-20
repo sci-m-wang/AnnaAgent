@@ -37,7 +37,7 @@ After installation, the short command `anna` is available in any terminal:
 
 ```bash
 anna --version
-anna init anna-workspace
+anna create anna-workspace
 anna doctor --workspace anna-workspace
 ```
 
@@ -48,7 +48,7 @@ a workspace deployment environment on the Linux/GPU machine. This keeps the
 lightweight `anna` CLI install separate from heavy vLLM dependencies:
 
 ```bash
-anna init anna-workspace --deploy-env
+anna create anna-workspace --deploy-env
 
 # Or add it later to an existing workspace.
 anna models env setup --workspace anna-workspace
@@ -93,17 +93,17 @@ First, create a workspace, choose whether to use the SFT modules, and let the CL
 write the resulting configuration:
 
 ```bash
-anna init anna-workspace
+anna create anna-workspace
 
 # Optional on GPU machines: create anna-workspace/.anna-deploy-venv for vLLM.
-anna init anna-workspace --deploy-env
+anna create anna-workspace --deploy-env
 
 # Fast path: use the base chat model for complaint-chain and emotion modules.
 anna models use-base --target all --workspace anna-workspace
 
 # SFT path: deploy local vLLM services from downloaded HuggingFace assets.
-anna assets pull paper --workspace anna-workspace
-anna models env setup --workspace anna-workspace  # optional if init used --deploy-env
+anna assets download paper --workspace anna-workspace
+anna models env setup --workspace anna-workspace  # optional if create used --deploy-env
 anna models deploy --target complaint --backend vllm --workspace anna-workspace \
   --gpu 0 --gpu-memory-utilization 0.85 --wait-timeout 900
 anna models deploy --target emotion --backend vllm --workspace anna-workspace \
@@ -145,7 +145,7 @@ AnnaAgent provides a Typer-based CLI organized around the reader journey from
 paper reproduction to application use. Start by creating an isolated workspace:
 
 ```bash
-anna init anna-workspace
+anna create anna-workspace
 anna doctor --workspace anna-workspace
 ```
 
@@ -164,7 +164,7 @@ anna config validate --workspace anna-workspace
 
 `config wizard` and `config secrets` use hidden password-style prompts for API
 keys and write them to `.env`. The generated `.env` and `.env.example` files
-include commented placeholders showing exactly where to put base-model, SFT and
+include commented placeholders showing exactly where to put backbone, SFT and
 embedding credentials if you prefer manual editing.
 
 Assets are manifest-driven. The default `paper` preset points to the released
@@ -173,23 +173,23 @@ HuggingFace SFT models and synthetic data, and you can override or extend it in
 
 ```bash
 anna assets list --workspace anna-workspace
-anna assets pull paper --workspace anna-workspace
+anna assets download paper --workspace anna-workspace
 ```
 
-Always pass `--workspace` or `--manifest` when pulling assets. Without either,
-`anna assets pull` uses the current directory as the workspace and may download
-to `./assets/...` instead of your intended AnnaAgent workspace. You can pull one
+Always pass `--workspace` or `--manifest` when downloading assets. Without either,
+`anna assets download` uses the current directory as the workspace and may download
+to `./assets/...` instead of your intended AnnaAgent workspace. You can download one
 specific resource or override the target directory explicitly:
 
 ```bash
-# Pull one asset from anna-workspace/assets/anna-assets.json.
-anna assets pull complaint-sft --workspace anna-workspace
+# Download one asset from anna-workspace/assets/anna-assets.json.
+anna assets download complaint-sft --workspace anna-workspace
 
 # Use an explicit manifest JSON, including absolute target paths in that file.
-anna assets pull complaint-sft --manifest anna-workspace/assets/anna-assets.json
+anna assets download complaint-sft --manifest anna-workspace/assets/anna-assets.json
 
 # Override the target directory for exactly one selected asset.
-anna assets pull complaint-sft --workspace anna-workspace \
+anna assets download complaint-sft --workspace anna-workspace \
   --target /path/to/models/complaint-sft
 ```
 
@@ -248,7 +248,7 @@ anna models deploy --target complaint --backend vllm --workspace anna-workspace 
 ```
 When `--model-path` is omitted, deploy reads the corresponding SFT asset target
 from `assets/anna-assets.json`, including absolute paths. Pass the same
-`--workspace` or `--manifest` that you used during `assets pull`.
+`--workspace` or `--manifest` that you used during `assets download`.
 
 If `models deploy` reports that vLLM is unavailable, run
 `anna models env setup --workspace anna-workspace` to create the workspace deploy
@@ -275,11 +275,11 @@ Initialization can be run as a full AnnaAgent initialization, or as a prompt-onl
 state for cheap dry-runs and reproducible prompt freezing:
 
 ```bash
-anna initialize prompt-only anna-workspace/cases/family_stress_case.json \
+anna init prompt-only anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.prompt.json
-anna initialize full anna-workspace/cases/family_stress_case.json \
+anna init full anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.full.json --workspace anna-workspace
-anna initialize from-prompt anna-workspace/prompts/family.prompt.json
+anna init from-prompt anna-workspace/prompts/family.prompt.json
 ```
 
 Chat interactively from either a case file or a frozen prompt state:
@@ -434,8 +434,8 @@ the base model, or `true` to call the configured SFT endpoint.
 
 ```yaml
 model_service:
-  model_name: counselor
-  api_key: counselor
+  model_name: anna-backbone
+  api_key: anna-backbone
   base_url: http://localhost:8002/v1
 servers:
   complaint:

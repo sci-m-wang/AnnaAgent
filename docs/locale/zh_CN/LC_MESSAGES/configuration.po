@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Project-Id-Version: AnnaAgent 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2026-06-20 00:00+0800\n"
 "Last-Translator: AnnaAgent contributors\n"
@@ -99,12 +99,12 @@ msgid "AnnaAgent has three practical model modes."
 msgstr "AnnaAgent 常用三种模型模式。"
 
 #: ../../en/configuration.rst:53
-msgid "Base model mode"
-msgstr "Base model 模式"
+msgid "Backbone/base model mode"
+msgstr "Backbone/base model 模式"
 
 #: ../../en/configuration.rst:54
-msgid "The simplest mode. All modules call the configured base chat model. Use this first to verify the workspace and data flow."
-msgstr "最简单。所有模块调用同一个基础 chat model。建议先用它跑通流程。"
+msgid "The simplest mode. AnnaAgent internal modules call the configured backbone chat model. This model can temporarily stand in when no external counselor is wired, but formal runs should use a dedicated counselor process or model for counselor turns."
+msgstr "最简单。AnnaAgent 内部模块会调用配置的 backbone chat model。没有外部 counselor 时，它可以临时代替 counselor 模型；正式运行时应使用专门的 counselor 流程或模型来生成 counselor 轮次。"
 
 #: ../../en/configuration.rst:57
 msgid "Configured SFT endpoint mode"

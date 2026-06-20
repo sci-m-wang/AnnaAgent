@@ -50,9 +50,11 @@ Model Modes
 
 AnnaAgent has three practical model modes.
 
-Base model mode
-  The simplest mode. All modules call the configured base chat model. Use this
-  first to verify the workspace and data flow.
+Backbone/base model mode
+  The simplest mode. AnnaAgent internal modules call the configured backbone chat
+  model. This model can temporarily stand in when no external counselor is wired,
+  but formal runs should use a dedicated counselor process or model for counselor
+  turns.
 
 Configured SFT endpoint mode
   Use this when complaint-chain or emotion SFT models are already deployed as

@@ -38,9 +38,9 @@ Recommended tag and release flow:
 
 .. code-block:: bash
 
-   git tag v0.2.0
-   git push origin v0.2.0
-   gh release create v0.2.0 --title "v0.2.0" --notes "Release v0.2.0"
+   git tag v0.3.0
+   git push origin v0.3.0
+   gh release create v0.3.0 --title "v0.3.0" --notes "Release v0.3.0"
 
 Before uploading to PyPI, verify the package locally with ``uv build`` and check
 that the version is not already present on PyPI.

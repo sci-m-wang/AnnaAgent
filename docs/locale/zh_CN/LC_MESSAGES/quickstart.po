@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Project-Id-Version: AnnaAgent 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2026-06-20 00:00+0800\n"
 "Last-Translator: AnnaAgent contributors\n"
@@ -71,8 +71,8 @@ msgid "The generated workspace contains:"
 msgstr "生成结构如下："
 
 #: ../../en/quickstart.rst:69
-msgid "Configure the Base Model"
-msgstr "配置基础模型"
+msgid "Configure the Backbone Model"
+msgstr "配置 Backbone 模型"
 
 #: ../../en/quickstart.rst:71
 msgid "Use the wizard for interactive setup:"

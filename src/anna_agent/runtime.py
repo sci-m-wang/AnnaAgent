@@ -1,4 +1,5 @@
 import json
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -26,11 +27,19 @@ def build_prompt_only_state(case_file: Path) -> dict[str, Any]:
     }
 
 
-def build_full_state(case_file: Path) -> dict[str, Any]:
+def build_full_state(
+    case_file: Path,
+    progress_callback: Callable[[str, str], None] | None = None,
+) -> dict[str, Any]:
     from .ms_patient import MsPatient
 
     case = load_case(case_file)
-    seeker = MsPatient(case["portrait"], case["report"], case["conversation"])
+    seeker = MsPatient(
+        case["portrait"],
+        case["report"],
+        case["conversation"],
+        progress_callback=progress_callback,
+    )
     return {
         "schema_version": 1,
         "mode": "full",

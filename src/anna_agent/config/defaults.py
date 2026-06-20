@@ -5,19 +5,19 @@ from dataclasses import dataclass
 class AnnaEngineDefaults:
     """Default engine configuration values."""
 
-    model_name: str = "counselor"
-    api_key: str = "counselor"
+    model_name: str = "anna-backbone"
+    api_key: str = "anna-backbone"
     base_url: str = "http://localhost:8002/v1"
 
     complaint_api_key: str = "complaint_chain"
-    counselor_api_key: str = "counselor"
+    counselor_api_key: str = "anna-backbone"
     emotion_api_key: str = "emotion_inferencer"
 
     complaint_use_sft_model: bool = True
     emotion_use_sft_model: bool = True
 
     complaint_model_name: str = "complaint"
-    counselor_model_name: str = "counselor"
+    counselor_model_name: str = "anna-backbone"
     emotion_model_name: str = "emotion"
 
     complaint_base_url: str = "http://localhost:8001/v1"

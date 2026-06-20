@@ -96,8 +96,8 @@ def test_load_config_uses_dotenv_secret_placeholders(tmp_path: Path):
     cfg.write_text(
         """
 model_service:
-  model_name: counselor
-  api_key: counselor
+  model_name: anna-backbone
+  api_key: anna-backbone
   base_url: http://localhost:8002/v1
 embedding:
   model_name: text-embedding-3-small
@@ -130,13 +130,13 @@ def test_load_config_default_counselor_inherits_base_env_aliases(
     cfg.write_text(
         """
 model_service:
-  model_name: counselor
-  api_key: counselor
+  model_name: anna-backbone
+  api_key: anna-backbone
   base_url: http://localhost:8002/v1
 servers:
   counselor:
-    model_name: counselor
-    api_key: counselor
+    model_name: anna-backbone
+    api_key: anna-backbone
     base_url: http://localhost:8002/v1
 """,
         encoding="utf-8",
@@ -165,8 +165,8 @@ def test_load_config_preserves_explicit_counselor_endpoint(
     cfg.write_text(
         """
 model_service:
-  model_name: counselor
-  api_key: counselor
+  model_name: anna-backbone
+  api_key: anna-backbone
   base_url: http://localhost:8002/v1
 servers:
   counselor:

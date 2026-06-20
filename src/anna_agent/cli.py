@@ -79,7 +79,8 @@ app.add_typer(config_app, name="config")
 app.add_typer(test_app, name="test")
 app.add_typer(data_app, name="data")
 app.add_typer(memory_app, name="memory")
-app.add_typer(initialize_app, name="initialize")
+app.add_typer(initialize_app, name="init")
+app.add_typer(initialize_app, name="initialize", hidden=True)
 app.add_typer(models_app, name="models")
 models_app.add_typer(models_env_app, name="env")
 app.add_typer(run_app, name="run")
@@ -147,8 +148,8 @@ def _render_config_summary(
     table.add_row("Workspace", str(workspace))
     if source:
         table.add_row(source_kind, str(source))
-    table.add_row("Base model", cfg.model_name)
-    table.add_row("Base endpoint", cfg.base_url)
+    table.add_row("AnnaAgent backbone model", cfg.model_name)
+    table.add_row("Backbone endpoint", cfg.base_url)
     table.add_row("Memory", "on" if cfg.memory_enabled else "off")
     table.add_row("Debug UI", "on" if debug_ui else "off")
     console.print(Panel(table, title="配置摘要", border_style="blue"))
@@ -397,8 +398,8 @@ def doctor(
     console.print(table)
 
 
-@app.command("init")
-def init_workspace(
+@app.command("create")
+def create_workspace(
     target: Path = typer.Argument(Path("anna-workspace"), help="Workspace directory."),
     force: bool = typer.Option(False, "--force", help="Overwrite generated files."),
     deploy_env: bool = typer.Option(
@@ -418,7 +419,7 @@ def init_workspace(
     ),
 ) -> None:
     initialize_workspace(target, force=force)
-    console.print(f"[green]Workspace initialized:[/green] {target}")
+    console.print(f"[green]Workspace created:[/green] {target}")
     if deploy_env:
         try:
             status = setup_deploy_env(
@@ -464,8 +465,9 @@ def assets_list(
     console.print(table)
 
 
-@assets_app.command("pull")
-def assets_pull(
+@assets_app.command("pull", hidden=True)
+@assets_app.command("download")
+def assets_download(
     names: list[str] = typer.Argument(None, help="Asset names or preset names."),
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
     force: bool = typer.Option(False, "--force", help="Redownload existing files."),
@@ -488,7 +490,7 @@ def assets_pull(
         manifest_file=manifest,
         target_override=target,
     )
-    table = Table(title="Asset Pull Results")
+    table = Table(title="Asset Download Results")
     table.add_column("Name")
     table.add_column("Status")
     table.add_column("Path")
@@ -533,11 +535,23 @@ def config_wizard(
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
 ) -> None:
     data = load_settings(workspace)
+    console.print(
+        Panel(
+            "[bold]AnnaAgent backbone model[/bold]\n"
+            "This model drives AnnaAgent's internal seeker-simulation modules. "
+            "It can temporarily stand in when no external counselor is wired, "
+            "but formal runs should use a dedicated counselor process or model "
+            "for counselor turns.",
+            border_style="cyan",
+        )
+    )
     data.setdefault("model_service", {})["model_name"] = typer.prompt(
-        "Base model name", default=data.get("model_service", {}).get("model_name", "")
+        "AnnaAgent backbone model name",
+        default=data.get("model_service", {}).get("model_name", ""),
     )
     data["model_service"]["base_url"] = typer.prompt(
-        "Base model base URL", default=data.get("model_service", {}).get("base_url", "")
+        "AnnaAgent backbone base URL",
+        default=data.get("model_service", {}).get("base_url", ""),
     )
     data.setdefault("embedding", {})["model_name"] = typer.prompt(
         "Embedding model", default=data.get("embedding", {}).get("model_name", "")
@@ -563,14 +577,14 @@ def config_secrets(
 
 def _prompt_and_write_secrets(workspace: Path, include_sft: bool = False) -> None:
     prompts = [
-        ("ANNA_ENGINE_API_KEY", "Base model API key"),
+        ("ANNA_ENGINE_API_KEY", "AnnaAgent backbone API key"),
         ("ANNA_ENGINE_EMBEDDING_API_KEY", "Embedding API key"),
     ]
     if include_sft:
         prompts.extend(
             [
                 ("ANNA_ENGINE_COMPLAINT_API_KEY", "Complaint SFT API key"),
-                ("ANNA_ENGINE_COUNSELOR_API_KEY", "Counselor API key"),
+                ("ANNA_ENGINE_COUNSELOR_API_KEY", "Backbone fallback API key"),
                 ("ANNA_ENGINE_EMOTION_API_KEY", "Emotion SFT API key"),
             ]
         )
@@ -796,7 +810,10 @@ def initialize_prompt_only(
     case_file: Path = typer.Argument(..., help="Case file."),
     output: Path = typer.Option(Path("prompts/prompt_state.json"), "--out", "-o"),
 ) -> None:
+    console.print(Rule("[bold blue]Initialization · prompt-only[/bold blue]"))
+    console.print(f"[blue]Running:[/blue] load case and build prompt for {case_file}")
     state = build_prompt_only_state(case_file)
+    console.print(f"[blue]Running:[/blue] write initialization state to {output}")
     save_state(state, output)
     console.print(f"[green]Wrote prompt-only state[/green] {output}")
 
@@ -808,13 +825,26 @@ def initialize_full(
     workspace: Path = typer.Option(Path(), "--workspace", "--root", resolve_path=True),
 ) -> None:
     _configure(workspace)
+    events: list[tuple[str, str]] = []
+
+    def progress(stage: str, detail: str) -> None:
+        events.append((stage, detail))
+        console.print(f"[blue]Running {escape(stage)}:[/blue] {escape(detail)}")
+
+    console.print(Rule("[bold blue]Initialization · full[/bold blue]"))
+    console.print(
+        f"[blue]Running:[/blue] load case and configure services for {case_file}"
+    )
     try:
-        state = build_full_state(case_file)
+        state = build_full_state(case_file, progress_callback=progress)
     except Exception as err:
         if _looks_like_connection_error(err):
             _print_model_connection_help(workspace, err)
             raise typer.Exit(code=1) from None
         raise
+    if events:
+        _render_initialization_events(events)
+    console.print(f"[blue]Running:[/blue] write initialization state to {output}")
     save_state(state, output)
     console.print(f"[green]Wrote full state[/green] {output}")
 
@@ -967,7 +997,7 @@ def models_deploy(
         None, help="Override vLLM max model length."
     ),
     pull: bool = typer.Option(
-        True, "--pull/--no-pull", help="Download default asset if missing."
+        True, "--download/--no-download", help="Download default asset if missing."
     ),
     background: bool = typer.Option(True, "--background/--foreground"),
     dry_run: bool = typer.Option(
@@ -1121,11 +1151,17 @@ def chat(
     console.print(Rule("[bold blue]Stage 1/2 · Initialize[/bold blue]"))
     _configure(workspace)
     init_events: list[tuple[str, str]] = []
+    compact_status: Any = None
 
     def progress(stage: str, detail: str) -> None:
         init_events.append((stage, detail))
         if debug_ui:
             console.print(f"[dim]• {escape(stage)}[/dim] {escape(detail)}")
+        else:
+            message = f"正在运行：{detail}"
+            if compact_status is not None:
+                compact_status.update(f"[blue]{escape(message)}...[/blue]")
+            console.print(f"[blue]{escape(message)}[/blue]")
 
     if state:
         _render_config_summary(
@@ -1157,15 +1193,19 @@ def chat(
                 raise
         else:
             try:
-                with console.status("[blue]初始化来访者状态...[/blue]"):
-                    with _suppress_stdio(True):
-                        seeker = MsPatient(
-                            portrait,
-                            report,
-                            conversations,
-                            progress_callback=progress,
-                        )
+                with console.status(
+                    "[blue]正在运行：初始化来访者状态...[/blue]"
+                ) as status:
+                    compact_status = status
+                    seeker = MsPatient(
+                        portrait,
+                        report,
+                        conversations,
+                        progress_callback=progress,
+                    )
+                    compact_status = None
             except Exception as err:
+                compact_status = None
                 if _looks_like_connection_error(err):
                     _print_model_connection_help(workspace, err)
                     raise typer.Exit(code=1) from None
@@ -1215,12 +1255,18 @@ def run_batch(
     output.mkdir(parents=True, exist_ok=True)
     summary_path = output / "summary.jsonl"
     for case_file in case_files:
-        state = (
-            build_full_state(case_file)
-            if mode == "full"
-            else build_prompt_only_state(case_file)
-        )
+        console.print(f"[blue]Running:[/blue] build {mode} state for {case_file}")
+        if mode == "full":
+            state = build_full_state(
+                case_file,
+                progress_callback=lambda stage, detail: console.print(
+                    f"[blue]Running {escape(stage)}:[/blue] {escape(detail)}"
+                ),
+            )
+        else:
+            state = build_prompt_only_state(case_file)
         state_path = output / f"{state['case_id']}.state.json"
+        console.print(f"[blue]Running:[/blue] write state to {state_path}")
         save_state(state, state_path)
         record = {
             "case_id": state["case_id"],
@@ -1230,7 +1276,11 @@ def run_batch(
         if live and messages:
             session = FrozenPromptSession(state)
             transcript_path = output / f"{state['case_id']}.transcript.jsonl"
-            for message in messages:
+            for index, message in enumerate(messages, start=1):
+                console.print(
+                    f"[blue]Running:[/blue] live scripted turn {index} "
+                    f"for {state['case_id']}"
+                )
                 response = session.chat(message)
                 append_jsonl(transcript_path, {"role": "Counselor", "content": message})
                 append_jsonl(transcript_path, {"role": "Seeker", "content": response})

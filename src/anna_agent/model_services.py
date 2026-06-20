@@ -126,7 +126,7 @@ def deploy_install_hint(workspace: Path) -> str:
         "vLLM is not available for this workspace. Run "
         f"`anna models env setup --workspace {workspace}` to create "
         f"{WORKSPACE_DEPLOY_ENV_DIR}, or run "
-        f"`anna init {workspace} --deploy-env` when initializing a new "
+        f"`anna create {workspace} --deploy-env` when creating a new "
         "workspace. Alternatively, pass --vllm-command /path/to/vllm, or use "
         "`anna models configure` with an existing OpenAI-compatible endpoint."
     )
@@ -285,7 +285,7 @@ def deploy_vllm_service(
     if not _has_files(resolved_model_path) and not dry_run:
         raise FileNotFoundError(
             f"Model files not found at {resolved_model_path}. "
-            "Run `anna assets pull paper` or pass --model-path."
+            "Run `anna assets download paper` or pass --model-path."
         )
     resolved_port = port or spec.default_port
     resolved_api_key = api_key or spec.default_api_key

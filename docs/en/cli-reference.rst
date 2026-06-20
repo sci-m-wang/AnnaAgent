@@ -11,7 +11,7 @@ Global Commands
    anna --version
    anna --help
    anna doctor --workspace anna-workspace
-   anna init anna-workspace
+   anna create anna-workspace
    anna chat --workspace anna-workspace
    anna demo --workspace anna-workspace
 
@@ -24,9 +24,9 @@ Assets
 .. code-block:: bash
 
    anna assets list --workspace anna-workspace
-   anna assets pull paper --workspace anna-workspace
-   anna assets pull complaint-sft --workspace anna-workspace
-   anna assets pull complaint-sft --manifest anna-workspace/assets/anna-assets.json
+   anna assets download paper --workspace anna-workspace
+   anna assets download complaint-sft --workspace anna-workspace
+   anna assets download complaint-sft --manifest anna-workspace/assets/anna-assets.json
 
 Always pass ``--workspace`` or ``--manifest`` so downloads go to the intended
 workspace. If you omit both, the current directory becomes the workspace.
@@ -72,14 +72,14 @@ Initialization
 
 .. code-block:: bash
 
-   anna initialize prompt-only anna-workspace/cases/family_stress_case.json \
+   anna init prompt-only anna-workspace/cases/family_stress_case.json \
      --out anna-workspace/prompts/prompt-only.json
 
-   anna initialize full anna-workspace/cases/family_stress_case.json \
+   anna init full anna-workspace/cases/family_stress_case.json \
      --out anna-workspace/prompts/full.json \
      --workspace anna-workspace
 
-   anna initialize freeze anna-workspace/cases/family_stress_case.json \
+   anna init freeze anna-workspace/cases/family_stress_case.json \
      --mode prompt-only \
      --out anna-workspace/prompts/frozen.json \
      --workspace anna-workspace

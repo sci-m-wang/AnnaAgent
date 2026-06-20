@@ -46,7 +46,7 @@ memory files inside a workspace directory.
 
 .. code-block:: bash
 
-   anna init anna-workspace
+   anna create anna-workspace
    anna doctor --workspace anna-workspace
 
 The generated workspace contains:
@@ -65,8 +65,8 @@ The generated workspace contains:
      logs/
      cache/
 
-Configure the Base Model
-------------------------
+Configure the Backbone Model
+----------------------------
 
 Use the wizard for interactive setup:
 
@@ -120,10 +120,10 @@ initialization pipeline.
 
 .. code-block:: bash
 
-   anna initialize prompt-only anna-workspace/cases/family_stress_case.json \
+   anna init prompt-only anna-workspace/cases/family_stress_case.json \
      --out anna-workspace/prompts/family_stress.prompt-only.json
 
-   anna initialize from-prompt anna-workspace/prompts/family_stress.prompt-only.json
+   anna init from-prompt anna-workspace/prompts/family_stress.prompt-only.json
 
 Run Batch Experiments
 ---------------------

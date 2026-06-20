@@ -1,5 +1,7 @@
 """Default initialization content."""
 
+# ruff: noqa: E501
+
 from .defaults import anna_engine_defaults
 
 INIT_YAML = f"""\
@@ -105,12 +107,15 @@ INIT_DOTENV = """\
 # AnnaAgent environment template.
 # Keep real secrets in this file and do not commit it.
 
-# Base OpenAI-compatible chat model service.
-# ANNA_ENGINE_API_KEY=your-chat-model-api-key
-# ANNA_ENGINE_BASE_URL=https://your-chat-endpoint/v1
-# ANNA_ENGINE_MODEL_NAME=your-chat-model
+# AnnaAgent backbone OpenAI-compatible model service.
+# This drives internal seeker-simulation modules. It can temporarily stand in
+# when no external counselor/counselor model is wired, but formal runs should
+# use a dedicated counselor process or model for counselor turns.
+# ANNA_ENGINE_API_KEY=your-backbone-model-api-key
+# ANNA_ENGINE_BASE_URL=https://your-backbone-endpoint/v1
+# ANNA_ENGINE_MODEL_NAME=your-backbone-model
 
-# MIMO aliases are also supported for the base chat model.
+# MIMO aliases are also supported for the AnnaAgent backbone model.
 # MIMO_API_KEY=your-mimo-api-key
 # MIMO_BASE_URL=https://your-mimo-endpoint/v1
 # MIMO_MODEL=your-mimo-model
@@ -132,9 +137,11 @@ INIT_DOTENV = """\
 # ANNA_ENGINE_COMPLAINT_MODEL_NAME=your-complaint-sft-model
 # ANNA_ENGINE_COMPLAINT_USE_SFT_MODEL=true
 
-# ANNA_ENGINE_COUNSELOR_API_KEY=your-counselor-key
-# ANNA_ENGINE_COUNSELOR_BASE_URL=https://your-counselor-endpoint/v1
-# ANNA_ENGINE_COUNSELOR_MODEL_NAME=your-counselor-model
+# Optional AnnaAgent backbone fallback endpoint for internal modules that still
+# use the historical counselor config key.
+# ANNA_ENGINE_COUNSELOR_API_KEY=your-backbone-fallback-key
+# ANNA_ENGINE_COUNSELOR_BASE_URL=https://your-backbone-fallback-endpoint/v1
+# ANNA_ENGINE_COUNSELOR_MODEL_NAME=your-backbone-fallback-model
 
 # ANNA_ENGINE_EMOTION_API_KEY=your-emotion-sft-key
 # ANNA_ENGINE_EMOTION_BASE_URL=https://your-emotion-sft-endpoint/v1

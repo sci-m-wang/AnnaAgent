@@ -15,7 +15,7 @@ runner = CliRunner()
 def test_workspace_to_batch_prompt_only_journey(tmp_path: Path):
     workspace = tmp_path / "workspace"
 
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     assert (workspace / "settings.yaml").exists()
     assert (workspace / "assets" / "anna-assets.json").exists()
@@ -32,9 +32,11 @@ def test_workspace_to_batch_prompt_only_journey(tmp_path: Path):
     state_file = workspace / "prompts" / "case.state.json"
     result = runner.invoke(
         app,
-        ["initialize", "prompt-only", str(case_file), "--out", str(state_file)],
+        ["init", "prompt-only", str(case_file), "--out", str(state_file)],
     )
     assert result.exit_code == 0, result.output
+    assert "Initialization · prompt-only" in result.output
+    assert "Running:" in result.output
     state = json.loads(state_file.read_text(encoding="utf-8"))
     assert state["mode"] == "prompt_only"
     assert state["prompt"]
@@ -57,7 +59,7 @@ def test_workspace_to_batch_prompt_only_journey(tmp_path: Path):
     assert (out_dir / "summary.jsonl").exists()
 
 
-def test_init_can_create_deploy_env(tmp_path: Path, monkeypatch):
+def test_create_can_create_deploy_env(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
 
     def fake_setup(workspace_path, python="3.12", force=False):
@@ -74,7 +76,7 @@ def test_init_can_create_deploy_env(tmp_path: Path, monkeypatch):
     result = runner.invoke(
         app,
         [
-            "init",
+            "create",
             str(workspace),
             "--deploy-env",
             "--deploy-python",
@@ -87,9 +89,9 @@ def test_init_can_create_deploy_env(tmp_path: Path, monkeypatch):
     assert "Deploy environment ready" in result.output
 
 
-def test_assets_pull_reports_unconfigured_assets(tmp_path: Path):
+def test_assets_download_reports_unconfigured_assets(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     manifest = json.loads(manifest_path(workspace).read_text(encoding="utf-8"))
     manifest["presets"] = {"local-test": ["missing-url"]}
@@ -107,7 +109,7 @@ def test_assets_pull_reports_unconfigured_assets(tmp_path: Path):
 
     result = runner.invoke(
         app,
-        ["assets", "pull", "local-test", "--workspace", str(workspace)],
+        ["assets", "download", "local-test", "--workspace", str(workspace)],
     )
 
     assert result.exit_code == 0, result.output
@@ -116,7 +118,7 @@ def test_assets_pull_reports_unconfigured_assets(tmp_path: Path):
 
 def test_assets_list_resolves_manifest_absolute_targets(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     manifest = json.loads(manifest_path(workspace).read_text(encoding="utf-8"))
     absolute_target = Path("/tmp/a")
@@ -143,16 +145,16 @@ def test_assets_list_resolves_manifest_absolute_targets(tmp_path: Path):
     assert str(absolute_target) in result.output
 
 
-def test_assets_pull_target_override_requires_single_asset(tmp_path: Path):
+def test_assets_download_target_override_requires_single_asset(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
 
     result = runner.invoke(
         app,
         [
             "assets",
-            "pull",
+            "download",
             "paper",
             "--workspace",
             str(workspace),
@@ -166,7 +168,7 @@ def test_assets_pull_target_override_requires_single_asset(tmp_path: Path):
 
 def test_config_secrets_writes_hidden_values_to_dotenv(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
 
     result = runner.invoke(
@@ -184,7 +186,7 @@ def test_config_secrets_writes_hidden_values_to_dotenv(tmp_path: Path):
 
 def test_models_commands_configure_sft_modes(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
 
     result = runner.invoke(
@@ -221,7 +223,7 @@ def test_models_commands_configure_sft_modes(tmp_path: Path):
 
 def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
 
     result = runner.invoke(
@@ -242,7 +244,7 @@ def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
             "--gpu",
             "0",
             "--dry-run",
-            "--no-pull",
+            "--no-download",
         ],
         input="deploy-secret\n",
     )
@@ -256,7 +258,7 @@ def test_models_deploy_dry_run_prints_vllm_command(tmp_path: Path):
 
 def test_models_deploy_missing_vllm_reports_concise_error(tmp_path: Path):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     model_dir = tmp_path / "model"
     model_dir.mkdir()
@@ -275,7 +277,7 @@ def test_models_deploy_missing_vllm_reports_concise_error(tmp_path: Path):
             str(model_dir),
             "--vllm-command",
             str(tmp_path / "missing-vllm"),
-            "--no-pull",
+            "--no-download",
         ],
         input="\n",
     )
@@ -289,7 +291,7 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
     tmp_path: Path, monkeypatch
 ):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
 
     def fake_deploy(workspace_path, **kwargs):
@@ -398,7 +400,7 @@ def test_models_deploy_wait_progress_redacts_log_secrets(
 
 def test_models_env_setup_and_status(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
 
     def fake_setup(workspace_path, python="3.12", force=False, uv_command="uv"):
@@ -449,7 +451,7 @@ def test_models_env_setup_and_status(tmp_path: Path, monkeypatch):
 
 def test_chat_state_uses_stage_based_rich_ui(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     state_file = workspace / "prompts" / "state.json"
     state_file.write_text(
@@ -500,9 +502,35 @@ def test_chat_state_uses_stage_based_rich_ui(tmp_path: Path, monkeypatch):
     assert "ChatCompletion" not in result.output
 
 
+def test_chat_compact_ui_shows_initialization_progress(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["create", str(workspace)])
+    assert result.exit_code == 0, result.output
+
+    class FakeMsPatient:
+        def __init__(self, portrait, report, conversations, progress_callback=None):
+            self.last_turn_context = {}
+            if progress_callback:
+                progress_callback("fake", "Preparing compact initialization")
+
+        def chat(self, message: str) -> str:
+            return "我最近有点累。"
+
+    monkeypatch.setattr("anna_agent.ms_patient.MsPatient", FakeMsPatient)
+
+    result = runner.invoke(
+        app,
+        ["chat", "--workspace", str(workspace)],
+        input="q\n",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "正在运行：Preparing compact initialization" in result.output
+
+
 def test_chat_debug_ui_shows_internal_state(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     state_file = workspace / "prompts" / "state.json"
     state_file.write_text(
@@ -557,14 +585,14 @@ def test_chat_debug_ui_shows_internal_state(tmp_path: Path, monkeypatch):
 
 def test_initialize_full_connection_error_is_concise(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
-    result = runner.invoke(app, ["init", str(workspace)])
+    result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
     case_file = workspace / "cases" / "family_stress_case.json"
 
     class APIConnectionError(Exception):
         pass
 
-    def fake_build_full_state(case_file):
+    def fake_build_full_state(case_file, progress_callback=None):
         raise APIConnectionError("Connection error.")
 
     monkeypatch.setattr("anna_agent.cli.build_full_state", fake_build_full_state)
@@ -572,7 +600,7 @@ def test_initialize_full_connection_error_is_concise(tmp_path: Path, monkeypatch
     result = runner.invoke(
         app,
         [
-            "initialize",
+            "init",
             "full",
             str(case_file),
             "--workspace",

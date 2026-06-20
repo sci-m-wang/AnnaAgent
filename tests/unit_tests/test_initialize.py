@@ -19,7 +19,7 @@ def test_initialize_project(tmp_path: Path) -> None:
     assert dotenv.exists()
     assert dotenv_example.exists()
     dotenv_text = dotenv.read_text(encoding="utf-8")
-    assert "# ANNA_ENGINE_API_KEY=your-chat-model-api-key" in dotenv_text
+    assert "# ANNA_ENGINE_API_KEY=your-backbone-model-api-key" in dotenv_text
     assert "# ANNA_ENGINE_EMBEDDING_API_KEY=your-embedding-api-key" in dotenv_text
     data = yaml.safe_load(interactive.read_text(encoding="utf-8"))
     assert "portrait" in data
