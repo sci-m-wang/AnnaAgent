@@ -32,3 +32,15 @@ vLLM/SFT 部署流程。
 --------
 
 AnnaAgent 用于研究和模拟，不应被当成临床建议工具，也不应替代专业心理服务。公开仓库不包含受限的真实咨询原始记录，请不要在 issue、日志或公开 prompt 中粘贴敏感咨询数据。
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 目录
+
+   quickstart
+   configuration
+   cli-reference
+   deployment
+   data-memory
+   publishing
+   troubleshooting

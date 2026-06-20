@@ -20,7 +20,8 @@
 
    uv lock --check
    uv build
-   uv run --group docs sphinx-build -b html docs docs/_build/html
+   ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
+   ANNA_DOCS_LANGUAGE=zh uv run --group docs sphinx-build -W -b html -c docs docs/zh docs/_build/html/zh
 
 PyPI 发布
 ---------
@@ -40,13 +41,14 @@ PyPI 发布
 GitHub Pages
 ------------
 
-文档 workflow 会在 ``main`` 更新时从 ``docs/`` 构建 Sphinx HTML，并部署到 GitHub Pages。仓库设置中 Pages source 应选择 ``GitHub Actions``。
+文档 workflow 会在 ``main`` 更新时分别从 ``docs/en`` 构建英文站点到根路径，从 ``docs/zh`` 构建中文站点到 ``/zh/``，并部署到 GitHub Pages。发布后的站点包含语言切换器。仓库设置中 Pages source 应选择 ``GitHub Actions``。
 
 本地预览文档
 ------------
 
 .. code-block:: bash
 
-   uv run --group docs sphinx-build -b html docs docs/_build/html
+   ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
+   ANNA_DOCS_LANGUAGE=zh uv run --group docs sphinx-build -W -b html -c docs docs/zh docs/_build/html/zh
 
 然后打开 ``docs/_build/html/index.html``。

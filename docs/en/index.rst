@@ -36,3 +36,15 @@ AnnaAgent is intended for research and simulation. Do not present generated
 outputs as clinical advice, do not use the simulator to replace professional
 care, and do not attempt to reconstruct restricted real counseling records from
 released artifacts.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents
+
+   quickstart
+   configuration
+   cli-reference
+   deployment
+   data-memory
+   publishing
+   troubleshooting
