@@ -61,6 +61,21 @@
 
   function updateSidebarLabels(language) {
     document.querySelectorAll('.sidebar-tree a[href], .related-pages a[href]').forEach(function (link) {
+      var url;
+      try {
+        url = new URL(link.href, window.location.href);
+      } catch (error) {
+        return;
+      }
+      if (url.hash) {
+        var target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+        var languageBlock = target ? target.closest(".lang-en, .lang-zh") : null;
+        var listItem = link.closest("li") || link;
+        if (languageBlock) {
+          listItem.hidden = languageBlock.classList.contains("lang-zh") !== (language === "zh");
+        }
+        return;
+      }
       var key = normalizePath(link.href);
       if (key && labels[key]) {
         link.textContent = labels[key][language];
