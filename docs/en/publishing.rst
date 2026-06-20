@@ -49,9 +49,9 @@ Recommended tag and release flow:
 
 .. code-block:: bash
 
-   git tag v0.2.2
-   git push origin v0.2.2
-   gh release create v0.2.2 --title "v0.2.2" --notes "Release v0.2.2"
+   git tag v0.2.3
+   git push origin v0.2.3
+   gh release create v0.2.3 --title "v0.2.3" --notes "Release v0.2.3"
 
 After the release is created, GitHub Actions publishes the package automatically.
 Before creating the release, verify the package locally with ``uv build`` and

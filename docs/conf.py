@@ -4,8 +4,8 @@ from pathlib import Path
 project = "AnnaAgent"
 author = "AnnaAgent contributors"
 copyright = "2026, AnnaAgent contributors"
-release = "0.2.2"
-version = "0.2.2"
+release = "0.2.3"
+version = "0.2.3"
 docs_language = os.environ.get("ANNA_DOCS_LANGUAGE", "en")
 
 extensions = [
