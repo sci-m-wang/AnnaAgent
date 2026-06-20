@@ -20,8 +20,7 @@ Build Locally
 
    uv lock --check
    uv build
-   ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
-   ANNA_DOCS_LANGUAGE=zh uv run --group docs sphinx-build -W -b html -c docs docs/zh docs/_build/html/zh
+   uv run --group docs sphinx-build -W -b html docs docs/_build/html
 
 PyPI Publishing
 ---------------
@@ -46,17 +45,16 @@ publisher in PyPI.
 GitHub Pages
 ------------
 
-The documentation workflow builds English Sphinx HTML from ``docs/en`` to the
-site root and Chinese Sphinx HTML from ``docs/zh`` to ``/zh/``. The published
-site includes a language switcher. In the repository settings, Pages should use
-``GitHub Actions`` as the source.
+The documentation workflow builds one Sphinx site from ``docs/``. Each page
+contains English and Chinese content blocks, and the published site includes a
+language switcher that controls which language is visible. In the repository
+settings, Pages should use ``GitHub Actions`` as the source.
 
 Local Documentation Preview
 ---------------------------
 
 .. code-block:: bash
 
-   ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
-   ANNA_DOCS_LANGUAGE=zh uv run --group docs sphinx-build -W -b html -c docs docs/zh docs/_build/html/zh
+   uv run --group docs sphinx-build -W -b html docs docs/_build/html
 
 Then open ``docs/_build/html/index.html`` in a browser.
