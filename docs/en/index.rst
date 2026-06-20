@@ -12,8 +12,8 @@ What You Can Do
 
 * Install ``anna`` as a terminal command from PyPI.
 * Create an isolated AnnaAgent workspace with sample cases and configuration.
-* Run prompt-only sessions for lightweight experiments.
-* Run full dynamic simulations with emotion, complaint-chain, scale, and memory modules.
+* Run full seeker initialization with emotion, complaint-chain, scale, and memory modules.
+* Save and reload initialized prompt states for later chat sessions.
 * Use base OpenAI-compatible models or local SFT endpoints.
 * Download released assets and deploy local SFT models with vLLM on GPU machines.
 * Index previous sessions into LanceDB and retrieve long-term memory.

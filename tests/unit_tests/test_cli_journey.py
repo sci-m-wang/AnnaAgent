@@ -2,17 +2,38 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from typer.testing import CliRunner
 
 from anna_agent.assets import manifest_path
 from anna_agent.cli import app
+from anna_agent.runtime import load_state
 
 runner = CliRunner()
 
 
-def test_workspace_to_batch_prompt_only_journey(tmp_path: Path):
+def _fake_full_state(case_file: Path, progress_callback=None):
+    if progress_callback:
+        progress_callback("fake", "Building full prompt state")
+    return {
+        "schema_version": 1,
+        "mode": "full",
+        "case_id": case_file.stem,
+        "seeker_id": "seeker-1",
+        "portrait": {},
+        "report": {},
+        "previous_conversations": [],
+        "prompt": "Act as a seeker.",
+        "complaint_chain": [],
+        "configuration": {},
+        "metadata": {"source_file": str(case_file)},
+    }
+
+
+def test_workspace_to_batch_full_prompt_journey(tmp_path: Path, monkeypatch):
     workspace = tmp_path / "workspace"
 
     result = runner.invoke(app, ["create", str(workspace)])
@@ -30,16 +51,29 @@ def test_workspace_to_batch_prompt_only_journey(tmp_path: Path):
     assert result.exit_code == 0, result.output
 
     state_file = workspace / "prompts" / "case.state.json"
+    monkeypatch.setattr("anna_agent.cli.build_full_state", _fake_full_state)
     result = runner.invoke(
         app,
-        ["init", "prompt-only", str(case_file), "--out", str(state_file)],
+        [
+            "init",
+            "full",
+            str(case_file),
+            "--workspace",
+            str(workspace),
+            "--out",
+            str(state_file),
+        ],
     )
     assert result.exit_code == 0, result.output
-    assert "Initialization · prompt-only" in result.output
+    assert "Initialization · full" in result.output
     assert "Running:" in result.output
     state = json.loads(state_file.read_text(encoding="utf-8"))
-    assert state["mode"] == "prompt_only"
+    assert state["mode"] == "full"
     assert state["prompt"]
+
+    result = runner.invoke(app, ["init", "from-prompt", str(state_file)])
+    assert result.exit_code == 0, result.output
+    assert "prompt_chars" in result.output
 
     out_dir = workspace / "runs" / "batch"
     result = runner.invoke(
@@ -458,7 +492,7 @@ def test_chat_state_uses_stage_based_rich_ui(tmp_path: Path, monkeypatch):
         json.dumps(
             {
                 "schema_version": 1,
-                "mode": "prompt_only",
+                "mode": "full",
                 "case_id": "case-1",
                 "seeker_id": "seeker-1",
                 "portrait": {},
@@ -537,7 +571,7 @@ def test_chat_debug_ui_shows_internal_state(tmp_path: Path, monkeypatch):
         json.dumps(
             {
                 "schema_version": 1,
-                "mode": "prompt_only",
+                "mode": "full",
                 "case_id": "case-1",
                 "seeker_id": "seeker-1",
                 "portrait": {},
@@ -581,6 +615,26 @@ def test_chat_debug_ui_shows_internal_state(tmp_path: Path, monkeypatch):
     assert "调试双模式" in result.output
     assert "本轮内部状态" in result.output
     assert "sadness" in result.output
+
+
+def test_prompt_only_state_is_rejected(tmp_path: Path):
+    state_file = tmp_path / "prompt-only.json"
+    state_file.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "mode": "prompt_only",
+                "portrait": {},
+                "report": {},
+                "previous_conversations": [],
+                "prompt": "Wrong shortcut prompt.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="prompt_only states are not supported"):
+        load_state(state_file)
 
 
 def test_initialize_full_connection_error_is_concise(tmp_path: Path, monkeypatch):

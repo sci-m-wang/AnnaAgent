@@ -271,15 +271,14 @@ anna test memory --workspace anna-workspace
 anna test model --workspace anna-workspace
 ```
 
-Initialization can be run as a full AnnaAgent initialization, or as a prompt-only
-state for cheap dry-runs and reproducible prompt freezing:
+Initialization has one prompt-generation path: run the full AnnaAgent seeker
+initialization pipeline, save the generated prompt state, then reload that state
+for later chat sessions:
 
 ```bash
-anna init prompt-only anna-workspace/cases/family_stress_case.json \
-  --out anna-workspace/prompts/family.prompt.json
 anna init full anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.full.json --workspace anna-workspace
-anna init from-prompt anna-workspace/prompts/family.prompt.json
+anna init from-prompt anna-workspace/prompts/family.full.json
 ```
 
 Chat interactively from either a case file or a frozen prompt state:
@@ -289,7 +288,7 @@ anna chat --workspace anna-workspace \
   --case anna-workspace/cases/family_stress_case.json \
   --save anna-workspace/runs/manual-chat.jsonl
 anna chat --workspace anna-workspace \
-  --state anna-workspace/prompts/family.prompt.json
+  --state anna-workspace/prompts/family.full.json
 ```
 
 Batch experiments support dry-run initialization by default and live scripted

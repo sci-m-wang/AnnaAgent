@@ -107,12 +107,12 @@ msgid "Type ``exit``, ``quit``, or ``q`` to leave the chat."
 msgstr "输入 ``exit``、``quit`` 或 ``q`` 退出对话。"
 
 #: ../../en/quickstart.rst:115
-msgid "Create a Prompt-Only State"
-msgstr "生成 Prompt-Only 状态"
+msgid "Create a Reusable Prompt State"
+msgstr "生成可复用 Prompt State"
 
 #: ../../en/quickstart.rst:117
-msgid "Prompt-only mode is useful for lightweight experiments and API sessions because it freezes a case into a single system prompt without running the full dynamic initialization pipeline."
-msgstr "Prompt-only 模式会把案例冻结成一个 system prompt，适合快速实验和 API session："
+msgid "Full initialization runs the AnnaAgent seeker initialization pipeline and writes the generated system prompt plus supporting metadata to a reusable state file. Later sessions should load that prebuilt state instead of rebuilding a prompt directly from the raw case."
+msgstr "完整初始化会运行 AnnaAgent seeker 初始化流水线，并把生成的 system prompt 及配套元数据写入可复用 state 文件。后续 session 应加载这个预构建 state，而不是直接从原始 case 重新拼 prompt。"
 
 #: ../../en/quickstart.rst:129
 msgid "Run Batch Experiments"

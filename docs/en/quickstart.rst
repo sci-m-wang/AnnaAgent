@@ -111,19 +111,23 @@ You can also run the default interactive file in the workspace:
 
 Type ``exit``, ``quit``, or ``q`` to leave the chat.
 
-Create a Prompt-Only State
---------------------------
+Create a Reusable Prompt State
+------------------------------
 
-Prompt-only mode is useful for lightweight experiments and API sessions because
-it freezes a case into a single system prompt without running the full dynamic
-initialization pipeline.
+Full initialization runs the AnnaAgent seeker initialization pipeline and writes
+the generated system prompt plus supporting metadata to a reusable state file.
+Later sessions should load that prebuilt state instead of rebuilding a prompt
+directly from the raw case.
 
 .. code-block:: bash
 
-   anna init prompt-only anna-workspace/cases/family_stress_case.json \
-     --out anna-workspace/prompts/family_stress.prompt-only.json
+   anna init full anna-workspace/cases/family_stress_case.json \
+     --out anna-workspace/prompts/family_stress.full.json \
+     --workspace anna-workspace
 
-   anna init from-prompt anna-workspace/prompts/family_stress.prompt-only.json
+   anna init from-prompt anna-workspace/prompts/family_stress.full.json
+   anna chat --workspace anna-workspace \
+     --state anna-workspace/prompts/family_stress.full.json
 
 Run Batch Experiments
 ---------------------
@@ -135,7 +139,7 @@ Prepare a script file containing counselor messages, then run a batch:
    anna run batch \
      --case anna-workspace/cases/family_stress_case.json \
      --out anna-workspace/runs/quickstart \
-     --mode prompt-only \
+     --mode full \
      --workspace anna-workspace
 
 Add ``--live`` and ``--script`` when you want the model to generate transcripts.

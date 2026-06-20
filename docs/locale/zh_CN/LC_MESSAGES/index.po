@@ -39,12 +39,12 @@ msgid "Create an isolated AnnaAgent workspace with sample cases and configuratio
 msgstr "创建隔离 workspace，保存配置、密钥、案例、日志和运行产物。"
 
 #: ../../en/index.rst:15
-msgid "Run prompt-only sessions for lightweight experiments."
-msgstr "用 prompt-only 模式快速生成 frozen prompt state。"
+msgid "Run full seeker initialization with emotion, complaint-chain, scale, and memory modules."
+msgstr "运行包含情绪、主诉链、量表和记忆模块的完整 seeker 初始化。"
 
 #: ../../en/index.rst:16
-msgid "Run full dynamic simulations with emotion, complaint-chain, scale, and memory modules."
-msgstr "用 full 模式运行包含情绪、主诉链、量表和记忆模块的完整初始化。"
+msgid "Save and reload initialized prompt states for later chat sessions."
+msgstr "保存并重新加载已初始化的 prompt state，用于后续对话。"
 
 #: ../../en/index.rst:17
 msgid "Use base OpenAI-compatible models or local SFT endpoints."

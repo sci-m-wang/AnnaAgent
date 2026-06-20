@@ -73,16 +73,14 @@ Inspect or reset memory:
    anna memory inspect --workspace anna-workspace
    anna memory reset --workspace anna-workspace
 
-Prompt-Only Versus Full State
------------------------------
-
-``prompt-only`` states are fast to create and freeze a case into a compact
-system prompt for lightweight experiments.
+Reusable Prompt State
+---------------------
 
 ``full`` states run the complete dynamic initialization pipeline. They include
 the generated complaint chain, status summary, sampled situation, style analysis,
-and the final seeker system prompt.
+and the final seeker system prompt. Save this state when you want to reuse the
+initialized seeker later with ``anna chat --state`` or the service API.
 
-Use ``prompt-only`` for onboarding and batch smoke tests. Use ``full`` when you
-need the complete AnnaAgent behavior and have configured all required model
-services.
+AnnaAgent does not support a shortcut that builds a prompt directly from a raw
+case without running initialization, because that bypasses the seeker simulation
+modules and produces the wrong prompt format.

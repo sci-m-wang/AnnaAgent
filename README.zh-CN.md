@@ -304,26 +304,19 @@ OPENAI_EMBEDDING_MODEL=your-embedding-model
 
 ### 8. 初始化 AnnaAgent
 
-初始化可以运行完整流程，也可以只生成 prompt-only state，用于低成本 dry-run 或固定初始化 prompt。
+初始化只有一条生成 prompt 的路径：先运行完整 AnnaAgent seeker 初始化流程，保存生成的 prompt state，后续对话再直接加载这个 state。
 
 ```bash
-anna init prompt-only anna-workspace/cases/family_stress_case.json \
-  --out anna-workspace/prompts/family.prompt.json
-
 anna init full anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.full.json \
   --workspace anna-workspace
 
-anna init freeze anna-workspace/cases/family_stress_case.json \
-  --out anna-workspace/prompts/family.frozen.json \
-  --workspace anna-workspace
-
-anna init from-prompt anna-workspace/prompts/family.prompt.json
+anna init from-prompt anna-workspace/prompts/family.full.json
 ```
 
 ### 9. 交互式对话
 
-可以从案例文件启动，也可以从固定 prompt state 启动：
+可以从案例文件现场完整初始化，也可以从完整初始化保存的 prompt state 启动：
 
 ```bash
 anna chat --workspace anna-workspace \
@@ -331,7 +324,7 @@ anna chat --workspace anna-workspace \
   --save anna-workspace/runs/manual-chat.jsonl
 
 anna chat --workspace anna-workspace \
-  --state anna-workspace/prompts/family.prompt.json
+  --state anna-workspace/prompts/family.full.json
 ```
 
 ### 10. 批量实验

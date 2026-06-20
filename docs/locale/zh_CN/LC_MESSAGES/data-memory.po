@@ -123,17 +123,13 @@ msgid "Inspect or reset memory:"
 msgstr "查看或重置记忆："
 
 #: ../../en/data-memory.rst:77
-msgid "Prompt-Only Versus Full State"
-msgstr "Prompt-Only 与 Full State"
+msgid "Reusable Prompt State"
+msgstr "可复用 Prompt State"
 
 #: ../../en/data-memory.rst:79
-msgid "``prompt-only`` states are fast to create and freeze a case into a compact system prompt for lightweight experiments."
-msgstr "``prompt-only`` state 创建很快，会把案例冻结成紧凑 system prompt，适合轻量实验。"
-
-#: ../../en/data-memory.rst:82
-msgid "``full`` states run the complete dynamic initialization pipeline. They include the generated complaint chain, status summary, sampled situation, style analysis, and the final seeker system prompt."
-msgstr "``full`` state 会运行完整动态初始化流水线，包含主诉链、状态摘要、近期情境、说话风格分析和最终 seeker system prompt。"
+msgid "``full`` states run the complete dynamic initialization pipeline. They include the generated complaint chain, status summary, sampled situation, style analysis, and the final seeker system prompt. Save this state when you want to reuse the initialized seeker later with ``anna chat --state`` or the service API."
+msgstr "``full`` state 会运行完整动态初始化流水线，包含生成的主诉链、状态摘要、采样情境、说话风格分析和最终 seeker system prompt。需要稍后通过 ``anna chat --state`` 或 service API 复用已初始化 seeker 时，请保存这个 state。"
 
 #: ../../en/data-memory.rst:86
-msgid "Use ``prompt-only`` for onboarding and batch smoke tests. Use ``full`` when you need the complete AnnaAgent behavior and have configured all required model services."
-msgstr "入门和批量 smoke test 建议用 ``prompt-only``。需要完整 AnnaAgent 行为时，再使用 ``full`` 并确保模型服务已经配置好。"
+msgid "AnnaAgent does not support a shortcut that builds a prompt directly from a raw case without running initialization, because that bypasses the seeker simulation modules and produces the wrong prompt format."
+msgstr "AnnaAgent 不支持绕过初始化、直接从原始 case 拼 prompt 的快捷方式，因为这会跳过 seeker simulation modules，并生成错误的 prompt 格式。"
