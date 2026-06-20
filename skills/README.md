@@ -3,7 +3,7 @@
 This directory contains reusable agent skills for operating AnnaAgent from an
 agentic LLM environment.
 
-- `annaagent-seeker-simulation/`: install, configure, initialize, run, and
+- `patient-simulator/`: install, configure, initialize, run, and
   troubleshoot AnnaAgent seeker-simulation workflows with the CLI.
 
 These skills are intended to be public and registry-friendly. A registry such as

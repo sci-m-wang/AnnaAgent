@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: AnnaAgent 0.3.0\n"
+"Project-Id-Version: AnnaAgent 0.3.1\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2026-06-20 00:00+0800\n"
 "Last-Translator: AnnaAgent contributors\n"
@@ -55,12 +55,12 @@ msgid "Repository: ``https://github.com/sci-m-wang/AnnaAgent``"
 msgstr "仓库：``https://github.com/sci-m-wang/AnnaAgent``"
 
 #: ../../en/agent-skills.rst:43
-msgid "Skill path: ``skills/annaagent-seeker-simulation``"
-msgstr "Skill 路径：``skills/annaagent-seeker-simulation``"
+msgid "Skill path: ``skills/patient-simulator``"
+msgstr "Skill 路径：``skills/patient-simulator``"
 
 #: ../../en/agent-skills.rst:44
-msgid "Version tag: ``v0.3.0``"
-msgstr "版本 tag：``v0.3.0``"
+msgid "Version tag: ``v0.3.1``"
+msgstr "版本 tag：``v0.3.1``"
 
 #: ../../en/agent-skills.rst:45
 msgid "Category: research tools, healthcare simulation, CLI automation, or agent operations"

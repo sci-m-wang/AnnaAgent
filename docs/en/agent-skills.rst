@@ -13,7 +13,7 @@ The skill lives in the repository at:
 
 .. code-block:: text
 
-   skills/annaagent-seeker-simulation/
+   skills/patient-simulator/
      SKILL.md
      references/cli-workflow.md
      references/publishing.md
@@ -26,13 +26,13 @@ Use the tagged URL for public registries that need immutable versions:
 
 .. code-block:: text
 
-   https://github.com/sci-m-wang/AnnaAgent/tree/v0.3.0/skills/annaagent-seeker-simulation
+   https://github.com/sci-m-wang/AnnaAgent/tree/v0.3.1/skills/patient-simulator
 
 Use the raw ``SKILL.md`` URL for registries that ingest a single skill entry:
 
 .. code-block:: text
 
-   https://raw.githubusercontent.com/sci-m-wang/AnnaAgent/v0.3.0/skills/annaagent-seeker-simulation/SKILL.md
+   https://raw.githubusercontent.com/sci-m-wang/AnnaAgent/v0.3.1/skills/patient-simulator/SKILL.md
 
 ClawHub-Style Publishing Checklist
 ----------------------------------
@@ -40,8 +40,8 @@ ClawHub-Style Publishing Checklist
 For public skill hubs such as ClawHub, submit:
 
 * Repository: ``https://github.com/sci-m-wang/AnnaAgent``
-* Skill path: ``skills/annaagent-seeker-simulation``
-* Version tag: ``v0.3.0``
+* Skill path: ``skills/patient-simulator``
+* Version tag: ``v0.3.1``
 * Category: research tools, healthcare simulation, CLI automation, or agent operations
 * Visibility: public
 
@@ -50,7 +50,7 @@ If the platform requires an archive, package only the skill folder:
 .. code-block:: bash
 
    cd skills
-   zip -r annaagent-seeker-simulation.skill.zip annaagent-seeker-simulation
+   zip -r patient-simulator.skill.zip patient-simulator
 
 Do not include ``.env``, virtual environments, logs, runs, caches, local memory
 databases, or documentation build artifacts.

@@ -1,9 +1,9 @@
 ---
-name: annaagent-seeker-simulation
+name: patient-simulator
 description: Use this skill whenever the user wants an agentic LLM to install, configure, initialize, run, batch, troubleshoot, or document AnnaAgent seeker/virtual-patient simulation from the CLI. This skill is especially relevant for tasks mentioning AnnaAgent, seeker simulation, virtual patient initialization, `anna init full`, reusable prompt states, `anna chat --state`, SFT model services, vLLM deployment, or publishing AnnaAgent agent skills to registries such as ClawHub.
 ---
 
-# AnnaAgent Seeker Simulation CLI Skill
+# Patient Simulator CLI Skill
 
 Use this skill to operate AnnaAgent as a realistic psychological-counseling
 seeker simulator. AnnaAgent is a seeker agent: it simulates the client/visitor in
@@ -99,7 +99,7 @@ commands. Check GPU, CUDA, and vLLM availability first; use
 To publish this skill to a public skill registry, keep the folder intact:
 
 ```text
-annaagent-seeker-simulation/
+patient-simulator/
   SKILL.md
   references/
 ```

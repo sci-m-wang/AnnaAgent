@@ -1,6 +1,6 @@
 # Publishing AnnaAgent Skills Publicly
 
-This reference is for publishing `skills/annaagent-seeker-simulation/` to a
+This reference is for publishing `skills/patient-simulator/` to a
 public registry such as ClawHub or any platform that indexes file-based agent
 skills.
 
@@ -18,14 +18,14 @@ skills.
 After merging to `main`, the skill is publicly accessible at these stable paths:
 
 ```text
-https://github.com/sci-m-wang/AnnaAgent/tree/main/skills/annaagent-seeker-simulation
-https://raw.githubusercontent.com/sci-m-wang/AnnaAgent/main/skills/annaagent-seeker-simulation/SKILL.md
+https://github.com/sci-m-wang/AnnaAgent/tree/main/skills/patient-simulator
+https://raw.githubusercontent.com/sci-m-wang/AnnaAgent/main/skills/patient-simulator/SKILL.md
 ```
 
 For versioned registry submissions, prefer a tag URL, for example:
 
 ```text
-https://github.com/sci-m-wang/AnnaAgent/tree/v0.3.0/skills/annaagent-seeker-simulation
+https://github.com/sci-m-wang/AnnaAgent/tree/v0.3.1/skills/patient-simulator
 ```
 
 ## ClawHub-Style Submission Checklist
@@ -33,8 +33,8 @@ https://github.com/sci-m-wang/AnnaAgent/tree/v0.3.0/skills/annaagent-seeker-simu
 If the registry supports GitHub import:
 
 1. Submit repository: `https://github.com/sci-m-wang/AnnaAgent`.
-2. Skill path: `skills/annaagent-seeker-simulation`.
-3. Version/tag: use the latest release tag, such as `v0.3.0`.
+2. Skill path: `skills/patient-simulator`.
+3. Version/tag: use the latest release tag, such as `v0.3.1`.
 4. Category: healthcare simulation, research tools, CLI automation, or agent
    operations depending on the registry taxonomy.
 5. Description: reuse the `description` field from `SKILL.md`.
@@ -44,7 +44,7 @@ If the registry requires an archive, zip the skill folder only:
 
 ```bash
 cd skills
-zip -r annaagent-seeker-simulation.skill.zip annaagent-seeker-simulation
+zip -r patient-simulator.skill.zip patient-simulator
 ```
 
 Do not include `.env`, `.venv`, run outputs, local memory DBs, or docs build
