@@ -1,0 +1,139 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/deployment.rst:2
+msgid "Local SFT and vLLM Deployment"
+msgstr "本地 SFT 与 vLLM 部署"
+
+#: ../../en/deployment.rst:4
+msgid "AnnaAgent can use base models only, but the paper system also uses SFT modules for emotion inference and chief-complaint chain generation. This page explains how to download released assets and deploy local vLLM services."
+msgstr "AnnaAgent 可以只使用 base model，但论文系统还包含情绪推断和主诉链生成 SFT 模块。本页说明如何下载资产并在 GPU 机器上部署本地 vLLM 服务。"
+
+#: ../../en/deployment.rst:9
+msgid "When to Use This Path"
+msgstr "什么时候需要本路径"
+
+#: ../../en/deployment.rst:11
+msgid "Use local deployment when:"
+msgstr "适合以下情况："
+
+#: ../../en/deployment.rst:13
+msgid "You have a Linux GPU machine or cluster node."
+msgstr "你有 Linux GPU 机器或集群节点。"
+
+#: ../../en/deployment.rst:14
+msgid "You want AnnaAgent to start OpenAI-compatible SFT endpoints for you."
+msgstr "你希望 AnnaAgent 自动启动 OpenAI-compatible SFT endpoint。"
+
+#: ../../en/deployment.rst:15
+msgid "You want reproducible service logs and workspace-managed endpoint settings."
+msgstr "你希望部署日志、PID 和 endpoint 配置都由 workspace 管理。"
+
+#: ../../en/deployment.rst:17
+msgid "Stay on base model mode when you only need to run a quick example or do not have GPU access."
+msgstr "如果只是快速跑样例，或者没有 GPU，继续使用 base model 模式即可。"
+
+#: ../../en/deployment.rst:21
+msgid "Create the Deploy Environment"
+msgstr "创建部署环境"
+
+#: ../../en/deployment.rst:23
+msgid "The recommended setup keeps the lightweight ``anna`` CLI separate from the heavy vLLM runtime environment."
+msgstr "推荐将轻量 ``anna`` CLI 和较重的 vLLM runtime 隔离："
+
+#: ../../en/deployment.rst:34
+msgid "The deploy environment is stored at ``anna-workspace/.anna-deploy-venv``. When it exists, ``anna models deploy`` automatically uses the vLLM executable inside that environment."
+msgstr "部署环境位于 ``anna-workspace/.anna-deploy-venv``。存在该环境时，``anna models deploy`` 会优先使用其中的 vLLM。"
+
+#: ../../en/deployment.rst:39
+msgid "Download Released Assets"
+msgstr "下载释放资产"
+
+#: ../../en/deployment.rst:46
+msgid "The default paper preset includes the emotion inference SFT model, the chief complaint chain SFT model, and released synthetic data resources."
+msgstr "默认 paper preset 包括 emotion SFT、chief complaint chain SFT 和合成数据资源。"
+
+#: ../../en/deployment.rst:50
+msgid "Deploy Services"
+msgstr "启动服务"
+
+#: ../../en/deployment.rst:52
+msgid "Deploy the complaint model:"
+msgstr "部署 complaint 模型："
+
+#: ../../en/deployment.rst:59
+msgid "Deploy the emotion model:"
+msgstr "部署 emotion 模型："
+
+#: ../../en/deployment.rst:66
+msgid "If you have one GPU, deploy one target at a time or lower memory utilization."
+msgstr "如果只有一张 GPU，请分开部署或降低显存使用率。"
+
+#: ../../en/deployment.rst:69
+msgid "What the CLI Checks"
+msgstr "CLI 会检查什么"
+
+#: ../../en/deployment.rst:71
+msgid "Before starting vLLM, AnnaAgent checks:"
+msgstr "启动 vLLM 前，AnnaAgent 会检查："
+
+#: ../../en/deployment.rst:73
+msgid "``nvidia-smi`` availability."
+msgstr "``nvidia-smi`` 是否可用。"
+
+#: ../../en/deployment.rst:74
+msgid "Whether the requested GPU ID exists."
+msgstr "指定 GPU ID 是否存在。"
+
+#: ../../en/deployment.rst:75
+msgid "Free GPU memory and the requested vLLM memory cap."
+msgstr "剩余显存和 vLLM 显存上限。"
+
+#: ../../en/deployment.rst:76
+msgid "CUDA toolkit visibility through ``--cuda-home``, ``CUDA_HOME``, ``PATH``, common CUDA roots, or cluster modules."
+msgstr "CUDA toolkit 是否能从 ``--cuda-home``、``CUDA_HOME``、``PATH``、常见 CUDA root 或集群 module 中找到。"
+
+#: ../../en/deployment.rst:77
+msgid "``ninja`` availability for FlashInfer JIT builds."
+msgstr "FlashInfer JIT 所需的 ``ninja`` 是否可用。"
+
+#: ../../en/deployment.rst:79
+msgid "If a workspace deploy environment is missing ``ninja``, AnnaAgent installs it into that environment before starting vLLM. CUDA module loading affects only the vLLM child process and does not modify the user's shell."
+msgstr "如果 workspace 部署环境缺少 ``ninja``，AnnaAgent 会在启动 vLLM 前自动安装。自动 CUDA module 加载只影响 vLLM 子进程，不会污染用户 shell。"
+
+#: ../../en/deployment.rst:84
+msgid "Custom CUDA or vLLM Paths"
+msgstr "自定义 CUDA 或 vLLM 路径"
+
+#: ../../en/deployment.rst:86
+msgid "Use ``--cuda-home`` only when CUDA is installed in a custom location:"
+msgstr "只有 CUDA 安装在特殊位置时才需要 ``--cuda-home``："
+
+#: ../../en/deployment.rst:93
+msgid "Use ``--vllm-command`` when your cluster already provides vLLM:"
+msgstr "如果集群已经提供 vLLM："
+
+#: ../../en/deployment.rst:101
+msgid "Failure Behavior"
+msgstr "失败行为"
+
+#: ../../en/deployment.rst:103
+msgid "If startup fails or the readiness check times out, AnnaAgent prints the service log tail and does not write a bad endpoint into ``settings.yaml``. Logs and PIDs are stored under ``logs/services/`` and ``runs/services/`` inside the workspace."
+msgstr "如果服务启动失败或 readiness 超时，AnnaAgent 会打印服务日志尾部，并且不会把坏 endpoint 写入 ``settings.yaml``。日志和 PID 位于 workspace 的 ``logs/services/`` 与 ``runs/services/``。"
+
+#: ../../en/deployment.rst:107
+msgid "Check the status after deployment:"
+msgstr "查看状态："

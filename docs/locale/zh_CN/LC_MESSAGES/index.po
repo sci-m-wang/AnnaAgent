@@ -1,0 +1,99 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/index.rst:40
+msgid "Contents"
+msgstr "目录"
+
+#: ../../en/index.rst:2
+msgid "English Documentation"
+msgstr "中文文档"
+
+#: ../../en/index.rst:4
+msgid "AnnaAgent provides a reusable core toolkit for the paper ``AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation``. The current repository focuses on the core agent runtime, command line interface, local workspace format, memory indexing, model configuration, and optional vLLM-based SFT deployment."
+msgstr "AnnaAgent 是论文 ``AnnaAgent: Dynamic Evolution Agent System with Multi-Session Memory for Realistic Seeker Simulation`` 的核心工具包实现。当前仓库聚焦于核心 agent runtime、命令行工具、本地 workspace、长期记忆、模型配置和可选的 vLLM/SFT 部署流程。"
+
+#: ../../en/index.rst:11
+msgid "What You Can Do"
+msgstr "你可以用它做什么"
+
+#: ../../en/index.rst:13
+msgid "Install ``anna`` as a terminal command from PyPI."
+msgstr "从 PyPI 安装 ``anna`` 命令行工具。"
+
+#: ../../en/index.rst:14
+msgid "Create an isolated AnnaAgent workspace with sample cases and configuration."
+msgstr "创建隔离 workspace，保存配置、密钥、案例、日志和运行产物。"
+
+#: ../../en/index.rst:15
+msgid "Run prompt-only sessions for lightweight experiments."
+msgstr "用 prompt-only 模式快速生成 frozen prompt state。"
+
+#: ../../en/index.rst:16
+msgid "Run full dynamic simulations with emotion, complaint-chain, scale, and memory modules."
+msgstr "用 full 模式运行包含情绪、主诉链、量表和记忆模块的完整初始化。"
+
+#: ../../en/index.rst:17
+msgid "Use base OpenAI-compatible models or local SFT endpoints."
+msgstr "使用基础 OpenAI-compatible 模型，或接入本地/远程 SFT endpoint。"
+
+#: ../../en/index.rst:18
+msgid "Download released assets and deploy local SFT models with vLLM on GPU machines."
+msgstr "下载论文释放的资产，并在 GPU 机器上用 vLLM 启动 SFT 服务。"
+
+#: ../../en/index.rst:19
+msgid "Index previous sessions into LanceDB and retrieve long-term memory."
+msgstr "将历史疗程写入 LanceDB 长期记忆并检索。"
+
+#: ../../en/index.rst:20
+msgid "Build batch experiment states and transcripts for reproducible evaluation."
+msgstr "批量生成实验状态和对话记录，便于复现实验。"
+
+#: ../../en/index.rst:23
+msgid "Recommended Reading Order"
+msgstr "推荐阅读顺序"
+
+#: ../../en/index.rst:25
+msgid ":doc:`quickstart` for the shortest working path."
+msgstr ":doc:`quickstart`：最快跑通路径。"
+
+#: ../../en/index.rst:26
+msgid ":doc:`configuration` to understand workspaces and secrets."
+msgstr ":doc:`configuration`：理解 workspace、配置和密钥。"
+
+#: ../../en/index.rst:27
+msgid ":doc:`cli-reference` for the main command groups."
+msgstr ":doc:`cli-reference`：常用命令分组。"
+
+#: ../../en/index.rst:28
+msgid ":doc:`deployment` if you need local SFT/vLLM services."
+msgstr ":doc:`deployment`：需要本地 SFT/vLLM 时阅读。"
+
+#: ../../en/index.rst:29
+msgid ":doc:`data-memory` for case files and LanceDB memory."
+msgstr ":doc:`data-memory`：案例格式与长期记忆。"
+
+#: ../../en/index.rst:30
+msgid ":doc:`troubleshooting` when a command fails."
+msgstr ":doc:`troubleshooting`：排查常见错误。"
+
+#: ../../en/index.rst:33
+msgid "Ethical Scope"
+msgstr "伦理边界"
+
+#: ../../en/index.rst:35
+msgid "AnnaAgent is intended for research and simulation. Do not present generated outputs as clinical advice, do not use the simulator to replace professional care, and do not attempt to reconstruct restricted real counseling records from released artifacts."
+msgstr "AnnaAgent 用于研究和模拟，不应被当成临床建议工具，也不应替代专业心理服务。公开仓库不包含受限的真实咨询原始记录，请不要在 issue、日志或公开 prompt 中粘贴敏感咨询数据。"

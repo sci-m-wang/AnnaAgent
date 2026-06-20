@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 project = "AnnaAgent"
@@ -5,6 +6,7 @@ author = "AnnaAgent contributors"
 copyright = "2026, AnnaAgent contributors"
 release = "0.2.0"
 version = "0.2.0"
+docs_language = os.environ.get("ANNA_DOCS_LANGUAGE", "en")
 
 extensions = [
     "sphinx_copybutton",
@@ -17,26 +19,29 @@ source_suffix = {
 }
 
 html_theme = "furo"
-html_title = "AnnaAgent Documentation"
-html_baseurl = "https://sci-m-wang.github.io/AnnaAgent/"
+html_title = (
+    "AnnaAgent 文档" if docs_language.startswith("zh") else "AnnaAgent Documentation"
+)
+html_baseurl = (
+    "https://sci-m-wang.github.io/AnnaAgent/zh/"
+    if docs_language.startswith("zh")
+    else "https://sci-m-wang.github.io/AnnaAgent/"
+)
 html_static_path = [str(Path(__file__).parent / "_static")]
 html_css_files = ["custom.css"]
 html_js_files = ["language-switch.js"]
 html_theme_options = {
     "source_repository": "https://github.com/sci-m-wang/AnnaAgent/",
     "source_branch": "main",
-    "source_directory": "docs/",
+    "source_directory": "docs/en/",
 }
 
-language = "en"
-locale_dirs = []
+language = "zh_CN" if docs_language.startswith("zh") else "en"
+locale_dirs = [str(Path(__file__).parent / "locale")]
 exclude_patterns = [
     "_build",
-    "README.md",
     "Thumbs.db",
     ".DS_Store",
-    "en/*",
-    "zh/*",
 ]
 
 nitpicky = False

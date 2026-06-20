@@ -1,0 +1,127 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/quickstart.rst:2
+msgid "Quickstart"
+msgstr "快速开始"
+
+#: ../../en/quickstart.rst:4
+msgid "This guide starts from a clean machine and ends with a working AnnaAgent CLI workspace. It uses the base model path because it has the lowest setup cost."
+msgstr "本页从一台干净机器开始，带你完成安装、创建 workspace、配置模型并运行样例。为了降低门槛，默认使用 base model 路径。"
+
+#: ../../en/quickstart.rst:8
+msgid "Prerequisites"
+msgstr "准备条件"
+
+#: ../../en/quickstart.rst:10
+msgid "Python 3.10 or newer."
+msgstr "Python 3.10 或更新版本。"
+
+#: ../../en/quickstart.rst:11
+msgid "One package runner: ``uv``, ``pipx``, or ``pip``."
+msgstr "``uv``、``pipx`` 或 ``pip`` 之一。"
+
+#: ../../en/quickstart.rst:12
+msgid "An OpenAI-compatible chat model endpoint and API key."
+msgstr "一个 OpenAI-compatible chat model endpoint 和 API key。"
+
+#: ../../en/quickstart.rst:13
+msgid "An OpenAI-compatible embedding endpoint if you plan to use memory indexing."
+msgstr "如果要使用长期记忆，还需要一个 OpenAI-compatible embedding endpoint。"
+
+#: ../../en/quickstart.rst:16
+msgid "Install the CLI"
+msgstr "安装 CLI"
+
+#: ../../en/quickstart.rst:18
+msgid "Install from PyPI as a standalone command:"
+msgstr "推荐从 PyPI 安装成独立终端命令："
+
+#: ../../en/quickstart.rst:25
+msgid "If you use ``pipx`` instead:"
+msgstr "如果使用 ``pipx``："
+
+#: ../../en/quickstart.rst:32
+msgid "For source development:"
+msgstr "如果你要从源码开发："
+
+#: ../../en/quickstart.rst:42
+msgid "Create a Workspace"
+msgstr "创建 Workspace"
+
+#: ../../en/quickstart.rst:44
+msgid "AnnaAgent keeps user configuration, secrets, sample cases, runs, logs, and memory files inside a workspace directory."
+msgstr "AnnaAgent 会把用户配置、密钥、样例案例、运行结果、日志和记忆库放在 workspace 中："
+
+#: ../../en/quickstart.rst:52
+msgid "The generated workspace contains:"
+msgstr "生成结构如下："
+
+#: ../../en/quickstart.rst:69
+msgid "Configure the Base Model"
+msgstr "配置基础模型"
+
+#: ../../en/quickstart.rst:71
+msgid "Use the wizard for interactive setup:"
+msgstr "使用交互式向导："
+
+#: ../../en/quickstart.rst:79
+msgid "Or set non-secret values directly:"
+msgstr "也可以用非交互命令设置非密钥字段："
+
+#: ../../en/quickstart.rst:88
+msgid "Select the Lightweight Model Path"
+msgstr "选择轻量模式"
+
+#: ../../en/quickstart.rst:90
+msgid "For a first run, use the base model for all auxiliary modules:"
+msgstr "第一次运行建议让所有模块都使用 base model："
+
+#: ../../en/quickstart.rst:98
+msgid "Run a Demo Conversation"
+msgstr "运行样例对话"
+
+#: ../../en/quickstart.rst:100
+msgid "Start the included sample case:"
+msgstr "启动内置样例："
+
+#: ../../en/quickstart.rst:106
+msgid "You can also run the default interactive file in the workspace:"
+msgstr "也可以直接运行 workspace 中默认的 ``interactive.yaml``："
+
+#: ../../en/quickstart.rst:112
+msgid "Type ``exit``, ``quit``, or ``q`` to leave the chat."
+msgstr "输入 ``exit``、``quit`` 或 ``q`` 退出对话。"
+
+#: ../../en/quickstart.rst:115
+msgid "Create a Prompt-Only State"
+msgstr "生成 Prompt-Only 状态"
+
+#: ../../en/quickstart.rst:117
+msgid "Prompt-only mode is useful for lightweight experiments and API sessions because it freezes a case into a single system prompt without running the full dynamic initialization pipeline."
+msgstr "Prompt-only 模式会把案例冻结成一个 system prompt，适合快速实验和 API session："
+
+#: ../../en/quickstart.rst:129
+msgid "Run Batch Experiments"
+msgstr "批量运行"
+
+#: ../../en/quickstart.rst:131
+msgid "Prepare a script file containing counselor messages, then run a batch:"
+msgstr "准备一个包含咨询师消息的脚本文件，然后运行批处理："
+
+#: ../../en/quickstart.rst:141
+msgid "Add ``--live`` and ``--script`` when you want the model to generate transcripts."
+msgstr "如果要真的调用模型生成对话，再额外提供 ``--live`` 和 ``--script``。"

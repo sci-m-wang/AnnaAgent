@@ -1,0 +1,147 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/configuration.rst:2
+msgid "Configuration"
+msgstr "配置与 Workspace"
+
+#: ../../en/configuration.rst:4
+msgid "AnnaAgent separates project code from runtime state. The repository contains the package, while each workspace contains configuration, secrets, generated states, logs, and memory indexes."
+msgstr "AnnaAgent 将项目代码和运行状态分离。仓库中保存 package；每个 workspace 保存配置、密钥、生成状态、日志和本地记忆库。"
+
+#: ../../en/configuration.rst:9
+msgid "Workspace Files"
+msgstr "Workspace 文件"
+
+#: ../../en/configuration.rst:11
+msgid "``settings.yaml``"
+msgstr "``settings.yaml``"
+
+#: ../../en/configuration.rst:12
+msgid "Non-secret configuration such as base URLs, model names, feature flags, SFT endpoint settings, memory settings, and asset metadata."
+msgstr "非密钥配置，例如 base URL、模型名、SFT endpoint、记忆设置和资产信息。"
+
+#: ../../en/configuration.rst:15
+msgid "``.env``"
+msgstr "``.env``"
+
+#: ../../en/configuration.rst:16
+msgid "Local secrets such as API keys. This file must not be committed."
+msgstr "本地密钥，例如 API key。不要提交到 Git。"
+
+#: ../../en/configuration.rst:18
+msgid "``.env.example``"
+msgstr "``.env.example``"
+
+#: ../../en/configuration.rst:19
+msgid "Commented placeholders showing which environment variables can be used."
+msgstr "注释形式的密钥占位符，方便手动配置。"
+
+#: ../../en/configuration.rst:21
+msgid "``assets/anna-assets.json``"
+msgstr "``assets/anna-assets.json``"
+
+#: ../../en/configuration.rst:22
+msgid "Manifest for HuggingFace repositories, direct-download assets, and local SFT model targets."
+msgstr "HuggingFace 仓库、直接下载资源和本地 SFT 目标路径的 manifest。"
+
+#: ../../en/configuration.rst:25
+msgid "``cases/``"
+msgstr "``cases/``"
+
+#: ../../en/configuration.rst:26
+msgid "JSON or YAML case files used by CLI commands and batch runs."
+msgstr "CLI 和 batch run 使用的 JSON/YAML 案例。"
+
+#: ../../en/configuration.rst:28
+msgid "``prompts/``"
+msgstr "``prompts/``"
+
+#: ../../en/configuration.rst:29
+msgid "Frozen prompt states and full initialization states."
+msgstr "frozen prompt state 和 full initialization state。"
+
+#: ../../en/configuration.rst:31
+msgid "``runs/`` and ``logs/``"
+msgstr "``runs/`` 与 ``logs/``"
+
+#: ../../en/configuration.rst:32
+msgid "Experiment outputs, vLLM service PIDs, and service logs."
+msgstr "实验输出、vLLM 服务 PID 和日志。"
+
+#: ../../en/configuration.rst:35
+msgid "Inspect and Edit Configuration"
+msgstr "查看和修改配置"
+
+#: ../../en/configuration.rst:44
+msgid "Use ``--no-redact`` only on a trusted terminal because it can reveal local configuration values. API keys should be entered through ``anna config secrets`` or stored in ``.env``."
+msgstr "只有在可信终端中才使用 ``--no-redact``。API key 建议通过 ``anna config secrets`` 输入，或者写入 workspace 的 ``.env``。"
+
+#: ../../en/configuration.rst:49
+msgid "Model Modes"
+msgstr "模型模式"
+
+#: ../../en/configuration.rst:51
+msgid "AnnaAgent has three practical model modes."
+msgstr "AnnaAgent 常用三种模型模式。"
+
+#: ../../en/configuration.rst:53
+msgid "Base model mode"
+msgstr "Base model 模式"
+
+#: ../../en/configuration.rst:54
+msgid "The simplest mode. All modules call the configured base chat model. Use this first to verify the workspace and data flow."
+msgstr "最简单。所有模块调用同一个基础 chat model。建议先用它跑通流程。"
+
+#: ../../en/configuration.rst:57
+msgid "Configured SFT endpoint mode"
+msgstr "已部署 SFT endpoint 模式"
+
+#: ../../en/configuration.rst:58
+msgid "Use this when complaint-chain or emotion SFT models are already deployed as OpenAI-compatible services."
+msgstr "如果你已经部署了 complaint 或 emotion SFT OpenAI-compatible 服务，用 ``models configure`` 写入地址。"
+
+#: ../../en/configuration.rst:61
+msgid "Local vLLM deployment mode"
+msgstr "本地 vLLM 部署模式"
+
+#: ../../en/configuration.rst:62
+msgid "Use this on Linux/GPU machines when AnnaAgent should start the SFT services for you and write the resulting endpoint configuration back to the workspace."
+msgstr "在 Linux/GPU 机器上，让 AnnaAgent 自动启动 SFT 服务并写回 workspace 配置。"
+
+#: ../../en/configuration.rst:65
+msgid "Common commands:"
+msgstr "常用命令："
+
+#: ../../en/configuration.rst:79
+msgid "Secrets and Safety"
+msgstr "安全建议"
+
+#: ../../en/configuration.rst:81
+msgid "Keep ``.env`` out of Git."
+msgstr "不提交 ``.env``。"
+
+#: ../../en/configuration.rst:82
+msgid "Prefer environment variables or ``anna config secrets`` for API keys."
+msgstr "API key 使用环境变量或 ``anna config secrets``。"
+
+#: ../../en/configuration.rst:83
+msgid "Use redacted output in issue reports and logs."
+msgstr "公开 issue 和日志中只使用脱敏输出。"
+
+#: ../../en/configuration.rst:84
+msgid "Do not paste real counseling records into public issues or model prompts."
+msgstr "不要把真实心理咨询记录粘贴到公开 issue 或公开模型 prompt 中。"

@@ -1,0 +1,95 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/troubleshooting.rst:2
+msgid "Troubleshooting"
+msgstr "故障排查"
+
+#: ../../en/troubleshooting.rst:5
+msgid "Command Not Found"
+msgstr "找不到 anna 命令"
+
+#: ../../en/troubleshooting.rst:7
+msgid "If ``anna`` is not available after installation, check the tool directory used by ``uv`` or ``pipx`` and ensure it is on ``PATH``."
+msgstr "如果安装后没有 ``anna``，检查 ``uv`` 或 ``pipx`` 的工具目录是否在 ``PATH`` 中："
+
+#: ../../en/troubleshooting.rst:16
+msgid "Configuration Fails"
+msgstr "配置校验失败"
+
+#: ../../en/troubleshooting.rst:18
+msgid "Run:"
+msgstr "运行："
+
+#: ../../en/troubleshooting.rst:26
+msgid "Check that ``settings.yaml`` exists and that secrets are present in ``.env``."
+msgstr "确认 ``settings.yaml`` 存在，且密钥已经写入 ``.env``。"
+
+#: ../../en/troubleshooting.rst:29
+msgid "Model Calls Fail"
+msgstr "模型调用失败"
+
+#: ../../en/troubleshooting.rst:31
+msgid "Verify the base URL, model name, and API key. The endpoint must be compatible with OpenAI chat completions."
+msgstr "检查 base URL、model name 和 API key。服务必须兼容 OpenAI chat completions。"
+
+#: ../../en/troubleshooting.rst:39
+msgid "Memory Search Fails"
+msgstr "长期记忆失败"
+
+#: ../../en/troubleshooting.rst:41
+msgid "Check embedding configuration first:"
+msgstr "先检查 embedding 配置："
+
+#: ../../en/troubleshooting.rst:48
+msgid "If the embedding endpoint changed, reset and rebuild the memory index."
+msgstr "如果 embedding endpoint 发生变化，建议重置并重建记忆索引。"
+
+#: ../../en/troubleshooting.rst:51
+msgid "vLLM Does Not Start"
+msgstr "vLLM 启动失败"
+
+#: ../../en/troubleshooting.rst:53
+msgid "Use a longer wait timeout for large models:"
+msgstr "大模型加载较慢时增加等待时间："
+
+#: ../../en/troubleshooting.rst:60
+msgid "If the CLI reports missing CUDA toolkit, confirm that ``nvcc`` is visible or pass ``--cuda-home``. On module-based clusters, AnnaAgent attempts to discover and load CUDA modules for the child process automatically."
+msgstr "如果 CLI 提示找不到 CUDA toolkit，确认 ``nvcc`` 可见，或传入 ``--cuda-home``。在 module 集群上，AnnaAgent 会尝试自动发现并为 vLLM 子进程加载 CUDA module。"
+
+#: ../../en/troubleshooting.rst:64
+msgid "If FlashInfer JIT fails because ``ninja`` is missing, use a workspace deploy environment. AnnaAgent will install ``ninja`` into that environment when needed."
+msgstr "如果 FlashInfer JIT 因缺少 ``ninja`` 失败，请使用 workspace deploy environment。AnnaAgent 会在需要时把 ``ninja`` 自动安装到该环境。"
+
+#: ../../en/troubleshooting.rst:68
+msgid "Stale Logs Are Confusing"
+msgstr "日志看起来不对应当前运行"
+
+#: ../../en/troubleshooting.rst:70
+msgid "Each deploy resets the current target service log before starting vLLM. If you are reading logs manually, make sure you are looking at the target log under the current workspace, not an older workspace or previous run directory."
+msgstr "每次 deploy 都会重置当前 target 的 service log。手动读日志时请确认路径属于当前 workspace，而不是旧 workspace 或历史 run 目录。"
+
+#: ../../en/troubleshooting.rst:75
+msgid "PyPI Install Fails"
+msgstr "PyPI 安装失败"
+
+#: ../../en/troubleshooting.rst:77
+msgid "If installing from PyPI fails, verify the package name and Python version:"
+msgstr "如果从 PyPI 安装失败，请先确认包名和 Python 版本："
+
+#: ../../en/troubleshooting.rst:84
+msgid "AnnaAgent requires Python 3.10 or newer."
+msgstr "AnnaAgent 需要 Python 3.10 或更新版本。"

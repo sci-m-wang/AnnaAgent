@@ -39,8 +39,20 @@ jobs:
         with:
           enablement: true
 
-      - name: Build Sphinx HTML
-        run: uv run --group docs sphinx-build -W -b html docs docs/_build/html
+      - name: Clean documentation build output
+        run: rm -rf docs/_build/gettext docs/_build/html
+
+      - name: Build gettext catalogs
+        run: uv run --group docs sphinx-build -W -b gettext -c docs docs/en docs/_build/gettext
+
+      - name: Check Chinese i18n catalogs
+        run: uv run python docs/tools/check_i18n.py docs/_build/gettext docs/locale/zh_CN/LC_MESSAGES
+
+      - name: Build English Sphinx HTML
+        run: ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
+
+      - name: Build Chinese Sphinx HTML
+        run: ANNA_DOCS_LANGUAGE=zh_CN uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html/zh
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

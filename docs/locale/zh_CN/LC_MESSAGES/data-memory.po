@@ -1,0 +1,139 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/data-memory.rst:2
+msgid "Case Data and Memory"
+msgstr "案例数据与长期记忆"
+
+#: ../../en/data-memory.rst:5
+msgid "Case File Shape"
+msgstr "案例文件结构"
+
+#: ../../en/data-memory.rst:7
+msgid "AnnaAgent case files are JSON or YAML documents containing a seeker profile, case report, and previous-session dialogue history."
+msgstr "AnnaAgent 案例文件可以是 JSON 或 YAML，包含来访者画像、案例报告和历史疗程对话。"
+
+#: ../../en/data-memory.rst:10
+msgid "Required high-level fields:"
+msgstr "主要字段："
+
+#: ../../en/data-memory.rst:12
+msgid "``id``"
+msgstr "``id``"
+
+#: ../../en/data-memory.rst:13
+msgid "Stable case identifier."
+msgstr "稳定案例 ID。"
+
+#: ../../en/data-memory.rst:15
+msgid "``seeker_id``"
+msgstr "``seeker_id``"
+
+#: ../../en/data-memory.rst:16
+msgid "Stable seeker identifier used for memory filtering."
+msgstr "稳定来访者 ID，用于长期记忆过滤。"
+
+#: ../../en/data-memory.rst:18
+msgid "``portrait``"
+msgstr "``portrait``"
+
+#: ../../en/data-memory.rst:19
+msgid "Demographic attributes, risk scores, symptoms, and optional metadata."
+msgstr "人口学信息、风险分数、症状和可选元数据。"
+
+#: ../../en/data-memory.rst:21
+msgid "``report``"
+msgstr "``report``"
+
+#: ../../en/data-memory.rst:22
+msgid "Structured counseling case report. The public sample uses Chinese report keys."
+msgstr "结构化咨询案例报告。公开样例使用中文字段。"
+
+#: ../../en/data-memory.rst:24
+msgid "``conversation`` or ``previous_conversations``"
+msgstr "``conversation`` 或 ``previous_conversations``"
+
+#: ../../en/data-memory.rst:25
+msgid "Previous-session turns. Each turn should include ``role`` and ``content``."
+msgstr "历史疗程对话，每轮至少包含 ``role`` 和 ``content``。"
+
+#: ../../en/data-memory.rst:27
+msgid "Validate a file before running experiments:"
+msgstr "运行实验前先校验："
+
+#: ../../en/data-memory.rst:35
+msgid "Create a Sample"
+msgstr "生成样例"
+
+#: ../../en/data-memory.rst:41
+msgid "Use the generated sample as a format reference, then replace the fictional content with your own ethically permitted data."
+msgstr "可以把生成文件当作格式参考，然后替换为你有伦理许可的数据。"
+
+#: ../../en/data-memory.rst:45
+msgid "Long-Term Memory"
+msgstr "长期记忆"
+
+#: ../../en/data-memory.rst:47
+msgid "AnnaAgent uses LanceDB for local long-term memory. Previous conversations and reports are chunked into memory records such as:"
+msgstr "AnnaAgent 使用 LanceDB 存储本地长期记忆。历史对话和报告会切分为多种 memory record："
+
+#: ../../en/data-memory.rst:50
+msgid "``conversation_turn``"
+msgstr "``conversation_turn``"
+
+#: ../../en/data-memory.rst:51
+msgid "``conversation_window``"
+msgstr "``conversation_window``"
+
+#: ../../en/data-memory.rst:52
+msgid "``session_summary``"
+msgstr "``session_summary``"
+
+#: ../../en/data-memory.rst:53
+msgid "``report_section``"
+msgstr "``report_section``"
+
+#: ../../en/data-memory.rst:54
+msgid "``report_summary``"
+msgstr "``report_summary``"
+
+#: ../../en/data-memory.rst:56
+msgid "Index a case:"
+msgstr "索引案例："
+
+#: ../../en/data-memory.rst:62
+msgid "Search memory:"
+msgstr "检索记忆："
+
+#: ../../en/data-memory.rst:68
+msgid "Inspect or reset memory:"
+msgstr "查看或重置记忆："
+
+#: ../../en/data-memory.rst:77
+msgid "Prompt-Only Versus Full State"
+msgstr "Prompt-Only 与 Full State"
+
+#: ../../en/data-memory.rst:79
+msgid "``prompt-only`` states are fast to create and freeze a case into a compact system prompt for lightweight experiments."
+msgstr "``prompt-only`` state 创建很快，会把案例冻结成紧凑 system prompt，适合轻量实验。"
+
+#: ../../en/data-memory.rst:82
+msgid "``full`` states run the complete dynamic initialization pipeline. They include the generated complaint chain, status summary, sampled situation, style analysis, and the final seeker system prompt."
+msgstr "``full`` state 会运行完整动态初始化流水线，包含主诉链、状态摘要、近期情境、说话风格分析和最终 seeker system prompt。"
+
+#: ../../en/data-memory.rst:86
+msgid "Use ``prompt-only`` for onboarding and batch smoke tests. Use ``full`` when you need the complete AnnaAgent behavior and have configured all required model services."
+msgstr "入门和批量 smoke test 建议用 ``prompt-only``。需要完整 AnnaAgent 行为时，再使用 ``full`` 并确保模型服务已经配置好。"

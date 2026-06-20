@@ -1,0 +1,67 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/cli-reference.rst:2
+msgid "CLI Reference"
+msgstr "CLI 命令参考"
+
+#: ../../en/cli-reference.rst:4
+msgid "The short command is ``anna``. The longer alias ``anna-agent`` is also available."
+msgstr "短命令是 ``anna``，兼容别名是 ``anna-agent``。"
+
+#: ../../en/cli-reference.rst:7
+msgid "Global Commands"
+msgstr "全局命令"
+
+#: ../../en/cli-reference.rst:18
+msgid "``doctor`` checks the local AnnaAgent installation, workspace settings, and common runtime requirements. Run it before expensive experiments."
+msgstr "``doctor`` 会检查安装、workspace 配置和常见运行条件。正式实验前建议先运行。"
+
+#: ../../en/cli-reference.rst:22
+msgid "Assets"
+msgstr "资产"
+
+#: ../../en/cli-reference.rst:31
+msgid "Always pass ``--workspace`` or ``--manifest`` so downloads go to the intended workspace. If you omit both, the current directory becomes the workspace."
+msgstr "下载资产时始终传 ``--workspace`` 或 ``--manifest``，避免下载到错误目录。"
+
+#: ../../en/cli-reference.rst:35
+msgid "Models"
+msgstr "模型"
+
+#: ../../en/cli-reference.rst:47
+msgid "Use ``models deploy`` for local vLLM services. See :doc:`deployment`."
+msgstr "本地 vLLM 部署见 :doc:`deployment`。"
+
+#: ../../en/cli-reference.rst:50
+msgid "Data"
+msgstr "数据"
+
+#: ../../en/cli-reference.rst:60
+msgid "Memory"
+msgstr "记忆"
+
+#: ../../en/cli-reference.rst:71
+msgid "Initialization"
+msgstr "初始化"
+
+#: ../../en/cli-reference.rst:87
+msgid "``prompt-only`` is fast and uses a single frozen prompt. ``full`` runs the full AnnaAgent initialization pipeline and may call multiple model services."
+msgstr "``prompt-only`` 快，适合冻结单个 prompt。``full`` 会运行完整初始化流水线，可能调用多个模型服务。"
+
+#: ../../en/cli-reference.rst:91
+msgid "Runs and Logs"
+msgstr "运行与日志"

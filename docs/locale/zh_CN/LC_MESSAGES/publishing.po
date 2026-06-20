@@ -1,0 +1,79 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/publishing.rst:2
+msgid "Project Publishing and Documentation"
+msgstr "项目发布与文档站点"
+
+#: ../../en/publishing.rst:4
+msgid "This page documents the release and documentation workflow for repository maintainers."
+msgstr "本页面面向维护者，说明当前仓库的发布与文档流程。"
+
+#: ../../en/publishing.rst:7
+msgid "Version Source"
+msgstr "版本来源"
+
+#: ../../en/publishing.rst:9
+msgid "The package version is stored in two places:"
+msgstr "版本号保存在两个地方："
+
+#: ../../en/publishing.rst:11
+msgid "``pyproject.toml`` under ``[project].version``."
+msgstr "``pyproject.toml`` 的 ``[project].version``。"
+
+#: ../../en/publishing.rst:12
+msgid "``src/anna_agent/__init__.py`` as ``__version__``."
+msgstr "``src/anna_agent/__init__.py`` 中的 ``__version__``。"
+
+#: ../../en/publishing.rst:14
+msgid "Both values should be updated together before a release."
+msgstr "发布前应同步更新这两个值。"
+
+#: ../../en/publishing.rst:17
+msgid "Build Locally"
+msgstr "本地构建"
+
+#: ../../en/publishing.rst:26
+msgid "PyPI Publishing"
+msgstr "PyPI 发布"
+
+#: ../../en/publishing.rst:28
+msgid "PyPI publishing is not automated by GitHub Actions. The GitHub workflows only build and deploy the documentation site. When a maintainer needs to publish a new package version, build the source and wheel artifacts locally and upload them using the maintainer's PyPI account and local release tooling."
+msgstr "PyPI 发布不再由 GitHub Actions 自动执行。当前 GitHub workflows 只负责构建和部署文档站点。维护者需要发布新包版本时，请在本地构建 sdist/wheel，并使用维护者自己的 PyPI 发布流程上传。"
+
+#: ../../en/publishing.rst:33
+msgid "Recommended tag and release flow:"
+msgstr "推荐 tag 与 release 流程："
+
+#: ../../en/publishing.rst:41
+msgid "Before uploading to PyPI, verify the package locally with ``uv build`` and check that the version is not already present on PyPI."
+msgstr "上传 PyPI 前，请先用 ``uv build`` 在本地验证包，并确认该版本尚未在 PyPI 上存在。"
+
+#: ../../en/publishing.rst:45
+msgid "GitHub Pages"
+msgstr "GitHub Pages"
+
+#: ../../en/publishing.rst:47
+msgid "The documentation workflow uses the Sphinx i18n/gettext pipeline. English source files live under ``docs/en``. Chinese translations live under ``docs/locale/zh_CN/LC_MESSAGES``. The workflow first rebuilds gettext catalogs, checks that the Chinese catalogs are synchronized, then deploys English pages at the site root and Chinese pages under ``/zh/``. In the repository settings, Pages should use ``GitHub Actions`` as the source."
+msgstr "文档 workflow 使用 Sphinx i18n/gettext 流程。英文源文件位于 ``docs/en``，中文翻译位于 ``docs/locale/zh_CN/LC_MESSAGES``。workflow 会先重新生成 gettext catalog，检查中文 catalog 是否同步，然后把英文页面部署到站点根路径，把中文页面部署到 ``/zh/``。仓库设置中 Pages source 应选择 ``GitHub Actions``。"
+
+#: ../../en/publishing.rst:53
+msgid "Local Documentation Preview"
+msgstr "本地预览文档"
+
+#: ../../en/publishing.rst:62
+msgid "Then open ``docs/_build/html/index.html`` or ``docs/_build/html/zh/index.html`` in a browser."
+msgstr "然后在浏览器中打开 ``docs/_build/html/index.html`` 或 ``docs/_build/html/zh/index.html``。"

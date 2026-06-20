@@ -12,18 +12,6 @@
   border-radius: 0.5rem;
 }
 
-html:not(.language-zh) .lang-zh,
-html.language-en .lang-zh,
-html.language-zh .lang-en {
-  display: none;
-}
-
-html.language-zh .lang-zh,
-html:not(.language-zh) .lang-en,
-html.language-en .lang-en {
-  display: block;
-}
-
 .language-switcher {
   align-items: center;
   background: var(--color-background-primary);
@@ -40,18 +28,13 @@ html.language-en .lang-en {
   z-index: 30;
 }
 
-.language-switcher button {
-  appearance: none;
-  background: transparent;
-  border: 0;
+.language-switcher a {
   color: var(--color-link);
-  cursor: pointer;
   font: inherit;
-  padding: 0;
   text-decoration: none;
 }
 
-.language-switcher button.active {
+.language-switcher a.active {
   color: var(--color-foreground-primary);
   font-weight: 700;
 }

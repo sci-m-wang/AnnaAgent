@@ -20,7 +20,11 @@ Build Locally
 
    uv lock --check
    uv build
-   uv run --group docs sphinx-build -W -b html docs docs/_build/html
+   rm -rf docs/_build/gettext docs/_build/html
+   uv run --group docs sphinx-build -W -b gettext -c docs docs/en docs/_build/gettext
+   uv run python docs/tools/check_i18n.py docs/_build/gettext docs/locale/zh_CN/LC_MESSAGES
+   ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
+   ANNA_DOCS_LANGUAGE=zh_CN uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html/zh
 
 PyPI Publishing
 ---------------
@@ -44,16 +48,23 @@ that the version is not already present on PyPI.
 GitHub Pages
 ------------
 
-The documentation workflow builds one Sphinx site from ``docs/``. Each page
-contains English and Chinese content blocks, and the published site includes a
-language switcher that controls which language is visible. In the repository
-settings, Pages should use ``GitHub Actions`` as the source.
+The documentation workflow uses the Sphinx i18n/gettext pipeline. English source
+files live under ``docs/en``. Chinese translations live under
+``docs/locale/zh_CN/LC_MESSAGES``. The workflow first rebuilds gettext catalogs,
+checks that the Chinese catalogs are synchronized, then deploys English pages at
+the site root and Chinese pages under ``/zh/``. In the repository settings,
+Pages should use ``GitHub Actions`` as the source.
 
 Local Documentation Preview
 ---------------------------
 
 .. code-block:: bash
 
-   uv run --group docs sphinx-build -W -b html docs docs/_build/html
+   rm -rf docs/_build/gettext docs/_build/html
+   uv run --group docs sphinx-build -W -b gettext -c docs docs/en docs/_build/gettext
+   uv run python docs/tools/check_i18n.py docs/_build/gettext docs/locale/zh_CN/LC_MESSAGES
+   ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
+   ANNA_DOCS_LANGUAGE=zh_CN uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html/zh
 
-Then open ``docs/_build/html/index.html`` in a browser.
+Then open ``docs/_build/html/index.html`` or ``docs/_build/html/zh/index.html``
+in a browser.

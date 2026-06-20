@@ -13,10 +13,17 @@ anna memory index docs/family_stress_case.json
 
 ## Sphinx documentation
 
-The published GitHub Pages site is built as one Sphinx site. Each page contains
-English and Chinese content blocks, and a language switcher controls which
-language is visible:
+The published GitHub Pages site uses Sphinx i18n/gettext. English source files
+live under `docs/en`. Chinese translations live under
+`docs/locale/zh_CN/LC_MESSAGES`.
 
 ```bash
-uv run --group docs sphinx-build -W -b html docs docs/_build/html
+rm -rf docs/_build/gettext docs/_build/html
+uv run --group docs sphinx-build -W -b gettext -c docs docs/en docs/_build/gettext
+uv run python docs/tools/check_i18n.py docs/_build/gettext docs/locale/zh_CN/LC_MESSAGES
+ANNA_DOCS_LANGUAGE=en uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html
+ANNA_DOCS_LANGUAGE=zh_CN uv run --group docs sphinx-build -W -b html -c docs docs/en docs/_build/html/zh
 ```
+
+English is published at the site root. Chinese is published under `/zh/`, with a
+language switcher linking corresponding pages.
