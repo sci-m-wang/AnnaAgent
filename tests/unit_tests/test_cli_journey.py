@@ -612,3 +612,43 @@ def test_initialize_full_connection_error_is_concise(tmp_path: Path, monkeypatch
     assert "Model service connection failed" in result.output
     assert "anna models status" in result.output
     assert "Traceback" not in result.output
+
+
+def test_model_auth_error_is_concise_and_redacted(tmp_path: Path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    result = runner.invoke(app, ["create", str(workspace)])
+    assert result.exit_code == 0, result.output
+    monkeypatch.setenv("ANNA_ENGINE_API_KEY", "secret-123")
+
+    class AuthenticationError(Exception):
+        pass
+
+    class FakeCompletions:
+        def create(self, **kwargs):
+            raise AuthenticationError("401 Invalid API Key secret-123")
+
+    class FakeChat:
+        completions = FakeCompletions()
+
+    class FakeClient:
+        chat = FakeChat()
+
+    monkeypatch.setattr(
+        "anna_agent.cli.backbone.get_openai_client", lambda: FakeClient()
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "test",
+            "model",
+            "--workspace",
+            str(workspace),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Model service authentication failed" in result.output
+    assert "ANNA_ENGINE_API_KEY" in result.output
+    assert "secret-123" not in result.output
+    assert "Traceback" not in result.output

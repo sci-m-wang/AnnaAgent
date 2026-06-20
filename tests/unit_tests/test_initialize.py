@@ -21,6 +21,8 @@ def test_initialize_project(tmp_path: Path) -> None:
     dotenv_text = dotenv.read_text(encoding="utf-8")
     assert "# ANNA_ENGINE_API_KEY=your-backbone-model-api-key" in dotenv_text
     assert "# ANNA_ENGINE_EMBEDDING_API_KEY=your-embedding-api-key" in dotenv_text
+    settings_data = yaml.safe_load(settings.read_text(encoding="utf-8"))
+    assert "counselor" not in settings_data.get("servers", {})
     data = yaml.safe_load(interactive.read_text(encoding="utf-8"))
     assert "portrait" in data
     assert "report" in data

@@ -196,17 +196,77 @@ def _print_deploy_env_status(status: dict[str, Any]) -> None:
     console.print(table)
 
 
-def _looks_like_connection_error(err: BaseException) -> bool:
+def _iter_exception_chain(err: BaseException):
     current: BaseException | None = err
     while current is not None:
-        if current.__class__.__name__ in {"APIConnectionError", "ConnectError"}:
-            return True
+        yield current
         current = current.__cause__ or current.__context__
+
+
+def _looks_like_connection_error(err: BaseException) -> bool:
+    for current in _iter_exception_chain(err):
+        if current.__class__.__name__ in {
+            "APIConnectionError",
+            "APITimeoutError",
+            "ConnectError",
+            "ConnectTimeout",
+            "ReadTimeout",
+            "TimeoutException",
+        }:
+            return True
     return False
 
 
+def _looks_like_auth_error(err: BaseException) -> bool:
+    for current in _iter_exception_chain(err):
+        class_name = current.__class__.__name__
+        status_code = getattr(current, "status_code", None)
+        text = str(current).lower()
+        if class_name in {"AuthenticationError", "PermissionDeniedError"}:
+            return True
+        if status_code in {401, 403}:
+            return True
+        if "invalid api key" in text or "invalid_key" in text:
+            return True
+    return False
+
+
+def _looks_like_model_service_error(err: BaseException) -> bool:
+    if _looks_like_connection_error(err) or _looks_like_auth_error(err):
+        return True
+    for current in _iter_exception_chain(err):
+        if current.__class__.__name__ in {"APIStatusError", "RateLimitError"}:
+            return True
+    return False
+
+
+def _configured_secret_values() -> list[str]:
+    try:
+        cfg = registry.get("anna_engine_config")
+    except Exception:
+        return []
+    return [
+        cfg.api_key,
+        cfg.complaint_api_key,
+        cfg.counselor_api_key,
+        cfg.emotion_api_key,
+        cfg.embedding_api_key,
+    ]
+
+
 def _print_model_connection_help(workspace: Path, err: BaseException) -> None:
-    console.print(f"[red]Model service connection failed:[/red] {escape(str(err))}")
+    detail = escape(_redact_text(str(err), _configured_secret_values()))
+    if _looks_like_auth_error(err):
+        console.print(f"[red]Model service authentication failed:[/red] {detail}")
+        console.print(
+            "Check [bold]ANNA_ENGINE_API_KEY[/bold] or [bold]MIMO_API_KEY[/bold] "
+            "in the workspace .env and ensure the key matches the configured "
+            "base_url/model."
+        )
+    elif _looks_like_connection_error(err):
+        console.print(f"[red]Model service connection failed:[/red] {detail}")
+    else:
+        console.print(f"[red]Model service request failed:[/red] {detail}")
     console.print(
         "Run [bold]anna doctor --workspace {workspace}[/bold] and "
         "[bold]anna models status --workspace {workspace}[/bold]. If you use "
@@ -538,10 +598,7 @@ def config_wizard(
     console.print(
         Panel(
             "[bold]AnnaAgent backbone model[/bold]\n"
-            "This model drives AnnaAgent's internal seeker-simulation modules. "
-            "It can temporarily stand in when no external counselor is wired, "
-            "but formal runs should use a dedicated counselor process or model "
-            "for counselor turns.",
+            "This model drives AnnaAgent's internal seeker-simulation modules.",
             border_style="cyan",
         )
     )
@@ -626,10 +683,16 @@ def test_model(
     _configure(workspace)
     cfg = registry.get("anna_engine_config")
     client = backbone.get_openai_client()
-    response = client.chat.completions.create(
-        model=cfg.model_name,
-        messages=[{"role": "user", "content": "Reply with OK."}],
-    )
+    try:
+        response = client.chat.completions.create(
+            model=cfg.model_name,
+            messages=[{"role": "user", "content": "Reply with OK."}],
+        )
+    except Exception as err:
+        if _looks_like_model_service_error(err):
+            _print_model_connection_help(workspace, err)
+            raise typer.Exit(code=1) from None
+        raise
     console.print(
         f"[green]Model OK[/green] response={response.choices[0].message.content}"
     )
@@ -838,7 +901,7 @@ def initialize_full(
     try:
         state = build_full_state(case_file, progress_callback=progress)
     except Exception as err:
-        if _looks_like_connection_error(err):
+        if _looks_like_model_service_error(err):
             _print_model_connection_help(workspace, err)
             raise typer.Exit(code=1) from None
         raise
@@ -1187,7 +1250,7 @@ def chat(
                     progress_callback=progress,
                 )
             except Exception as err:
-                if _looks_like_connection_error(err):
+                if _looks_like_model_service_error(err):
                     _print_model_connection_help(workspace, err)
                     raise typer.Exit(code=1) from None
                 raise
@@ -1206,7 +1269,7 @@ def chat(
                     compact_status = None
             except Exception as err:
                 compact_status = None
-                if _looks_like_connection_error(err):
+                if _looks_like_model_service_error(err):
                     _print_model_connection_help(workspace, err)
                     raise typer.Exit(code=1) from None
                 raise

@@ -12,6 +12,18 @@ from .models.anna_engine_config import AnnaEngineConfig
 
 _default_config_files = ["settings.yaml", "settings.yml", "settings.json"]
 
+_default_aliases = {
+    "model_name": {anna_engine_defaults.model_name, "counselor"},
+    "api_key": {anna_engine_defaults.api_key, "counselor"},
+    "base_url": {anna_engine_defaults.base_url},
+    "counselor_model_name": {
+        anna_engine_defaults.counselor_model_name,
+        "counselor",
+    },
+    "counselor_api_key": {anna_engine_defaults.counselor_api_key, "counselor"},
+    "counselor_base_url": {anna_engine_defaults.counselor_base_url},
+}
+
 
 def _search_for_config_in_root_dir(root: str | Path) -> Path | None:
     root = Path(root)
@@ -146,6 +158,10 @@ def _first_env(*keys: str) -> str | None:
     return None
 
 
+def _is_default_alias(field: str, value: Any) -> bool:
+    return value is None or value in _default_aliases.get(field, set())
+
+
 def _apply_embedding_env_aliases(values: dict[str, Any]) -> None:
     api_key = _first_env("ANNA_ENGINE_EMBEDDING_API_KEY")
     base_url = _first_env("ANNA_ENGINE_EMBEDDING_BASE_URL")
@@ -194,14 +210,11 @@ def _apply_model_env_aliases(values: dict[str, Any]) -> None:
     api_key = _first_env("ANNA_ENGINE_API_KEY", "MIMO_API_KEY")
     base_url = _first_env("ANNA_ENGINE_BASE_URL", "MIMO_BASE_URL")
     model_name = _first_env("ANNA_ENGINE_MODEL_NAME", "MIMO_MODEL")
-    if api_key and values.get("api_key") in {None, anna_engine_defaults.api_key}:
+    if api_key and _is_default_alias("api_key", values.get("api_key")):
         values["api_key"] = api_key
-    if base_url and values.get("base_url") in {None, anna_engine_defaults.base_url}:
+    if base_url and _is_default_alias("base_url", values.get("base_url")):
         values["base_url"] = base_url
-    if model_name and values.get("model_name") in {
-        None,
-        anna_engine_defaults.model_name,
-    }:
+    if model_name and _is_default_alias("model_name", values.get("model_name")):
         values["model_name"] = model_name
 
     env_mappings = {
@@ -212,27 +225,31 @@ def _apply_model_env_aliases(values: dict[str, Any]) -> None:
         "emotion_api_key": "ANNA_ENGINE_EMOTION_API_KEY",
     }
     defaults = {
-        "complaint_api_key": anna_engine_defaults.complaint_api_key,
-        "counselor_api_key": anna_engine_defaults.counselor_api_key,
-        "counselor_base_url": anna_engine_defaults.counselor_base_url,
-        "counselor_model_name": anna_engine_defaults.counselor_model_name,
-        "emotion_api_key": anna_engine_defaults.emotion_api_key,
+        "complaint_api_key": {None, anna_engine_defaults.complaint_api_key},
+        "counselor_api_key": None,
+        "counselor_base_url": None,
+        "counselor_model_name": None,
+        "emotion_api_key": {None, anna_engine_defaults.emotion_api_key},
     }
     for field, env_key in env_mappings.items():
         env_value = _first_env(env_key)
-        if env_value and values.get(field) in {None, defaults[field]}:
+        if not env_value:
+            continue
+        if field.startswith("counselor_"):
+            if _is_default_alias(field, values.get(field)):
+                values[field] = env_value
+        elif values.get(field) in defaults[field]:
             values[field] = env_value
 
 
 def _inherit_default_counselor_from_base(values: dict[str, Any]) -> None:
-    counselor_defaults = {
-        "counselor_api_key": anna_engine_defaults.counselor_api_key,
-        "counselor_base_url": anna_engine_defaults.counselor_base_url,
-        "counselor_model_name": anna_engine_defaults.counselor_model_name,
-    }
     if not all(
-        values.get(field) in {None, default}
-        for field, default in counselor_defaults.items()
+        _is_default_alias(field, values.get(field))
+        for field in [
+            "counselor_api_key",
+            "counselor_base_url",
+            "counselor_model_name",
+        ]
     ):
         return
     values["counselor_api_key"] = values.get("api_key") or anna_engine_defaults.api_key

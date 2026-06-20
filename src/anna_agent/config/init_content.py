@@ -15,10 +15,6 @@ servers:
     model_name: {anna_engine_defaults.complaint_model_name}
     api_key: {anna_engine_defaults.complaint_api_key}
     base_url: {anna_engine_defaults.complaint_base_url}
-  counselor:
-    model_name: {anna_engine_defaults.counselor_model_name}
-    api_key: {anna_engine_defaults.counselor_api_key}
-    base_url: {anna_engine_defaults.counselor_base_url}
   emotion:
     use_sft_model: {str(anna_engine_defaults.emotion_use_sft_model).lower()}
     model_name: {anna_engine_defaults.emotion_model_name}
@@ -108,9 +104,7 @@ INIT_DOTENV = """\
 # Keep real secrets in this file and do not commit it.
 
 # AnnaAgent backbone OpenAI-compatible model service.
-# This drives internal seeker-simulation modules. It can temporarily stand in
-# when no external counselor/counselor model is wired, but formal runs should
-# use a dedicated counselor process or model for counselor turns.
+# This drives internal seeker-simulation modules.
 # ANNA_ENGINE_API_KEY=your-backbone-model-api-key
 # ANNA_ENGINE_BASE_URL=https://your-backbone-endpoint/v1
 # ANNA_ENGINE_MODEL_NAME=your-backbone-model
@@ -137,8 +131,8 @@ INIT_DOTENV = """\
 # ANNA_ENGINE_COMPLAINT_MODEL_NAME=your-complaint-sft-model
 # ANNA_ENGINE_COMPLAINT_USE_SFT_MODEL=true
 
-# Optional AnnaAgent backbone fallback endpoint for internal modules that still
-# use the historical counselor config key.
+# Optional override for legacy internal-module routing. Leave unset to use the
+# AnnaAgent backbone model_service above.
 # ANNA_ENGINE_COUNSELOR_API_KEY=your-backbone-fallback-key
 # ANNA_ENGINE_COUNSELOR_BASE_URL=https://your-backbone-fallback-endpoint/v1
 # ANNA_ENGINE_COUNSELOR_MODEL_NAME=your-backbone-fallback-model

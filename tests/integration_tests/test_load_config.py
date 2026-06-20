@@ -158,6 +158,41 @@ servers:
     assert config.counselor_base_url == "https://base.example.com/v1"
 
 
+def test_load_config_legacy_generated_counselor_inherits_configured_base(
+    tmp_path: Path, monkeypatch
+):
+    cfg = tmp_path / "settings.yaml"
+    cfg.write_text(
+        """
+model_service:
+  model_name: mimo-v2.5
+  api_key: base-secret
+  base_url: https://mimo.example.com/v1
+servers:
+  counselor:
+    model_name: counselor
+    api_key: counselor
+    base_url: http://localhost:8002/v1
+""",
+        encoding="utf-8",
+    )
+    for key in [
+        "ANNA_ENGINE_COUNSELOR_MODEL_NAME",
+        "ANNA_ENGINE_COUNSELOR_API_KEY",
+        "ANNA_ENGINE_COUNSELOR_BASE_URL",
+    ]:
+        monkeypatch.delenv(key, raising=False)
+
+    config = load_config(tmp_path)
+
+    assert config.model_name == "mimo-v2.5"
+    assert config.api_key == "base-secret"
+    assert config.base_url == "https://mimo.example.com/v1"
+    assert config.counselor_model_name == "mimo-v2.5"
+    assert config.counselor_api_key == "base-secret"
+    assert config.counselor_base_url == "https://mimo.example.com/v1"
+
+
 def test_load_config_preserves_explicit_counselor_endpoint(
     tmp_path: Path, monkeypatch
 ):

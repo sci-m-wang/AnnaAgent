@@ -47,9 +47,11 @@ def run_doctor(workspace: Path) -> list[DiagnosticCheck]:
     if cfg:
         checks.append(
             DiagnosticCheck(
-                "model service",
+                "model service config",
                 "ok" if cfg.api_key and cfg.base_url else "warn",
-                f"model={cfg.model_name}, base_url configured={bool(cfg.base_url)}",
+                f"model={cfg.model_name}, "
+                f"base_url configured={bool(cfg.base_url)}; "
+                "run `anna test model` for live connectivity",
             )
         )
         checks.append(
