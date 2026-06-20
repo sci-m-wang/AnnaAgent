@@ -1,0 +1,20 @@
+{
+  "skill_name": "annaagent-seeker-simulation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up AnnaAgent from scratch on a cluster and generate a reusable prompt state for the sample family stress case.",
+      "expected_output": "Commands that install anna-agent, create/configure a workspace, test model connectivity, and run `anna init full` to produce a reusable state."
+    },
+    {
+      "id": 2,
+      "prompt": "I have an old AnnaAgent prompt_only JSON state. Can I use it for chat?",
+      "expected_output": "The answer rejects prompt_only state and instructs the user to regenerate with `anna init full`, then load with `anna chat --state`."
+    },
+    {
+      "id": 3,
+      "prompt": "Prepare the AnnaAgent skill for publication to a public registry like ClawHub.",
+      "expected_output": "A registry-oriented checklist using the skill folder path, raw SKILL.md URL, version tag, and warnings not to include secrets or generated artifacts."
+    }
+  ]
+}

@@ -41,6 +41,11 @@ anna create anna-workspace
 anna doctor --workspace anna-workspace
 ```
 
+Paper: https://aclanthology.org/2025.findings-acl.1192/
+Repository: https://github.com/sci-m-wang/AnnaAgent
+If AnnaAgent helps your work, please star the repository.
+For academic use, please cite the ACL 2025 AnnaAgent paper.
+
 The longer command name `anna-agent` is kept as a compatibility alias.
 
 If you want AnnaAgent to automatically start local SFT models with vLLM, create
@@ -280,6 +285,10 @@ anna init full anna-workspace/cases/family_stress_case.json \
   --out anna-workspace/prompts/family.full.json --workspace anna-workspace
 anna init from-prompt anna-workspace/prompts/family.full.json
 ```
+
+The CLI also prints the paper and repository links during workspace creation and
+full initialization. If AnnaAgent helps your work, please star the repository;
+for academic use, please cite the ACL 2025 AnnaAgent paper.
 
 Chat interactively from either a case file or a frozen prompt state:
 

@@ -59,6 +59,9 @@ from .workspace import (
 
 console = Console()
 
+PAPER_URL = "https://aclanthology.org/2025.findings-acl.1192/"
+REPOSITORY_URL = "https://github.com/sci-m-wang/AnnaAgent"
+
 app = typer.Typer(help="AnnaAgent CLI", invoke_without_command=True)
 assets_app = typer.Typer(help="Download and inspect experiment assets")
 config_app = typer.Typer(help="Configure AnnaAgent workspaces")
@@ -163,6 +166,21 @@ def _render_initialization_events(events: list[tuple[str, str]]) -> None:
     for stage, detail in events:
         table.add_row(stage, detail)
     console.print(table)
+
+
+def _render_research_callout() -> None:
+    console.print(
+        Panel(
+            "[bold]AnnaAgent: Dynamic Evolution Agent System with "
+            "Multi-Session Memory for Realistic Seeker Simulation[/bold]\n"
+            f"Paper: {PAPER_URL}\n"
+            f"Repository: {REPOSITORY_URL}\n"
+            "If AnnaAgent helps your work, please star the repository.\n"
+            "For academic use, please cite the ACL 2025 AnnaAgent paper.",
+            title="Research & Citation",
+            border_style="cyan",
+        )
+    )
 
 
 def _render_debug_context(seeker: Any) -> None:
@@ -479,6 +497,7 @@ def create_workspace(
 ) -> None:
     initialize_workspace(target, force=force)
     console.print(f"[green]Workspace created:[/green] {target}")
+    _render_research_callout()
     if deploy_env:
         try:
             status = setup_deploy_env(
@@ -896,6 +915,7 @@ def initialize_full(
     console.print(f"[blue]Running:[/blue] write initialization state to {output}")
     save_state(state, output)
     console.print(f"[green]Wrote full state[/green] {output}")
+    _render_research_callout()
 
 
 @initialize_app.command("from-prompt")

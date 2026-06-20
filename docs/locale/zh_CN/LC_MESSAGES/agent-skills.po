@@ -1,0 +1,91 @@
+# Chinese translations for AnnaAgent documentation.
+# Copyright (C) 2026, AnnaAgent contributors
+# This file is distributed under the same license as the AnnaAgent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AnnaAgent 0.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-20 00:00+0800\n"
+"Last-Translator: AnnaAgent contributors\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../en/agent-skills.rst:2
+msgid "Agent Skills"
+msgstr "Agent Skills"
+
+#: ../../en/agent-skills.rst:4
+msgid "AnnaAgent includes a public agent skill for LLMs that can operate command-line tools and files. The skill teaches an agent how to install AnnaAgent, configure a workspace, run full seeker initialization, save reusable prompt states, run chat or batch jobs, and troubleshoot model-service failures."
+msgstr "AnnaAgent 提供一个公开 agent skill，面向能够操作命令行工具和文件的 LLM。该 skill 会指导 agent 安装 AnnaAgent、配置 workspace、运行完整 seeker 初始化、保存可复用 prompt state、执行 chat 或 batch 任务，并排查模型服务故障。"
+
+#: ../../en/agent-skills.rst:10
+msgid "Skill Location"
+msgstr "Skill 位置"
+
+#: ../../en/agent-skills.rst:12
+msgid "The skill lives in the repository at:"
+msgstr "该 skill 位于仓库中的："
+
+#: ../../en/agent-skills.rst:23
+msgid "Public URLs"
+msgstr "公开 URL"
+
+#: ../../en/agent-skills.rst:25
+msgid "Use the tagged URL for public registries that need immutable versions:"
+msgstr "对于需要不可变版本的公开 registry，请使用 tag URL："
+
+#: ../../en/agent-skills.rst:31
+msgid "Use the raw ``SKILL.md`` URL for registries that ingest a single skill entry:"
+msgstr "对于读取单个 skill 条目的 registry，请使用 raw ``SKILL.md`` URL："
+
+#: ../../en/agent-skills.rst:38
+msgid "ClawHub-Style Publishing Checklist"
+msgstr "ClawHub 风格发布清单"
+
+#: ../../en/agent-skills.rst:40
+msgid "For public skill hubs such as ClawHub, submit:"
+msgstr "对于 ClawHub 这类公开 skill hub，可提交："
+
+#: ../../en/agent-skills.rst:42
+msgid "Repository: ``https://github.com/sci-m-wang/AnnaAgent``"
+msgstr "仓库：``https://github.com/sci-m-wang/AnnaAgent``"
+
+#: ../../en/agent-skills.rst:43
+msgid "Skill path: ``skills/annaagent-seeker-simulation``"
+msgstr "Skill 路径：``skills/annaagent-seeker-simulation``"
+
+#: ../../en/agent-skills.rst:44
+msgid "Version tag: ``v0.3.0``"
+msgstr "版本 tag：``v0.3.0``"
+
+#: ../../en/agent-skills.rst:45
+msgid "Category: research tools, healthcare simulation, CLI automation, or agent operations"
+msgstr "分类：research tools、healthcare simulation、CLI automation 或 agent operations"
+
+#: ../../en/agent-skills.rst:46
+msgid "Visibility: public"
+msgstr "可见性：public"
+
+#: ../../en/agent-skills.rst:48
+msgid "If the platform requires an archive, package only the skill folder:"
+msgstr "如果平台需要归档文件，只打包 skill 文件夹："
+
+#: ../../en/agent-skills.rst:55
+msgid "Do not include ``.env``, virtual environments, logs, runs, caches, local memory databases, or documentation build artifacts."
+msgstr "不要包含 ``.env``、虚拟环境、日志、运行产物、缓存、本地记忆数据库或文档构建产物。"
+
+#: ../../en/agent-skills.rst:59
+msgid "Attribution"
+msgstr "署名与引用"
+
+#: ../../en/agent-skills.rst:61
+msgid "Paper: https://aclanthology.org/2025.findings-acl.1192/ Repository: https://github.com/sci-m-wang/AnnaAgent"
+msgstr "论文：https://aclanthology.org/2025.findings-acl.1192/ 仓库：https://github.com/sci-m-wang/AnnaAgent"
+
+#: ../../en/agent-skills.rst:64
+msgid "If AnnaAgent helps your work, please star the repository. For academic use, please cite the ACL 2025 AnnaAgent paper."
+msgstr "如果 AnnaAgent 对你的工作有帮助，请给仓库点一个 star。如果用于学术研究，请引用 ACL 2025 AnnaAgent 论文。"

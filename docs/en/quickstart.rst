@@ -38,6 +38,11 @@ For source development:
    uv sync
    uv run anna --help
 
+Paper: https://aclanthology.org/2025.findings-acl.1192/
+Repository: https://github.com/sci-m-wang/AnnaAgent
+If AnnaAgent helps your work, please star the repository. For academic use,
+please cite the ACL 2025 AnnaAgent paper.
+
 Create a Workspace
 ------------------
 
@@ -128,6 +133,10 @@ directly from the raw case.
    anna init from-prompt anna-workspace/prompts/family_stress.full.json
    anna chat --workspace anna-workspace \
      --state anna-workspace/prompts/family_stress.full.json
+
+The CLI prints the paper and repository links during workspace creation and full
+initialization. If AnnaAgent helps your work, please star the repository and cite
+the ACL 2025 paper.
 
 Run Batch Experiments
 ---------------------

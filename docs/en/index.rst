@@ -46,5 +46,6 @@ released artifacts.
    cli-reference
    deployment
    data-memory
+   agent-skills
    publishing
    troubleshooting

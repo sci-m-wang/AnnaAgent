@@ -38,6 +38,11 @@ def test_workspace_to_batch_full_prompt_journey(tmp_path: Path, monkeypatch):
 
     result = runner.invoke(app, ["create", str(workspace)])
     assert result.exit_code == 0, result.output
+    assert "Research & Citation" in result.output
+    assert "https://aclanthology.org/2025.findings-acl.1192/" in result.output
+    assert "https://github.com/sci-m-wang/AnnaAgent" in result.output
+    assert "please star" in result.output
+    assert "please cite" in result.output
     assert (workspace / "settings.yaml").exists()
     assert (workspace / "assets" / "anna-assets.json").exists()
     case_file = workspace / "cases" / "family_stress_case.json"
@@ -67,6 +72,7 @@ def test_workspace_to_batch_full_prompt_journey(tmp_path: Path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert "Initialization · full" in result.output
     assert "Running:" in result.output
+    assert "Research & Citation" in result.output
     state = json.loads(state_file.read_text(encoding="utf-8"))
     assert state["mode"] == "full"
     assert state["prompt"]

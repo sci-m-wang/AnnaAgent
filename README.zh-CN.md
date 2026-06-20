@@ -35,6 +35,11 @@ anna create anna-workspace
 anna doctor --workspace anna-workspace
 ```
 
+论文：https://aclanthology.org/2025.findings-acl.1192/
+仓库：https://github.com/sci-m-wang/AnnaAgent
+如果 AnnaAgent 对你的工作有帮助，请给仓库点一个 star。
+如果用于学术研究，请引用 ACL 2025 AnnaAgent 论文。
+
 较长的命令名 `anna-agent` 仍然保留为兼容别名。
 
 如果你希望 AnnaAgent 自动用 vLLM 启动本地 SFT 模型，建议在 Linux/GPU 机器上创建 workspace 级部署环境。这样轻量的 `anna` CLI 安装和较重的 vLLM 依赖相互隔离：
@@ -313,6 +318,8 @@ anna init full anna-workspace/cases/family_stress_case.json \
 
 anna init from-prompt anna-workspace/prompts/family.full.json
 ```
+
+CLI 会在创建 workspace 和完整初始化时展示论文与仓库链接。如果 AnnaAgent 对你的工作有帮助，请给仓库点一个 star；如果用于学术研究，请引用 ACL 2025 AnnaAgent 论文。
 
 ### 9. 交互式对话
 

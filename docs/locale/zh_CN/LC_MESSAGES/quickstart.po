@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: AnnaAgent 0.2.3\n"
+"Project-Id-Version: AnnaAgent 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2026-06-20 00:00+0800\n"
 "Last-Translator: AnnaAgent contributors\n"
@@ -57,6 +57,10 @@ msgstr "如果使用 ``pipx``："
 #: ../../en/quickstart.rst:32
 msgid "For source development:"
 msgstr "如果你要从源码开发："
+
+#: ../../en/quickstart.rst:41
+msgid "Paper: https://aclanthology.org/2025.findings-acl.1192/ Repository: https://github.com/sci-m-wang/AnnaAgent If AnnaAgent helps your work, please star the repository. For academic use, please cite the ACL 2025 AnnaAgent paper."
+msgstr "论文：https://aclanthology.org/2025.findings-acl.1192/ 仓库：https://github.com/sci-m-wang/AnnaAgent 如果 AnnaAgent 对你的工作有帮助，请给仓库点一个 star。如果用于学术研究，请引用 ACL 2025 AnnaAgent 论文。"
 
 #: ../../en/quickstart.rst:42
 msgid "Create a Workspace"
@@ -113,6 +117,10 @@ msgstr "生成可复用 Prompt State"
 #: ../../en/quickstart.rst:117
 msgid "Full initialization runs the AnnaAgent seeker initialization pipeline and writes the generated system prompt plus supporting metadata to a reusable state file. Later sessions should load that prebuilt state instead of rebuilding a prompt directly from the raw case."
 msgstr "完整初始化会运行 AnnaAgent seeker 初始化流水线，并把生成的 system prompt 及配套元数据写入可复用 state 文件。后续 session 应加载这个预构建 state，而不是直接从原始 case 重新拼 prompt。"
+
+#: ../../en/quickstart.rst:133
+msgid "The CLI prints the paper and repository links during workspace creation and full initialization. If AnnaAgent helps your work, please star the repository and cite the ACL 2025 paper."
+msgstr "CLI 会在创建 workspace 和完整初始化时展示论文与仓库链接。如果 AnnaAgent 对你的工作有帮助，请给仓库点一个 star，并引用 ACL 2025 论文。"
 
 #: ../../en/quickstart.rst:129
 msgid "Run Batch Experiments"
