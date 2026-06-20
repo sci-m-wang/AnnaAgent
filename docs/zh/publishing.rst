@@ -1,7 +1,7 @@
 项目发布与文档站点
 ==================
 
-本页面向维护者，说明当前仓库的发布自动化。
+本页面面向维护者，说明当前仓库的发布与文档流程。
 
 版本来源
 --------
@@ -25,9 +25,9 @@
 PyPI 发布
 ---------
 
-仓库包含 PyPI workflow，会构建 sdist/wheel，并通过 GitHub Secret ``PYPI_API_TOKEN`` 发布到 PyPI。token 保存在 GitHub Actions secrets 中，不写入仓库。触发方式是发布 GitHub Release，或手动运行 workflow。
+PyPI 发布不再由 GitHub Actions 自动执行。当前 GitHub workflows 只负责构建和部署文档站点。维护者需要发布新包版本时，请在本地构建 sdist/wheel，并使用维护者自己的 PyPI 发布流程上传。
 
-推荐 release 流程：
+推荐 tag 与 release 流程：
 
 .. code-block:: bash
 
@@ -35,7 +35,7 @@ PyPI 发布
    git push origin v0.2.0
    gh release create v0.2.0 --title "v0.2.0" --notes "Release v0.2.0"
 
-如果后续迁移到 PyPI Trusted Publishing，可以移除 ``.github/workflows/python-publish.yml`` 中的 token input，并在 PyPI 中配置匹配的 trusted publisher。
+上传 PyPI 前，请先用 ``uv build`` 在本地验证包，并确认该版本尚未在 PyPI 上存在。
 
 GitHub Pages
 ------------

@@ -1,7 +1,7 @@
 Project Publishing and Documentation
 ====================================
 
-This page documents the release automation configured for repository maintainers.
+This page documents the release and documentation workflow for repository maintainers.
 
 Version Source
 --------------
@@ -25,12 +25,12 @@ Build Locally
 PyPI Publishing
 ---------------
 
-The repository includes a PyPI workflow that builds source and wheel artifacts
-and publishes them with the ``PYPI_API_TOKEN`` GitHub Secret. The token is kept
-in GitHub Actions secrets and is not stored in the repository. The workflow is
-triggered by a published GitHub Release or by manual ``workflow_dispatch``.
+PyPI publishing is not automated by GitHub Actions. The GitHub workflows only
+build and deploy the documentation site. When a maintainer needs to publish a
+new package version, build the source and wheel artifacts locally and upload them
+using the maintainer's PyPI account and local release tooling.
 
-Recommended release flow:
+Recommended tag and release flow:
 
 .. code-block:: bash
 
@@ -38,9 +38,8 @@ Recommended release flow:
    git push origin v0.2.0
    gh release create v0.2.0 --title "v0.2.0" --notes "Release v0.2.0"
 
-If the project later migrates to PyPI Trusted Publishing, remove the token input
-from ``.github/workflows/python-publish.yml`` and configure the matching trusted
-publisher in PyPI.
+Before uploading to PyPI, verify the package locally with ``uv build`` and check
+that the version is not already present on PyPI.
 
 GitHub Pages
 ------------

@@ -71,9 +71,14 @@ Each deploy resets the current target service log before starting vLLM. If you
 are reading logs manually, make sure you are looking at the target log under the
 current workspace, not an older workspace or previous run directory.
 
-PyPI Publish Fails
+PyPI Install Fails
 ------------------
 
-The publish workflow uses the GitHub Secret ``PYPI_API_TOKEN``. If publishing
-fails, verify that the secret exists, has not expired, and has permission to
-upload releases for the ``anna-agent`` PyPI project.
+If installing from PyPI fails, verify the package name and Python version:
+
+.. code-block:: bash
+
+   python --version
+   pip install anna-agent
+
+AnnaAgent requires Python 3.10 or newer.

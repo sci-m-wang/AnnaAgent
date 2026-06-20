@@ -64,7 +64,14 @@ vLLM 启动失败
 
 每次 deploy 都会重置当前 target 的 service log。手动读日志时请确认路径属于当前 workspace，而不是旧 workspace 或历史 run 目录。
 
-PyPI 发布失败
+PyPI 安装失败
 -------------
 
-发布 workflow 使用 GitHub Secret ``PYPI_API_TOKEN``。如果发布失败，请确认该 secret 存在、未过期，并且有权限向 ``anna-agent`` PyPI 项目上传新版本。
+如果从 PyPI 安装失败，请先确认包名和 Python 版本：
+
+.. code-block:: bash
+
+   python --version
+   pip install anna-agent
+
+AnnaAgent 需要 Python 3.10 或更新版本。
